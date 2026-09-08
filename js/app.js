@@ -38,9 +38,19 @@ async function iniciarApp() {
 
     if (modoDev) {
 
+        console.log(
+            "🔧 MODO DESARROLLADOR ACTIVADO"
+        );
+
         sessionStorage.setItem(
             "florenceTrip_simularCumpleanos",
             "true"
+        );
+
+        // Borramos el viaje desbloqueado
+        // para poder probar la sorpresa desde cero.
+        localStorage.removeItem(
+            CONFIG.storage.viajeDesbloqueado
         );
     }
 
@@ -58,7 +68,7 @@ async function iniciarApp() {
 
     iniciarCuentaAtras();
 
-    if (modoDev && !viajeDesbloqueado) {
+    if (modoDev) {
 
         activarModoCumpleanos();
     }
