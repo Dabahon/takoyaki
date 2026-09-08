@@ -3,180 +3,155 @@
    app.js
    ========================================================= */
 
-"use strict";
-
-
-/* =========================================================
-   CONFIGURACIÓN
-   ========================================================= */
-
 const CONFIG = {
-
-    fechaCumpleanos:
-        "2026-12-10T00:00:00",
+    fechaCumpleanos: "2026-12-10T00:00:00",
 
     storage: {
-
-        viajeDesbloqueado:
-            "florenceTrip_viajeDesbloqueado",
-
-        checklist:
-            "florenceTrip_checklist"
-
+        viajeDesbloqueado: "florenceTrip_viajeDesbloqueado",
+        checklist: "florenceTrip_checklist"
     }
-
 };
-
-
-/* =========================================================
-   ESTADO
-   ========================================================= */
 
 let datosViaje = null;
-
-let estadoApp = {
-
-    modoDesarrollador:
-        false,
-
-    cumpleanosSimulado:
-        false,
-
-    viajeDesbloqueado:
-        false
-
-};
+let restaurantesCompletos = [];
+let filtroRestauranteActual = "todos";
+let intervaloCuentaAtras = null;
 
 
 /* =========================================================
    INICIO
    ========================================================= */
 
-document.addEventListener(
-    "DOMContentLoaded",
-    iniciarApp
-);
-
+document.addEventListener("DOMContentLoaded", iniciarApp);
 
 async function iniciarApp() {
+    configurarEventosGlobales();
 
-    detectarModoDesarrollador();
+    const viajeDesbloqueado =
+        comprobarViajeDesbloqueado();
 
-    cargarEstadoGuardado();
-
-    configurarEventos();
-
-
-    /*
-        MUY IMPORTANTE:
-
-        Si el viaje NO está desbloqueado,
-        NO cargamos florencia.json.
-
-        De esta forma no hay ninguna petición
-        que pueda revelar información del viaje.
-    */
-
-    if (
-        estadoApp.viajeDesbloqueado
-    ) {
-
+    if (viajeDesbloqueado) {
         await desbloquearYcargarViaje();
-
     } else {
-
-        actualizarInterfazSorpresa();
-
+        mostrarPantallaSorpresa();
     }
 
-
     iniciarCuentaAtras();
-
 }
 
 
 /* =========================================================
-   MODO DESARROLLADOR
+   EVENTOS GLOBALES
    ========================================================= */
 
-/*
-    CTRL + SHIFT + G
-    → Simula el 10 de diciembre.
-
-    CTRL + SHIFT + R
-    → Reinicia completamente la sorpresa.
-*/
-
-function detectarModoDesarrollador() {
+function configurarEventosGlobales() {
 
     document.addEventListener(
         "keydown",
-        event => {
-
-            /*
-                Probar cumpleaños
-            */
-
-            if (
-                event.ctrlKey &&
-                event.shiftKey &&
-                event.key.toLowerCase() === "g"
-            ) {
-
-                event.preventDefault();
-
-                estadoApp.modoDesarrollador =
-                    true;
-
-                estadoApp.cumpleanosSimulado =
-                    true;
-
-                activarModoCumpleanos();
-
-                console.log(
-                    "🎁 MODO DESARROLLADOR ACTIVADO"
-                );
-
-            }
-
-
-            /*
-                Reiniciar sorpresa
-            */
-
-            if (
-                event.ctrlKey &&
-                event.shiftKey &&
-                event.key.toLowerCase() === "r"
-            ) {
-
-                event.preventDefault();
-
-                reiniciarSorpresa();
-
-            }
-
-        }
+        manejarTeclasDesarrollo
     );
 
+    const botonAbrirRegalo =
+        document.getElementById("open-gift");
+
+    if (botonAbrirRegalo) {
+        botonAbrirRegalo.addEventListener(
+            "click",
+            abrirRegalo
+        );
+    }
+
+    const enlacesNavegacion =
+        document.querySelectorAll(
+            ".main-nav a"
+        );
+
+    enlacesNavegacion.forEach(enlace => {
+
+        enlace.addEventListener(
+            "click",
+            manejarNavegacion
+        );
+
+    });
 }
 
 
 /* =========================================================
-   LOCAL STORAGE
+   MODO DESARROLLO
    ========================================================= */
 
-function cargarEstadoGuardado() {
+function manejarTeclasDesarrollo(event) {
 
-    const guardado =
-        localStorage.getItem(
+    /*
+     * Ctrl + Shift + G
+     * Simula que hoy es el cumpleaños.
+     */
+    if (
+        event.ctrlKey &&
+        event.shiftKey &&
+        event.key.toLowerCase() === "g"
+    ) {
+
+        event.preventDefault();
+
+        console.log(
+            "🎂 Modo cumpleaños activado"
+        );
+
+        sessionStorage.setItem(
+            "florenceTrip_simularCumpleanos",
+            "true"
+        );
+
+        activarModoCumpleanos();
+    }
+
+
+    /*
+     * Ctrl + Shift + R
+     * Reinicia completamente la sorpresa.
+     */
+    if (
+        event.ctrlKey &&
+        event.shiftKey &&
+        event.key.toLowerCase() === "r"
+    ) {
+
+        event.preventDefault();
+
+        console.log(
+            "🔄 Reiniciando regalo"
+        );
+
+        localStorage.removeItem(
             CONFIG.storage.viajeDesbloqueado
         );
 
+        localStorage.removeItem(
+            CONFIG.storage.checklist
+        );
 
-    estadoApp.viajeDesbloqueado =
-        guardado === "true";
+        sessionStorage.removeItem(
+            "florenceTrip_simularCumpleanos"
+        );
 
+        window.location.reload();
+    }
+}
+
+
+/* =========================================================
+   ESTADO DEL VIAJE
+   ========================================================= */
+
+function comprobarViajeDesbloqueado() {
+
+    return (
+        localStorage.getItem(
+            CONFIG.storage.viajeDesbloqueado
+        ) === "true"
+    );
 }
 
 
@@ -186,61 +161,6 @@ function guardarViajeDesbloqueado() {
         CONFIG.storage.viajeDesbloqueado,
         "true"
     );
-
-
-    estadoApp.viajeDesbloqueado =
-        true;
-
-}
-
-
-function reiniciarSorpresa() {
-
-    localStorage.removeItem(
-        CONFIG.storage.viajeDesbloqueado
-    );
-
-
-    localStorage.removeItem(
-        CONFIG.storage.checklist
-    );
-
-
-    estadoApp.viajeDesbloqueado =
-        false;
-
-
-    estadoApp.cumpleanosSimulado =
-        false;
-
-
-    location.reload();
-
-}
-
-
-/* =========================================================
-   INTERFAZ INICIAL
-   ========================================================= */
-
-function actualizarInterfazSorpresa() {
-
-    cambiarHero(
-
-        "Tengo algo preparado para ti",
-
-        "Solo tienes que esperar un poquito",
-
-        "🎁 UNA SORPRESA PARA TI"
-
-    );
-
-
-    mostrarPantallaEspera();
-
-
-    ocultarNavegacion();
-
 }
 
 
@@ -248,229 +168,943 @@ function actualizarInterfazSorpresa() {
    PANTALLA DE ESPERA
    ========================================================= */
 
-function mostrarPantallaEspera() {
+function mostrarPantallaSorpresa() {
 
-    const waiting =
+    const waitingScreen =
         document.getElementById(
             "waiting-screen"
         );
-
-
-    const loading =
-        document.getElementById(
-            "loading"
-        );
-
 
     const content =
         document.getElementById(
             "content"
         );
 
+    const loading =
+        document.getElementById(
+            "loading"
+        );
 
-    if (waiting) {
-
-        waiting.hidden =
-            false;
-
+    if (waitingScreen) {
+        waitingScreen.hidden = false;
     }
-
-
-    if (loading) {
-
-        loading.hidden =
-            true;
-
-    }
-
 
     if (content) {
-
-        content.hidden =
-            true;
-
+        content.hidden = true;
     }
 
+    if (loading) {
+        loading.hidden = true;
+    }
+
+    ocultarNavegacion();
+
+    actualizarHeroEspera();
+
+    comprobarFechaReal();
 }
 
 
 /* =========================================================
-   NAVEGACIÓN
+   HERO - ESPERA
    ========================================================= */
 
-function ocultarNavegacion() {
+function actualizarHeroEspera() {
 
-    const nav =
-        document.getElementById(
-            "main-nav"
+    const eyebrow =
+        document.querySelector(
+            ".hero-eyebrow"
         );
 
-
-    if (!nav) {
-        return;
-    }
-
-
-    nav.hidden =
-        true;
-
-}
-
-
-function mostrarNavegacion() {
-
-    const nav =
-        document.getElementById(
-            "main-nav"
+    const titulo =
+        document.querySelector(
+            ".hero-title"
         );
 
+    const subtitulo =
+        document.querySelector(
+            ".hero-subtitle"
+        );
 
-    if (!nav) {
-        return;
+    if (eyebrow) {
+        eyebrow.textContent =
+            "🎁 UNA SORPRESA PARA TI";
     }
 
+    if (titulo) {
+        titulo.textContent =
+            "Tengo algo preparado para ti";
+    }
 
-    nav.hidden =
-        false;
+    if (subtitulo) {
+        subtitulo.textContent =
+            "Solo tienes que esperar un poquito";
+    }
 
+    const boton =
+        document.getElementById(
+            "open-gift"
+        );
+
+    if (boton) {
+        boton.hidden = true;
+    }
 }
 
 
 /* =========================================================
-   CARGAR JSON
+   CUENTA ATRÁS
    ========================================================= */
 
-async function cargarDatos() {
+function iniciarCuentaAtras() {
+
+    actualizarCuentaAtras();
+
+    if (intervaloCuentaAtras) {
+        clearInterval(
+            intervaloCuentaAtras
+        );
+    }
+
+    intervaloCuentaAtras =
+        setInterval(
+            actualizarCuentaAtras,
+            1000
+        );
+}
+
+
+function actualizarCuentaAtras() {
+
+    const simulandoCumpleanos =
+        sessionStorage.getItem(
+            "florenceTrip_simularCumpleanos"
+        ) === "true";
+
+    if (simulandoCumpleanos) {
+        activarModoCumpleanos();
+        return;
+    }
+
+    const ahora =
+        new Date();
+
+    const fechaObjetivo =
+        new Date(
+            CONFIG.fechaCumpleanos
+        );
+
+    const diferencia =
+        fechaObjetivo - ahora;
+
+    if (diferencia <= 0) {
+
+        activarModoCumpleanos();
+
+        return;
+    }
+
+    const dias =
+        Math.floor(
+            diferencia /
+            (1000 * 60 * 60 * 24)
+        );
+
+    const horas =
+        Math.floor(
+            (diferencia /
+                (1000 * 60 * 60)) % 24
+        );
+
+    const minutos =
+        Math.floor(
+            (diferencia /
+                (1000 * 60)) % 60
+        );
+
+    const segundos =
+        Math.floor(
+            (diferencia / 1000) % 60
+        );
+
+    actualizarElemento(
+        "countdown-days",
+        formatearNumero(dias)
+    );
+
+    actualizarElemento(
+        "countdown-hours",
+        formatearNumero(horas)
+    );
+
+    actualizarElemento(
+        "countdown-minutes",
+        formatearNumero(minutos)
+    );
+
+    actualizarElemento(
+        "countdown-seconds",
+        formatearNumero(segundos)
+    );
+}
+
+
+function actualizarElemento(
+    id,
+    valor
+) {
+
+    const elemento =
+        document.getElementById(id);
+
+    if (elemento) {
+        elemento.textContent =
+            valor;
+    }
+}
+
+
+function formatearNumero(numero) {
+
+    return String(numero)
+        .padStart(2, "0");
+}
+
+
+/* =========================================================
+   CUMPLEAÑOS
+   ========================================================= */
+
+function comprobarFechaReal() {
+
+    const ahora =
+        new Date();
+
+    const fechaCumpleanos =
+        new Date(
+            CONFIG.fechaCumpleanos
+        );
+
+    if (ahora >= fechaCumpleanos) {
+        activarModoCumpleanos();
+    }
+}
+
+
+function activarModoCumpleanos() {
+
+    const waitingScreen =
+        document.getElementById(
+            "waiting-screen"
+        );
+
+    const eyebrow =
+        document.querySelector(
+            ".hero-eyebrow"
+        );
+
+    const titulo =
+        document.querySelector(
+            ".hero-title"
+        );
+
+    const subtitulo =
+        document.querySelector(
+            ".hero-subtitle"
+        );
+
+    if (waitingScreen) {
+        waitingScreen.hidden = false;
+    }
+
+    if (eyebrow) {
+        eyebrow.textContent =
+            "🎂 HOY ES TU DÍA";
+    }
+
+    if (titulo) {
+        titulo.textContent =
+            "BUON COMPLEANNO ❤️";
+    }
+
+    if (subtitulo) {
+        subtitulo.textContent =
+            "Y tengo una pequeña sorpresa preparada para ti...";
+    }
+
+    const boton =
+        document.getElementById(
+            "open-gift"
+        );
+
+    if (boton) {
+
+        boton.hidden = false;
+
+        /*
+         * Añadimos una pequeña animación
+         * si existe en CSS.
+         */
+        boton.classList.add(
+            "gift-ready"
+        );
+    }
+
+    actualizarCuentaAtrasCumpleanos();
+
+    if (intervaloCuentaAtras) {
+
+        clearInterval(
+            intervaloCuentaAtras
+        );
+
+        intervaloCuentaAtras = null;
+    }
+}
+
+
+function actualizarCuentaAtrasCumpleanos() {
+
+    actualizarElemento(
+        "countdown-days",
+        "00"
+    );
+
+    actualizarElemento(
+        "countdown-hours",
+        "00"
+    );
+
+    actualizarElemento(
+        "countdown-minutes",
+        "00"
+    );
+
+    actualizarElemento(
+        "countdown-seconds",
+        "00"
+    );
+}
+
+
+/* =========================================================
+   REGALO
+   ========================================================= */
+
+function abrirRegalo() {
+
+    console.log(
+        "🎁 Abriendo regalo..."
+    );
+
+    const boton =
+        document.getElementById(
+            "open-gift"
+        );
+
+    if (boton) {
+        boton.classList.add(
+            "gift-opening"
+        );
+    }
+
+    crearModalRegalo();
+
+    /*
+     * MUY IMPORTANTE:
+     * El CSS comienza con visibility:hidden.
+     * Por eso tenemos que añadir .visible.
+     */
+    requestAnimationFrame(() => {
+
+        const modal =
+            document.getElementById(
+                "gift-modal"
+            );
+
+        if (modal) {
+            modal.classList.add(
+                "visible"
+            );
+        }
+
+    });
+
+    mostrarPasoRegalo(1);
+
+    document.body.classList.add(
+        "gift-open"
+    );
+}
+
+
+/* =========================================================
+   CREAR MODAL
+   ========================================================= */
+
+function crearModalRegalo() {
+
+    const modalExistente =
+        document.getElementById(
+            "gift-modal"
+        );
+
+    if (modalExistente) {
+        modalExistente.remove();
+    }
+
+    const modal =
+        document.createElement(
+            "div"
+        );
+
+    modal.id =
+        "gift-modal";
+
+    modal.className =
+        "gift-modal";
+
+
+    modal.innerHTML = `
+
+        <div
+            class="gift-modal-overlay"
+            data-gift-close
+        ></div>
+
+
+        <div
+            class="gift-modal-content"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="gift-title"
+        >
+
+
+            <!-- =========================================
+                 PASO 1
+                 ========================================= -->
+
+            <div
+                class="gift-step"
+                data-step="1"
+            >
+
+                <div class="gift-big-icon">
+                    🎁
+                </div>
+
+                <p class="gift-small">
+                    TENGO ALGO PARA TI
+                </p>
+
+                <h2 id="gift-title">
+                    Tu regalo es...
+                </h2>
+
+                <p>
+                    Algo que llevamos un tiempo
+                    esperando.
+                </p>
+
+                <button
+                    type="button"
+                    class="gift-main-button"
+                    data-gift-next="2"
+                >
+                    Descubrir
+                </button>
+
+            </div>
+
+
+            <!-- =========================================
+                 PASO 2
+                 ========================================= -->
+
+            <div
+                class="gift-step"
+                data-step="2"
+                hidden
+            >
+
+                <div class="gift-big-icon">
+                    ✨
+                </div>
+
+                <p class="gift-small">
+                    PREPÁRATE
+                </p>
+
+                <h2>
+                    Nos vamos de viaje
+                </h2>
+
+                <p>
+                    Pero todavía falta descubrir...
+                </p>
+
+                <button
+                    type="button"
+                    class="gift-main-button"
+                    data-gift-next="3"
+                >
+                    ¿A dónde?
+                </button>
+
+            </div>
+
+
+            <!-- =========================================
+                 PASO 3
+                 ========================================= -->
+
+            <div
+                class="gift-step"
+                data-step="3"
+                hidden
+            >
+
+                <div class="gift-big-icon">
+                    🇮🇹
+                </div>
+
+                <p class="gift-small">
+                    NUESTRO DESTINO
+                </p>
+
+                <h1>
+                    FLORENCIA
+                </h1>
+
+                <p class="gift-dates">
+                    18 — 21 DICIEMBRE 2026
+                </p>
+
+                <p>
+                    Tres noches, nosotros dos,
+                    comida italiana y una ciudad preciosa.
+                </p>
+
+                <button
+                    type="button"
+                    class="gift-main-button"
+                    data-gift-reveal
+                >
+                    Descubrir nuestro viaje ❤️
+                </button>
+
+            </div>
+
+        </div>
+    `;
+
+
+    document.body.appendChild(
+        modal
+    );
+
+
+    /*
+     * Botones siguiente paso
+     */
+    const botonesPaso =
+        modal.querySelectorAll(
+            "[data-gift-next]"
+        );
+
+    botonesPaso.forEach(
+        boton => {
+
+            boton.addEventListener(
+                "click",
+                () => {
+
+                    const paso =
+                        Number(
+                            boton.dataset
+                                .giftNext
+                        );
+
+                    mostrarPasoRegalo(
+                        paso
+                    );
+                }
+            );
+        }
+    );
+
+
+    /*
+     * Botón final
+     */
+    const botonRevelar =
+        modal.querySelector(
+            "[data-gift-reveal]"
+        );
+
+    if (botonRevelar) {
+
+        botonRevelar.addEventListener(
+            "click",
+            revelarViaje
+        );
+    }
+
+
+    /*
+     * Cerrar haciendo click fuera.
+     * No mostramos ningún botón de cerrar
+     * para mantener la experiencia.
+     */
+    const overlay =
+        modal.querySelector(
+            "[data-gift-close]"
+        );
+
+    if (overlay) {
+
+        overlay.addEventListener(
+            "click",
+            cerrarModalRegalo
+        );
+    }
+
+
+    /*
+     * ESC para cerrar.
+     */
+    document.addEventListener(
+        "keydown",
+        manejarEscapeModal
+    );
+}
+
+
+/* =========================================================
+   PASOS DEL REGALO
+   ========================================================= */
+
+function mostrarPasoRegalo(
+    numeroPaso
+) {
+
+    const pasos =
+        document.querySelectorAll(
+            "#gift-modal .gift-step"
+        );
+
+    pasos.forEach(
+        paso => {
+
+            const numero =
+                Number(
+                    paso.dataset.step
+                );
+
+            paso.hidden =
+                numero !== numeroPaso;
+        }
+    );
+}
+
+
+/* =========================================================
+   CERRAR MODAL
+   ========================================================= */
+
+function manejarEscapeModal(event) {
+
+    if (event.key !== "Escape") {
+        return;
+    }
+
+    const modal =
+        document.getElementById(
+            "gift-modal"
+        );
+
+    if (!modal) {
+        return;
+    }
+
+    cerrarModalRegalo();
+}
+
+
+function cerrarModalRegalo() {
+
+    const modal =
+        document.getElementById(
+            "gift-modal"
+        );
+
+    if (!modal) {
+        return;
+    }
+
+    modal.classList.remove(
+        "visible"
+    );
+
+    document.body.classList.remove(
+        "gift-open"
+    );
+
+    setTimeout(() => {
+
+        if (modal) {
+            modal.remove();
+        }
+
+    }, 350);
+
+    document.removeEventListener(
+        "keydown",
+        manejarEscapeModal
+    );
+}
+
+
+/* =========================================================
+   REVELAR VIAJE
+   ========================================================= */
+
+async function revelarViaje() {
+
+    console.log(
+        "❤️ Revelando nuestro viaje..."
+    );
+
+    lanzarConfeti();
+
+    const cargado =
+        await desbloquearYcargarViaje();
+
+    if (!cargado) {
+        return;
+    }
+
+    const modal =
+        document.getElementById(
+            "gift-modal"
+        );
+
+    if (modal) {
+
+        modal.classList.remove(
+            "visible"
+        );
+
+        modal.classList.add(
+            "closing"
+        );
+
+        setTimeout(() => {
+
+            modal.remove();
+
+            document.body.classList.remove(
+                "gift-open"
+            );
+
+            document.removeEventListener(
+                "keydown",
+                manejarEscapeModal
+            );
+
+        }, 500);
+    }
+}
+
+
+/* =========================================================
+   CARGA DE DATOS
+   ========================================================= */
+
+async function desbloquearYcargarViaje() {
+
+    mostrarLoading();
 
     try {
+
+        console.log(
+            "📂 Cargando florencia.json..."
+        );
 
         const respuesta =
             await fetch(
                 "./data/florencia.json",
                 {
-                    cache:
-                        "no-store"
+                    cache: "no-store"
                 }
             );
-
 
         if (!respuesta.ok) {
 
             throw new Error(
-                `HTTP ${respuesta.status}`
+                `Error HTTP ${respuesta.status}`
             );
-
         }
-
 
         datosViaje =
             await respuesta.json();
-
 
         console.log(
             "✅ Datos del viaje cargados"
         );
 
+        renderizarAplicacion();
+
+        guardarViajeDesbloqueado();
+
+        activarViajeDesbloqueado();
 
         return true;
 
     } catch (error) {
 
         console.error(
-            "❌ Error cargando florencia.json:",
+            "❌ No se ha podido cargar florencia.json:",
             error
         );
 
-
         mostrarErrorCarga();
 
-
         return false;
-
     }
-
 }
 
 
 /* =========================================================
-   DESBLOQUEAR Y CARGAR VIAJE
+   VIAJE DESBLOQUEADO
    ========================================================= */
 
-async function desbloquearYcargarViaje() {
+function activarViajeDesbloqueado() {
 
-    const waiting =
+    const waitingScreen =
         document.getElementById(
             "waiting-screen"
         );
-
-
-    const loading =
-        document.getElementById(
-            "loading"
-        );
-
 
     const content =
         document.getElementById(
             "content"
         );
 
+    const loading =
+        document.getElementById(
+            "loading"
+        );
 
-    if (waiting) {
-
-        waiting.hidden =
-            true;
-
+    if (waitingScreen) {
+        waitingScreen.hidden = true;
     }
-
 
     if (loading) {
-
-        loading.hidden =
-            false;
-
+        loading.hidden = true;
     }
 
+    if (content) {
+        content.hidden = false;
+    }
+
+    actualizarHeroViaje();
 
     mostrarNavegacion();
 
-
-    const cargado =
-        await cargarDatos();
-
-
-    if (!cargado) {
-        return;
-    }
-
-
-    if (loading) {
-
-        loading.hidden =
-            true;
-
-    }
-
-
-    if (content) {
-
-        content.hidden =
-            false;
-
-    }
-
-
-    renderizarAplicacion();
-
-
-    activarViajeDesbloqueado();
-
+    mostrarPagina(
+        "inicio"
+    );
 }
 
 
 /* =========================================================
-   ERROR DE CARGA
+   HERO - VIAJE
    ========================================================= */
+
+function actualizarHeroViaje() {
+
+    const eyebrow =
+        document.querySelector(
+            ".hero-eyebrow"
+        );
+
+    const titulo =
+        document.querySelector(
+            ".hero-title"
+        );
+
+    const subtitulo =
+        document.querySelector(
+            ".hero-subtitle"
+        );
+
+    if (eyebrow) {
+
+        eyebrow.textContent =
+            "✨ NUESTRO VIAJE";
+    }
+
+    if (titulo) {
+
+        titulo.textContent =
+            "Nos vamos a Florencia 🇮🇹";
+    }
+
+    if (subtitulo) {
+
+        subtitulo.textContent =
+            "18 — 21 diciembre 2026";
+    }
+
+    const countdown =
+        document.getElementById(
+            "countdown"
+        );
+
+    if (countdown) {
+        countdown.hidden = true;
+    }
+}
+
+
+/* =========================================================
+   LOADING
+   ========================================================= */
+
+function mostrarLoading() {
+
+    const waitingScreen =
+        document.getElementById(
+            "waiting-screen"
+        );
+
+    const loading =
+        document.getElementById(
+            "loading"
+        );
+
+    const content =
+        document.getElementById(
+            "content"
+        );
+
+    if (waitingScreen) {
+        waitingScreen.hidden = true;
+    }
+
+    if (content) {
+        content.hidden = true;
+    }
+
+    if (loading) {
+        loading.hidden = false;
+    }
+
+    ocultarNavegacion();
+}
+
 
 function mostrarErrorCarga() {
 
@@ -479,22 +1113,18 @@ function mostrarErrorCarga() {
             "loading"
         );
 
-
     if (!loading) {
         return;
     }
 
-
-    loading.hidden =
-        false;
-
+    loading.hidden = false;
 
     loading.innerHTML = `
 
         <div class="error-card">
 
             <div class="error-icon">
-                ❌
+                😕
             </div>
 
             <h2>
@@ -503,23 +1133,183 @@ function mostrarErrorCarga() {
 
             <p>
                 No hemos podido cargar
-                la información.
+                nuestra escapada.
             </p>
 
             <p>
-                Comprueba que estás utilizando
-                <strong>Live Server</strong>.
+                Comprueba que
+                <strong>
+                    data/florencia.json
+                </strong>
+                existe.
             </p>
 
-        </div>
+            <button
+                type="button"
+                class="gift-main-button"
+                id="retry-load"
+            >
+                Intentar de nuevo
+            </button>
 
+        </div>
     `;
 
+    const boton =
+        document.getElementById(
+            "retry-load"
+        );
+
+    if (boton) {
+
+        boton.addEventListener(
+            "click",
+            () => {
+
+                desbloquearYcargarViaje();
+            }
+        );
+    }
 }
 
 
 /* =========================================================
-   RENDER GENERAL
+   NAVEGACIÓN
+   ========================================================= */
+
+function mostrarNavegacion() {
+
+    const nav =
+        document.getElementById(
+            "main-nav"
+        );
+
+    if (nav) {
+        nav.hidden = false;
+    }
+}
+
+
+function ocultarNavegacion() {
+
+    const nav =
+        document.getElementById(
+            "main-nav"
+        );
+
+    if (nav) {
+        nav.hidden = true;
+    }
+}
+
+
+function manejarNavegacion(event) {
+
+    event.preventDefault();
+
+    const enlace =
+        event.currentTarget;
+
+    /*
+     * Tu HTML utiliza data-section.
+     */
+    const destino =
+        enlace.dataset.section ||
+        obtenerPaginaDesdeHref(
+            enlace.getAttribute(
+                "href"
+            )
+        );
+
+    if (destino) {
+
+        mostrarPagina(
+            destino
+        );
+    }
+}
+
+
+function obtenerPaginaDesdeHref(
+    href
+) {
+
+    if (!href) {
+        return null;
+    }
+
+    return href
+        .replace("#", "")
+        .replace("page-", "");
+}
+
+
+function mostrarPagina(
+    nombrePagina
+) {
+
+    /*
+     * Tu HTML no utiliza .trip-page.
+     * Utilizamos data-page, que sí existe.
+     */
+    const paginas =
+        document.querySelectorAll(
+            "[data-page]"
+        );
+
+    paginas.forEach(
+        pagina => {
+            pagina.hidden = true;
+        }
+    );
+
+
+    const pagina =
+        document.getElementById(
+            `page-${nombrePagina}`
+        );
+
+    if (pagina) {
+        pagina.hidden = false;
+    }
+
+
+    /*
+     * Estado activo del menú.
+     */
+    const enlaces =
+        document.querySelectorAll(
+            ".main-nav a"
+        );
+
+    enlaces.forEach(
+        enlace => {
+
+            const destino =
+                enlace.dataset.section ||
+                obtenerPaginaDesdeHref(
+                    enlace.getAttribute(
+                        "href"
+                    )
+                );
+
+            enlace.classList.toggle(
+                "active",
+                destino === nombrePagina
+            );
+        }
+    );
+
+
+    window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+    });
+}
+
+
+/* =========================================================
+   RENDER PRINCIPAL
    ========================================================= */
 
 function renderizarAplicacion() {
@@ -528,101 +1318,137 @@ function renderizarAplicacion() {
         return;
     }
 
+    renderizarDatosGenerales();
 
     renderizarRestaurantes();
 
     renderizarItinerario();
 
     renderizarChecklist();
-
-    actualizarInformacionViaje();
-
 }
 
 
 /* =========================================================
-   INFORMACIÓN DEL VIAJE
+   DATOS GENERALES
    ========================================================= */
 
-function actualizarInformacionViaje() {
+function renderizarDatosGenerales() {
 
     const viaje =
-        datosViaje?.viaje;
-
-
-    if (!viaje) {
-        return;
-    }
-
+        datosViaje.viaje || {};
 
     const destino =
+        viaje.destino ||
+        "Florencia";
+
+    const fechas =
+        viaje.fechas ||
+        {};
+
+    const hotel =
+        viaje.hotel ||
+        {};
+
+
+    /*
+     * DESTINO
+     */
+    const destinoElemento =
         document.querySelector(
             "[data-viaje-destino]"
         );
 
+    if (destinoElemento) {
 
-    const fechas =
+        destinoElemento.textContent =
+            destino;
+    }
+
+
+    /*
+     * FECHAS
+     */
+    const fechasElemento =
         document.querySelector(
             "[data-viaje-fechas]"
         );
 
+    if (fechasElemento) {
 
-    const hotel =
+        const inicio =
+            formatearFecha(
+                fechas.inicio
+            );
+
+        const fin =
+            formatearFecha(
+                fechas.fin
+            );
+
+        if (inicio && fin) {
+
+            fechasElemento.textContent =
+                `${inicio} — ${fin}`;
+
+        } else {
+
+            fechasElemento.textContent =
+                "18 — 21 diciembre 2026";
+        }
+    }
+
+
+    /*
+     * HOTEL
+     */
+    const hotelElemento =
         document.querySelector(
             "[data-viaje-hotel]"
         );
 
+    if (hotelElemento) {
 
-    if (
-        destino &&
-        viaje.destino
-    ) {
+        const hotelNombre =
+            typeof hotel === "string"
+                ? hotel
+                : hotel.nombre;
 
-        destino.textContent =
-            viaje.destino;
+        hotelElemento.textContent =
+            hotelNombre ||
+            "La Scaletta al Ponte Vecchio";
+    }
+}
 
+
+function formatearFecha(
+    fecha
+) {
+
+    if (!fecha) {
+        return "";
     }
 
+    const fechaObj =
+        new Date(
+            `${fecha}T12:00:00`
+        );
 
     if (
-        fechas &&
-        viaje.fechas
+        Number.isNaN(
+            fechaObj.getTime()
+        )
     ) {
-
-        fechas.textContent =
-            `${formatearFecha(
-                viaje.fechas.inicio
-            )} — ${formatearFecha(
-                viaje.fechas.fin
-            )}`;
-
+        return fecha;
     }
 
-
-    if (
-        hotel &&
-        viaje.hotel
-    ) {
-
-        if (
-            typeof viaje.hotel ===
-            "string"
-        ) {
-
-            hotel.textContent =
-                viaje.hotel;
-
-        } else if (
-            viaje.hotel.nombre
-        ) {
-
-            hotel.textContent =
-                viaje.hotel.nombre;
-
+    return fechaObj.toLocaleDateString(
+        "es-ES",
+        {
+            day: "numeric",
+            month: "long",
+            year: "numeric"
         }
-
-    }
-
+    );
 }
 
 
@@ -630,166 +1456,335 @@ function actualizarInformacionViaje() {
    RESTAURANTES
    ========================================================= */
 
-function renderizarRestaurantes() {
+function prepararRestaurantes() {
+
+    const gastronomia =
+        datosViaje?.guia_gastronomica;
+
+    if (!gastronomia) {
+        return [];
+    }
+
+    const restaurantes = [];
+
+
+    /*
+     * RESTAURANTES DESTACADOS
+     */
+    if (
+        Array.isArray(
+            gastronomia.restaurantes_destacados
+        )
+    ) {
+
+        gastronomia.restaurantes_destacados
+            .forEach(restaurante => {
+
+                restaurantes.push({
+
+                    ...restaurante,
+
+                    categoriaFiltro:
+                        obtenerCategoriaRestaurante(
+                            restaurante,
+                            "restaurante"
+                        )
+                });
+            });
+    }
+
+
+    /*
+     * STREET FOOD
+     *
+     * En tu JSON actual está integrado
+     * dentro de restaurantes_destacados,
+     * pero dejamos este soporte por si
+     * posteriormente lo separamos.
+     */
+    if (
+        Array.isArray(
+            gastronomia.street_food
+        )
+    ) {
+
+        gastronomia.street_food
+            .forEach(restaurante => {
+
+                restaurantes.push({
+
+                    ...restaurante,
+
+                    categoriaFiltro:
+                        "street-food"
+                });
+            });
+    }
+
+
+    /*
+     * APERITIVO
+     */
+    if (
+        Array.isArray(
+            gastronomia.aperitivo
+        )
+    ) {
+
+        gastronomia.aperitivo
+            .forEach(restaurante => {
+
+                restaurantes.push({
+
+                    ...restaurante,
+
+                    categoriaFiltro:
+                        "aperitivo"
+                });
+            });
+    }
+
+
+    /*
+     * DESAYUNOS
+     */
+    if (
+        Array.isArray(
+            gastronomia.desayunos
+        )
+    ) {
+
+        gastronomia.desayunos
+            .forEach(restaurante => {
+
+                restaurantes.push({
+
+                    ...restaurante,
+
+                    categoriaFiltro:
+                        "desayuno"
+                });
+            });
+    }
+
+
+    /*
+     * GELATO
+     */
+    if (
+        Array.isArray(
+            gastronomia.gelato
+        )
+    ) {
+
+        gastronomia.gelato
+            .forEach(restaurante => {
+
+                restaurantes.push({
+
+                    ...restaurante,
+
+                    categoriaFiltro:
+                        "gelato"
+                });
+            });
+    }
+
+
+    /*
+     * ELIMINAR DUPLICADOS
+     */
+    const vistos =
+        new Set();
+
+    return restaurantes.filter(
+        restaurante => {
+
+            const nombre =
+                restaurante.nombre;
+
+            if (
+                !nombre ||
+                vistos.has(nombre)
+            ) {
+                return false;
+            }
+
+            vistos.add(nombre);
+
+            return true;
+        }
+    );
+}
+
+
+function obtenerCategoriaRestaurante(
+    restaurante,
+    categoriaPorDefecto
+) {
+
+    const categoria = (
+        restaurante.categoria ||
+        restaurante.tipo ||
+        ""
+    )
+        .toString()
+        .toLowerCase();
+
+
+    if (
+        categoria.includes(
+            "street"
+        ) ||
+        categoria.includes(
+            "street_food"
+        ) ||
+        categoria.includes(
+            "schiacciata"
+        ) ||
+        categoria.includes(
+            "sandwich"
+        ) ||
+        categoria.includes(
+            "panino"
+        )
+    ) {
+        return "street-food";
+    }
+
+
+    if (
+        categoria.includes(
+            "aperitivo"
+        ) ||
+        categoria.includes(
+            "bar"
+        )
+    ) {
+        return "aperitivo";
+    }
+
+
+    if (
+        categoria.includes(
+            "desayuno"
+        ) ||
+        categoria.includes(
+            "breakfast"
+        ) ||
+        categoria.includes(
+            "café"
+        ) ||
+        categoria.includes(
+            "cafe"
+        )
+    ) {
+        return "desayuno";
+    }
+
+
+    if (
+        categoria.includes(
+            "gelato"
+        ) ||
+        categoria.includes(
+            "gelateria"
+        ) ||
+        categoria.includes(
+            "helado"
+        )
+    ) {
+        return "gelato";
+    }
+
+
+    return categoriaPorDefecto;
+}
+
+
+/* =========================================================
+   FILTROS RESTAURANTES
+   ========================================================= */
+
+function configurarFiltrosRestaurantes() {
+
+    const filtros =
+        document.querySelectorAll(
+            "[data-restaurant-filter]"
+        );
+
+    if (!filtros.length) {
+        return;
+    }
+
+    filtros.forEach(
+        filtro => {
+
+            filtro.addEventListener(
+                "click",
+                () => {
+
+                    const categoria =
+                        filtro.dataset
+                            .restaurantFilter;
+
+                    filtroRestauranteActual =
+                        categoria;
+
+
+                    filtros.forEach(
+                        elemento => {
+
+                            elemento.classList.toggle(
+                                "active",
+                                elemento === filtro
+                            );
+                        }
+                    );
+
+
+                    renderizarRestaurantesFiltrados();
+                }
+            );
+        }
+    );
+}
+
+
+function renderizarRestaurantesFiltrados() {
 
     const contenedor =
         document.getElementById(
             "restaurant-list"
         );
 
-
     if (!contenedor) {
         return;
     }
 
 
-    const gastronomia =
-        datosViaje?.guia_gastronomica;
-
-
-    if (!gastronomia) {
-        return;
-    }
-
-
-    let restaurantes = [];
+    let restaurantes =
+        restaurantesCompletos;
 
 
     if (
-        Array.isArray(
-            gastronomia.zonas
-        )
-    ) {
-
-        gastronomia.zonas.forEach(
-            zona => {
-
-                if (
-                    !Array.isArray(
-                        zona.restaurantes
-                    )
-                ) {
-
-                    return;
-
-                }
-
-
-                zona.restaurantes.forEach(
-                    restaurante => {
-
-                        restaurantes.push({
-
-                            ...restaurante,
-
-                            zona:
-                                restaurante.zona ||
-                                zona.nombre ||
-                                ""
-
-                        });
-
-                    }
-                );
-
-            }
-        );
-
-    }
-
-
-    if (
-        restaurantes.length === 0 &&
-        Array.isArray(
-            gastronomia.restaurantes
-        )
+        filtroRestauranteActual !==
+        "todos"
     ) {
 
         restaurantes =
-            gastronomia.restaurantes;
-
+            restaurantesCompletos.filter(
+                restaurante =>
+                    restaurante.categoriaFiltro ===
+                    filtroRestauranteActual
+            );
     }
 
 
-    const categorias = [
-
-        "restaurantes",
-        "street_food",
-        "aperitivo",
-        "desayunos",
-        "gelato"
-
-    ];
+    contenedor.innerHTML = "";
 
 
-    categorias.forEach(
-        categoria => {
-
-            if (
-                !Array.isArray(
-                    gastronomia[categoria]
-                )
-            ) {
-
-                return;
-
-            }
-
-
-            gastronomia[categoria].forEach(
-                restaurante => {
-
-                    if (
-                        restaurante &&
-                        restaurante.nombre
-                    ) {
-
-                        restaurantes.push(
-                            restaurante
-                        );
-
-                    }
-
-                }
-            );
-
-        }
-    );
-
-
-    const vistos =
-        new Set();
-
-
-    restaurantes =
-        restaurantes.filter(
-            restaurante => {
-
-                const clave =
-                    restaurante.nombre;
-
-
-                if (
-                    !clave ||
-                    vistos.has(clave)
-                ) {
-
-                    return false;
-
-                }
-
-
-                vistos.add(clave);
-
-                return true;
-
-            }
-        );
-
-
-    if (
-        restaurantes.length === 0
-    ) {
+    if (!restaurantes.length) {
 
         contenedor.innerHTML = `
 
@@ -800,25 +1795,23 @@ function renderizarRestaurantes() {
                 </span>
 
                 <h3>
-                    Próximamente
+                    Aún no tenemos sitios aquí
                 </h3>
 
                 <p>
-                    Aquí aparecerán nuestros
-                    restaurantes.
+                    Pronto añadiremos nuestras
+                    recomendaciones.
                 </p>
 
             </div>
-
         `;
 
+        actualizarContadorRestaurantes(
+            0
+        );
+
         return;
-
     }
-
-
-    contenedor.innerHTML =
-        "";
 
 
     restaurantes.forEach(
@@ -829,10 +1822,64 @@ function renderizarRestaurantes() {
                     restaurante
                 )
             );
-
         }
     );
 
+
+    actualizarContadorRestaurantes(
+        restaurantes.length
+    );
+}
+
+
+function actualizarContadorRestaurantes(
+    cantidad
+) {
+
+    const elemento =
+        document.getElementById(
+            "restaurant-results-info"
+        );
+
+    if (!elemento) {
+        return;
+    }
+
+    const palabra =
+        cantidad === 1
+            ? "sitio"
+            : "sitios";
+
+    elemento.innerHTML = `
+        <span>
+            ${cantidad}
+            ${palabra}
+            seleccionado${cantidad === 1 ? "" : "s"}
+        </span>
+    `;
+}
+
+
+function renderizarRestaurantes() {
+
+    const contenedor =
+        document.getElementById(
+            "restaurant-list"
+        );
+
+    if (!contenedor) {
+        return;
+    }
+
+    restaurantesCompletos =
+        prepararRestaurantes();
+
+    filtroRestauranteActual =
+        "todos";
+
+    configurarFiltrosRestaurantes();
+
+    renderizarRestaurantesFiltrados();
 }
 
 
@@ -849,142 +1896,128 @@ function crearTarjetaRestaurante(
             "article"
         );
 
-
     tarjeta.className =
         "restaurant-card";
+
+
+    const contenido =
+        document.createElement(
+            "div"
+        );
+
+    contenido.className =
+        "restaurant-card-content";
 
 
     const nombre =
         restaurante.nombre ||
         "Restaurante";
 
+    const zona =
+        restaurante.zona ||
+        "";
+
+    const direccion =
+        restaurante.direccion ||
+        "";
 
     const descripcion =
         restaurante.descripcion ||
         restaurante.tipo ||
-        restaurante.categoria ||
-        "Restaurante recomendado";
-
+        "";
 
     const precio =
         restaurante.precio ||
-        restaurante.rango_precio ||
-        "€€";
-
+        "";
 
     const calidad =
-        restaurante.calidad ||
-        restaurante.puntuacion ||
-        restaurante.rating ||
-        "";
+        restaurante.calidad;
 
-
-    const zona =
-        restaurante.zona ||
-        restaurante.ubicacion ||
-        "";
-
-
-    const direccion =
-        restaurante.direccion ||
-        restaurante.address ||
-        "";
-
-
-    const maps =
-        restaurante.google_maps ||
-        restaurante.maps ||
-        restaurante.googleMaps ||
-        "";
-
+    const romanticismo =
+        restaurante.romanticismo;
 
     const platos =
         restaurante.platos_recomendados ||
+        restaurante.recomendado ||
         restaurante.recomendados ||
-        restaurante.platos ||
+        restaurante.especialidades ||
         [];
 
 
-    const platosArray =
-        Array.isArray(platos)
-            ? platos
-            : [];
+    let platosHTML = "";
 
 
-    const platosHTML =
-        platosArray.length > 0
-            ? `
+    if (
+        Array.isArray(platos) &&
+        platos.length
+    ) {
 
-                <div class="restaurant-dishes">
+        platosHTML = `
 
-                    <h4>
-                        🍴 Qué pedir
-                    </h4>
+            <div class="restaurant-dishes">
 
-                    <ul>
+                <h4>
+                    Qué pedir
+                </h4>
 
-                        ${platosArray
-                            .map(
-                                plato => `
-                                    <li>
-                                        ${plato}
-                                    </li>
-                                `
-                            )
-                            .join("")
-                        }
+                <ul>
 
-                    </ul>
+                    ${platos
+                        .slice(0, 5)
+                        .map(
+                            plato =>
+                                `<li>${escaparHTML(plato)}</li>`
+                        )
+                        .join("")}
 
-                </div>
-
-            `
-            : "";
-
-
-    tarjeta.innerHTML = `
-
-        <div class="restaurant-card-content">
-
-            <div class="restaurant-header">
-
-                <div>
-
-                    <h3>
-                        ${nombre}
-                    </h3>
-
-                    <p class="restaurant-description">
-                        ${descripcion}
-                    </p>
-
-                </div>
-
-                <span class="restaurant-price">
-                    ${precio}
-                </span>
+                </ul>
 
             </div>
+        `;
+
+    } else if (
+        typeof platos === "string" &&
+        platos.trim()
+    ) {
+
+        platosHTML = `
+
+            <div class="restaurant-dishes">
+
+                <h4>
+                    Qué pedir
+                </h4>
+
+                <p>
+                    ${escaparHTML(platos)}
+                </p>
+
+            </div>
+        `;
+    }
 
 
-            <div class="restaurant-meta">
+    const mapsUrl =
+        obtenerGoogleMapsUrl(
+            restaurante
+        );
+
+
+    contenido.innerHTML = `
+
+        <div class="restaurant-header">
+
+            <div>
+
+                <h3>
+                    ${escaparHTML(nombre)}
+                </h3>
 
                 ${
                     zona
                         ? `
                             <span class="restaurant-zone">
-                                📍 ${zona}
-                            </span>
-                        `
-                        : ""
-                }
-
-
-                ${
-                    calidad
-                        ? `
-                            <span class="restaurant-score">
-                                ⭐ ${calidad}
+                                ${escaparHTML(zona)}
                             </span>
                         `
                         : ""
@@ -992,47 +2025,175 @@ function crearTarjetaRestaurante(
 
             </div>
 
-
             ${
-                direccion
+                precio
                     ? `
-                        <p class="restaurant-address">
-                            📍 ${direccion}
-                        </p>
-                    `
-                    : ""
-            }
-
-
-            ${platosHTML}
-
-
-            ${
-                maps
-                    ? `
-                        <div class="restaurant-actions">
-
-                            <a
-                                class="maps-button"
-                                href="${maps}"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                            >
-                                🗺️ Google Maps
-                            </a>
-
-                        </div>
+                        <span class="restaurant-price">
+                            ${escaparHTML(precio)}
+                        </span>
                     `
                     : ""
             }
 
         </div>
 
+
+        ${
+            descripcion
+                ? `
+                    <p class="restaurant-description">
+                        ${escaparHTML(
+                            descripcion
+                        )}
+                    </p>
+                `
+                : ""
+        }
+
+
+        ${
+            calidad || romanticismo
+                ? `
+
+                    <div class="restaurant-meta">
+
+                        ${
+                            calidad
+                                ? `
+                                    <span class="restaurant-score">
+                                        ⭐ ${escaparHTML(
+                                            String(
+                                                calidad
+                                            )
+                                        )}
+                                    </span>
+                                `
+                                : ""
+                        }
+
+                        ${
+                            romanticismo
+                                ? `
+                                    <span class="restaurant-score">
+                                        ❤️ ${escaparHTML(
+                                            String(
+                                                romanticismo
+                                            )
+                                        )}
+                                    </span>
+                                `
+                                : ""
+                        }
+
+                    </div>
+
+                `
+                : ""
+        }
+
+
+        ${
+            direccion
+                ? `
+                    <p class="restaurant-address">
+                        📍 ${escaparHTML(
+                            direccion
+                        )}
+                    </p>
+                `
+                : ""
+        }
+
+
+        ${platosHTML}
+
+
+        ${
+            mapsUrl
+                ? `
+
+                    <div class="restaurant-actions">
+
+                        <a
+                            class="maps-button"
+                            href="${escaparAtributo(
+                                mapsUrl
+                            )}"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            Ver en Google Maps →
+                        </a>
+
+                    </div>
+
+                `
+                : ""
+        }
+
     `;
 
 
-    return tarjeta;
+    tarjeta.appendChild(
+        contenido
+    );
 
+    return tarjeta;
+}
+
+
+/* =========================================================
+   GOOGLE MAPS
+   ========================================================= */
+
+function obtenerGoogleMapsUrl(
+    restaurante
+) {
+
+    if (
+        restaurante.google_maps
+    ) {
+        return restaurante.google_maps;
+    }
+
+    if (
+        restaurante.googleMaps
+    ) {
+        return restaurante.googleMaps;
+    }
+
+    if (
+        restaurante.maps
+    ) {
+        return restaurante.maps;
+    }
+
+
+    const nombre =
+        restaurante.nombre ||
+        "";
+
+    const direccion =
+        restaurante.direccion ||
+        restaurante.zona ||
+        "";
+
+
+    if (!nombre) {
+        return null;
+    }
+
+
+    const query =
+        encodeURIComponent(
+            `${nombre} ${direccion} Florence Italy`
+        );
+
+
+    return (
+        "https://www.google.com/maps/search/" +
+        `?api=1&query=${query}`
+    );
 }
 
 
@@ -1047,153 +2208,172 @@ function renderizarItinerario() {
             "itinerary-list"
         );
 
-
     if (!contenedor) {
         return;
     }
 
 
     const itinerario =
-        datosViaje?.viaje?.itinerario;
+        datosViaje.viaje?.itinerario ||
+        datosViaje.itinerario ||
+        [];
 
 
-    if (
-        !Array.isArray(itinerario) ||
-        itinerario.length === 0
-    ) {
-
-        contenedor.innerHTML = `
-
-            <div class="empty-state">
-
-                <span>
-                    🗓️
-                </span>
-
-                <h3>
-                    Itinerario
-                </h3>
-
-                <p>
-                    Próximamente añadiremos
-                    todos los detalles.
-                </p>
-
-            </div>
-
-        `;
-
+    if (!Array.isArray(itinerario)) {
         return;
-
     }
 
 
-    contenedor.innerHTML =
-        "";
+    contenedor.innerHTML = "";
 
 
     itinerario.forEach(
-        (dia, index) => {
+        dia => {
 
             const elemento =
-                document.createElement(
-                    "article"
+                crearElementoItinerario(
+                    dia
                 );
 
+            if (elemento) {
 
-            elemento.className =
-                "itinerary-day";
-
-
-            const actividades =
-                dia.actividades ||
-                dia.plan ||
-                dia.eventos ||
-                [];
-
-
-            const numero =
-                dia.numero ||
-                index + 1;
+                contenedor.appendChild(
+                    elemento
+                );
+            }
+        }
+    );
+}
 
 
-            const titulo =
-                dia.titulo ||
-                dia.dia ||
-                `Día ${numero}`;
+function crearElementoItinerario(
+    dia
+) {
+
+    const elemento =
+        document.createElement(
+            "article"
+        );
+
+    elemento.className =
+        "itinerary-day";
 
 
-            const fecha =
-                dia.fecha
-                    ? formatearFecha(
-                        dia.fecha
-                    )
-                    : "";
+    const numero =
+        dia.numero ||
+        "";
+
+    const fecha =
+        dia.fecha ||
+        "";
+
+    const titulo =
+        dia.titulo ||
+        dia.nombre ||
+        "";
+
+    const descripcion =
+        dia.descripcion ||
+        "";
 
 
-            elemento.innerHTML = `
-
-                <div class="itinerary-day-header">
-
-                    <span class="itinerary-day-number">
-                        ${numero}
-                    </span>
-
-                    <div>
-
-                        <h3>
-                            ${titulo}
-                        </h3>
-
-                        ${
-                            fecha
-                                ? `
-                                    <p>
-                                        ${fecha}
-                                    </p>
-                                `
-                                : ""
-                        }
-
-                    </div>
-
-                </div>
+    const actividades =
+        dia.actividades ||
+        [];
 
 
-                <div>
+    let actividadesHTML = "";
+
+
+    if (
+        Array.isArray(
+            actividades
+        )
+    ) {
+
+        actividadesHTML =
+            actividades
+                .map(
+                    crearActividadHTML
+                )
+                .join("");
+    }
+
+
+    elemento.innerHTML = `
+
+        <div class="itinerary-day-header">
+
+            ${
+                numero
+                    ? `
+                        <div class="itinerary-day-number">
+                            ${escaparHTML(
+                                String(
+                                    numero
+                                )
+                            )}
+                        </div>
+                    `
+                    : ""
+            }
+
+
+            <div>
+
+                <span class="itinerary-day-label">
 
                     ${
-                        Array.isArray(
-                            actividades
-                        )
-                            ? actividades
-                                .map(
-                                    actividad =>
-                                        crearActividadHTML(
-                                            actividad
-                                        )
+                        fecha
+                            ? escaparHTML(
+                                formatearFecha(
+                                    fecha
                                 )
-                                .join("")
+                            )
                             : ""
                     }
 
-                </div>
-
-            `;
+                </span>
 
 
-            contenedor.appendChild(
-                elemento
-            );
+                <h3>
+                    ${escaparHTML(
+                        titulo
+                    )}
+                </h3>
 
-        }
-    );
 
+                ${
+                    descripcion
+                        ? `
+                            <p class="itinerary-day-description">
+                                ${escaparHTML(
+                                    descripcion
+                                )}
+                            </p>
+                        `
+                        : ""
+                }
+
+            </div>
+
+        </div>
+
+
+        <div class="itinerary-timeline">
+
+            ${actividadesHTML}
+
+        </div>
+    `;
+
+
+    return elemento;
 }
 
 
 /* =========================================================
-   ACTIVIDAD
+   ACTIVIDAD ITINERARIO
    ========================================================= */
 
 function crearActividadHTML(
@@ -1209,61 +2389,351 @@ function crearActividadHTML(
 
             <div class="itinerary-item">
 
-                <p>
-                    ${actividad}
-                </p>
+                <div class="itinerary-content">
+
+                    <div class="itinerary-main">
+
+                        <p class="itinerary-description">
+                            ${escaparHTML(
+                                actividad
+                            )}
+                        </p>
+
+                    </div>
+
+                </div>
 
             </div>
-
         `;
+    }
 
+
+    const hora =
+        actividad.hora ||
+        "";
+
+    const titulo =
+        actividad.titulo ||
+        actividad.nombre ||
+        "";
+
+    const tipo =
+        actividad.tipo ||
+        "";
+
+    const duracion =
+        actividad.duracion ||
+        "";
+
+    const descripcion =
+        actividad.descripcion ||
+        "";
+
+    const ubicacion =
+        actividad.ubicacion ||
+        "";
+
+    const reserva =
+        actividad.reserva === true;
+
+    const especial =
+        actividad.especial === true;
+
+    const googleMaps =
+        actividad.google_maps ||
+        "";
+
+
+    let opcionesHTML = "";
+
+
+    if (
+        Array.isArray(
+            actividad.opciones
+        ) &&
+        actividad.opciones.length
+    ) {
+
+        opcionesHTML = `
+
+            <div class="itinerary-options">
+
+                <span>
+                    Opciones
+                </span>
+
+                <div>
+
+                    ${actividad.opciones
+                        .map(
+                            opcion =>
+                                `<span>${escaparHTML(opcion)}</span>`
+                        )
+                        .join("")}
+
+                </div>
+
+            </div>
+        `;
     }
 
 
     return `
 
-        <div class="itinerary-item">
+        <div
+            class="itinerary-item ${
+                especial
+                    ? "itinerary-special"
+                    : ""
+            }"
+        >
 
             ${
-                actividad.hora
+                hora
                     ? `
-                        <span class="itinerary-time">
-                            ${actividad.hora}
-                        </span>
+                        <div class="itinerary-time-column">
+
+                            <span class="itinerary-time">
+                                ${escaparHTML(
+                                    hora
+                                )}
+                            </span>
+
+                        </div>
                     `
                     : ""
             }
 
 
-            <div>
+            <div class="itinerary-content">
 
-                ${
-                    actividad.titulo
-                        ? `
-                            <h4>
-                                ${actividad.titulo}
-                            </h4>
-                        `
-                        : ""
-                }
+                <div class="itinerary-icon">
+
+                    ${obtenerIconoActividad(
+                        tipo
+                    )}
+
+                </div>
 
 
-                ${
-                    actividad.descripcion
-                        ? `
-                            <p>
-                                ${actividad.descripcion}
-                            </p>
-                        `
-                        : ""
-                }
+                <div class="itinerary-main">
+
+
+                    <div class="itinerary-title-row">
+
+                        <h4>
+                            ${escaparHTML(
+                                titulo
+                            )}
+                        </h4>
+
+                    </div>
+
+
+                    <div class="itinerary-badges">
+
+                        ${
+                            tipo
+                                ? `
+                                    <span class="itinerary-type">
+                                        ${escaparHTML(
+                                            traducirTipoActividad(
+                                                tipo
+                                            )
+                                        )}
+                                    </span>
+                                `
+                                : ""
+                        }
+
+
+                        ${
+                            duracion
+                                ? `
+                                    <span class="itinerary-duration">
+                                        ${escaparHTML(
+                                            duracion
+                                        )}
+                                    </span>
+                                `
+                                : ""
+                        }
+
+
+                        ${
+                            reserva
+                                ? `
+                                    <span class="itinerary-reservation">
+                                        🎟️ Reserva
+                                    </span>
+                                `
+                                : ""
+                        }
+
+
+                        ${
+                            especial
+                                ? `
+                                    <span class="itinerary-special-badge">
+                                        ❤️ Especial
+                                    </span>
+                                `
+                                : ""
+                        }
+
+                    </div>
+
+
+                    ${
+                        descripcion
+                            ? `
+                                <p class="itinerary-description">
+                                    ${escaparHTML(
+                                        descripcion
+                                    )}
+                                </p>
+                            `
+                            : ""
+                    }
+
+
+                    ${
+                        ubicacion
+                            ? `
+                                <p class="itinerary-location">
+                                    📍 ${escaparHTML(
+                                        ubicacion
+                                    )}
+                                </p>
+                            `
+                            : ""
+                    }
+
+
+                    ${opcionesHTML}
+
+
+                    ${
+                        googleMaps
+                            ? `
+                                <div class="itinerary-map-button">
+
+                                    <a
+                                        href="${escaparAtributo(
+                                            googleMaps
+                                        )}"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        class="maps-button"
+                                    >
+                                        Ver ubicación →
+                                    </a>
+
+                                </div>
+                            `
+                            : ""
+                    }
+
+                </div>
 
             </div>
 
         </div>
-
     `;
+}
 
+
+function obtenerIconoActividad(
+    tipo
+) {
+
+    const iconos = {
+
+        vuelo: "✈️",
+
+        transporte: "🚆",
+
+        hotel: "🏨",
+
+        paseo: "🚶",
+
+        restaurante: "🍝",
+
+        comida: "🥪",
+
+        desayuno: "☕",
+
+        aperitivo: "🥂",
+
+        monumento: "🏛️",
+
+        museo: "🎨",
+
+        tour: "🗺️",
+
+        gelato: "🍦",
+
+        mirador: "🌅",
+
+        descanso: "☕",
+
+        cafe: "☕",
+
+        aeropuerto: "✈️"
+    };
+
+
+    return (
+        iconos[tipo] ||
+        "✨"
+    );
+}
+
+
+function traducirTipoActividad(
+    tipo
+) {
+
+    const traducciones = {
+
+        vuelo: "Vuelo",
+
+        transporte: "Transporte",
+
+        hotel: "Hotel",
+
+        paseo: "Paseo",
+
+        restaurante: "Restaurante",
+
+        comida: "Comida",
+
+        desayuno: "Desayuno",
+
+        aperitivo: "Aperitivo",
+
+        monumento: "Monumento",
+
+        museo: "Museo",
+
+        tour: "Tour",
+
+        gelato: "Gelato",
+
+        mirador: "Mirador",
+
+        descanso: "Descanso",
+
+        cafe: "Café",
+
+        aeropuerto: "Aeropuerto"
+    };
+
+
+    return (
+        traducciones[tipo] ||
+        tipo
+    );
 }
 
 
@@ -1278,68 +2748,181 @@ function renderizarChecklist() {
             "checklist-list"
         );
 
-
     if (!contenedor) {
         return;
     }
 
 
-    const checklist =
-        datosViaje
-            ?.guia_gastronomica
-            ?.checklist;
+    const gastronomia =
+        datosViaje.guia_gastronomica ||
+        {};
 
 
-    if (
-        !Array.isArray(checklist)
-    ) {
+    const checklistComidas =
+        Array.isArray(
+            gastronomia.checklist_comidas
+        )
+            ? gastronomia.checklist_comidas
+            : [];
+
+
+    const checklistExperiencias =
+        Array.isArray(
+            gastronomia.checklist_experiencias
+        )
+            ? gastronomia.checklist_experiencias
+            : [];
+
+
+    let elementos = [];
+
+
+    elementos = [
+
+        ...checklistComidas.map(
+            elemento => ({
+                texto:
+                    typeof elemento ===
+                    "string"
+                        ? elemento
+                        : elemento.nombre ||
+                          elemento.texto ||
+                          elemento.item ||
+                          "",
+                categoria:
+                    "Comida"
+            })
+        ),
+
+        ...checklistExperiencias.map(
+            elemento => ({
+                texto:
+                    typeof elemento ===
+                    "string"
+                        ? elemento
+                        : elemento.nombre ||
+                          elemento.texto ||
+                          elemento.item ||
+                          "",
+                categoria:
+                    "Experiencia"
+            })
+        )
+
+    ];
+
+
+    contenedor.innerHTML = "";
+
+
+    if (!elementos.length) {
+
+        contenedor.innerHTML = `
+
+            <div class="empty-state">
+
+                <span>
+                    📝
+                </span>
+
+                <h3>
+                    Nuestra checklist
+                </h3>
+
+                <p>
+                    Todavía no hay elementos añadidos.
+                </p>
+
+            </div>
+        `;
 
         return;
-
     }
 
 
-    contenedor.innerHTML =
-        "";
+    const estadoGuardado =
+        obtenerEstadoChecklist();
 
 
-    checklist.forEach(
-        (item, index) => {
+    elementos.forEach(
+        (elemento, index) => {
 
-            const elemento =
+            if (!elemento.texto) {
+                return;
+            }
+
+
+            const item =
                 document.createElement(
                     "label"
                 );
 
-
-            elemento.className =
+            item.className =
                 "checklist-item";
 
 
-            elemento.innerHTML = `
+            const id =
+                `check-${index}`;
+
+
+            const marcado =
+                estadoGuardado[index] ===
+                true;
+
+
+            item.innerHTML = `
 
                 <input
                     type="checkbox"
-                    data-checklist="${index}"
+                    id="${id}"
+                    ${
+                        marcado
+                            ? "checked"
+                            : ""
+                    }
                 >
 
-                <span>
-                    ${item}
-                </span>
+                <div class="checklist-content">
 
+                    <small>
+                        ${escaparHTML(
+                            elemento.categoria
+                        )}
+                    </small>
+
+                    <strong>
+                        ${escaparHTML(
+                            elemento.texto
+                        )}
+                    </strong>
+
+                </div>
             `;
 
 
-            contenedor.appendChild(
-                elemento
+            const checkbox =
+                item.querySelector(
+                    "input"
+                );
+
+
+            checkbox.addEventListener(
+                "change",
+                () => {
+
+                    guardarEstadoChecklist(
+                        index,
+                        checkbox.checked
+                    );
+                }
             );
 
+
+            contenedor.appendChild(
+                item
+            );
         }
     );
-
-
-    cargarChecklistGuardado();
-
 }
 
 
@@ -1347,1073 +2930,94 @@ function renderizarChecklist() {
    CHECKLIST STORAGE
    ========================================================= */
 
-function cargarChecklistGuardado() {
-
-    let guardado = [];
-
+function obtenerEstadoChecklist() {
 
     try {
 
-        guardado =
-            JSON.parse(
-                localStorage.getItem(
-                    CONFIG.storage.checklist
-                ) || "[]"
+        const guardado =
+            localStorage.getItem(
+                CONFIG.storage.checklist
             );
 
-    } catch {
+        return guardado
+            ? JSON.parse(
+                guardado
+            )
+            : {};
 
-        guardado =
-            [];
+    } catch (error) {
 
+        console.error(
+            "Error leyendo checklist:",
+            error
+        );
+
+        return {};
     }
-
-
-    guardado.forEach(
-        index => {
-
-            const checkbox =
-                document.querySelector(
-                    `[data-checklist="${index}"]`
-                );
-
-
-            if (checkbox) {
-
-                checkbox.checked =
-                    true;
-
-            }
-
-        }
-    );
-
 }
 
 
-function guardarChecklist() {
+function guardarEstadoChecklist(
+    index,
+    valor
+) {
 
-    const seleccionados =
-        Array.from(
-            document.querySelectorAll(
-                "[data-checklist]:checked"
-            )
-        ).map(
-            checkbox =>
-                Number(
-                    checkbox.dataset.checklist
-                )
-        );
+    const estado =
+        obtenerEstadoChecklist();
+
+
+    estado[index] =
+        valor;
 
 
     localStorage.setItem(
         CONFIG.storage.checklist,
         JSON.stringify(
-            seleccionados
+            estado
         )
     );
-
 }
 
 
 /* =========================================================
-   EVENTOS
+   UTILIDADES HTML
    ========================================================= */
 
-function configurarEventos() {
-
-
-    /*
-        Checklist
-    */
-
-    document.addEventListener(
-        "change",
-        event => {
-
-            if (
-                event.target.matches(
-                    "[data-checklist]"
-                )
-            ) {
-
-                guardarChecklist();
-
-            }
-
-        }
-    );
-
-
-    /*
-        Navegación
-    */
-
-    document.addEventListener(
-        "click",
-        event => {
-
-            const enlace =
-                event.target.closest(
-                    "[data-section]"
-                );
-
-
-            if (!enlace) {
-                return;
-            }
-
-
-            event.preventDefault();
-
-
-            const seccion =
-                enlace.dataset.section;
-
-
-            cambiarSeccion(
-                seccion
-            );
-
-        }
-    );
-
-
-    /*
-        Abrir regalo
-    */
-
-    document.addEventListener(
-        "click",
-        event => {
-
-            const boton =
-                event.target.closest(
-                    "#open-gift"
-                );
-
-
-            if (!boton) {
-                return;
-            }
-
-
-            abrirRegalo();
-
-        }
-    );
-
-
-    /*
-        Descubrir viaje
-    */
-
-    document.addEventListener(
-        "click",
-        event => {
-
-            const boton =
-                event.target.closest(
-                    "#discover-trip"
-                );
-
-
-            if (!boton) {
-                return;
-            }
-
-
-            revelarViaje();
-
-        }
-    );
-
-}
-
-
-/* =========================================================
-   NAVEGACIÓN ENTRE PÁGINAS
-   ========================================================= */
-
-function cambiarSeccion(
-    seccion
+function escaparHTML(
+    valor
 ) {
 
-    if (
-        !estadoApp.viajeDesbloqueado
-    ) {
-
-        return;
-
-    }
-
-
-    const secciones =
-        document.querySelectorAll(
-            "[data-page]"
-        );
-
-
-    secciones.forEach(
-        elemento => {
-
-            elemento.hidden =
-                elemento.dataset.page !==
-                seccion;
-
-        }
-    );
-
-
-    const enlaces =
-        document.querySelectorAll(
-            "[data-section]"
-        );
-
-
-    enlaces.forEach(
-        enlace => {
-
-            enlace.classList.toggle(
-                "active",
-                enlace.dataset.section ===
-                seccion
-            );
-
-        }
-    );
-
-
-    window.scrollTo({
-
-        top:
-            0,
-
-        behavior:
-            "smooth"
-
-    });
-
-}
-
-
-/* =========================================================
-   COMPROBAR FECHA
-   ========================================================= */
-
-function comprobarFechaReal() {
-
-    const ahora =
-        new Date();
-
-
-    const cumpleanos =
-        new Date(
-            CONFIG.fechaCumpleanos
-        );
-
-
-    if (
-        ahora >= cumpleanos
-    ) {
-
-        activarModoCumpleanos();
-
-    } else {
-
-        activarModoPreCumpleanos();
-
-    }
-
-}
-
-
-/* =========================================================
-   PRE-CUMPLEAÑOS
-   ========================================================= */
-
-function activarModoPreCumpleanos() {
-
-    if (
-        estadoApp.viajeDesbloqueado
-    ) {
-
-        return;
-
-    }
-
-
-    cambiarHero(
-
-        "Tengo algo preparado para ti",
-
-        "Solo tienes que esperar un poquito",
-
-        "🎁 UNA SORPRESA PARA TI"
-
-    );
-
-
-    ocultarNavegacion();
-
-
-    const boton =
-        document.getElementById(
-            "open-gift"
-        );
-
-
-    if (boton) {
-
-        boton.hidden =
-            true;
-
-    }
-
-
-    mostrarPantallaEspera();
-
-}
-
-
-/* =========================================================
-   CUMPLEAÑOS
-   ========================================================= */
-
-function activarModoCumpleanos() {
-
-    if (
-        estadoApp.viajeDesbloqueado
-    ) {
-
-        return;
-
-    }
-
-
-    cambiarHero(
-
-        "Hoy es un día especial",
-
-        "Tengo un regalo para ti ❤️",
-
-        "🎂 FELIZ CUMPLEAÑOS"
-
-    );
-
-
-    ocultarNavegacion();
-
-
-    const boton =
-        document.getElementById(
-            "open-gift"
-        );
-
-
-    if (boton) {
-
-        boton.hidden =
-            false;
-
-        boton.classList.add(
-            "gift-ready"
-        );
-
-    }
-
-
-    const waiting =
-        document.getElementById(
-            "waiting-screen"
-        );
-
-
-    if (waiting) {
-
-        waiting.hidden =
-            true;
-
-    }
-
-
-    const countdown =
-        document.getElementById(
-            "countdown"
-        );
-
-
-    if (countdown) {
-
-        countdown.innerHTML = `
-
-            <div class="birthday-message">
-                ❤️
-            </div>
-
-        `;
-
-    }
-
-}
-
-
-/* =========================================================
-   HERO
-   ========================================================= */
-
-function cambiarHero(
-    titulo,
-    subtitulo,
-    eyebrow
-) {
-
-    const heroTitle =
-        document.getElementById(
-            "hero-title"
-        );
-
-
-    const heroSubtitle =
-        document.getElementById(
-            "hero-subtitle"
-        );
-
-
-    const heroEyebrow =
-        document.getElementById(
-            "hero-eyebrow"
-        );
-
-
-    if (heroTitle) {
-
-        heroTitle.textContent =
-            titulo;
-
-    }
-
-
-    if (heroSubtitle) {
-
-        heroSubtitle.textContent =
-            subtitulo;
-
-    }
-
-
-    if (heroEyebrow) {
-
-        heroEyebrow.textContent =
-            eyebrow;
-
-    }
-
-}
-
-
-/* =========================================================
-   ABRIR REGALO
-   ========================================================= */
-
-function abrirRegalo() {
-
-    const boton =
-        document.getElementById(
-            "open-gift"
-        );
-
-
-    if (boton) {
-
-        boton.disabled =
-            true;
-
-        boton.classList.add(
-            "gift-opening"
-        );
-
-    }
-
-
-    document.body.classList.add(
-        "gift-open"
-    );
-
-
-    lanzarConfeti();
-
-
-    setTimeout(
-        mostrarModalRegalo,
-        650
-    );
-
-}
-
-
-/* =========================================================
-   MODAL
-   ========================================================= */
-
-function mostrarModalRegalo() {
-
-    let modal =
-        document.getElementById(
-            "gift-modal"
-        );
-
-
-    if (!modal) {
-
-        modal =
-            document.createElement(
-                "div"
-            );
-
-
-        modal.id =
-            "gift-modal";
-
-
-        modal.className =
-            "gift-modal";
-
-
-        modal.innerHTML = `
-
-            <div
-                class="gift-modal-overlay"
-            ></div>
-
-
-            <div
-                class="gift-modal-content"
-            >
-
-                <button
-                    class="gift-modal-close"
-                    id="close-gift-modal"
-                    aria-label="Cerrar"
-                >
-                    ×
-                </button>
-
-
-                <!-- PASO 1 -->
-
-                <div
-                    class="gift-step"
-                    id="gift-step-1"
-                >
-
-                    <div class="gift-big-icon">
-                        🎁
-                    </div>
-
-
-                    <p class="gift-small">
-                        Tengo algo para ti...
-                    </p>
-
-
-                    <h2>
-                        Tu regalo es
-                    </h2>
-
-
-                    <button
-                        class="gift-main-button"
-                        id="gift-next-1"
-                    >
-                        Descubrir
-                    </button>
-
-                </div>
-
-
-                <!-- PASO 2 -->
-
-                <div
-                    class="gift-step"
-                    id="gift-step-2"
-                    hidden
-                >
-
-                    <div class="gift-big-icon">
-                        ✈️
-                    </div>
-
-
-                    <p class="gift-small">
-                        Prepara la maleta...
-                    </p>
-
-
-                    <h2>
-                        Nos vamos de viaje
-                    </h2>
-
-
-                    <button
-                        class="gift-main-button"
-                        id="gift-next-2"
-                    >
-                        ¿A dónde?
-                    </button>
-
-                </div>
-
-
-                <!-- PASO 3 -->
-
-                <div
-                    class="gift-step"
-                    id="gift-step-3"
-                    hidden
-                >
-
-                    <div class="gift-big-icon">
-                        🇮🇹
-                    </div>
-
-
-                    <p class="gift-small">
-                        Nuestro próximo destino
-                    </p>
-
-
-                    <h1>
-                        FLORENCIA
-                    </h1>
-
-
-                    <p class="gift-dates">
-                        18 — 21 diciembre 2026
-                    </p>
-
-
-                    <button
-                        class="gift-main-button"
-                        id="discover-trip"
-                    >
-                        Descubrir nuestro viaje ❤️
-                    </button>
-
-                </div>
-
-            </div>
-
-        `;
-
-
-        document.body.appendChild(
-            modal
-        );
-
-
-        configurarEventosModal(
-            modal
-        );
-
-    }
-
-
-    modal.classList.add(
-        "visible"
-    );
-
-}
-
-
-/* =========================================================
-   EVENTOS DEL MODAL
-   ========================================================= */
-
-function configurarEventosModal(
-    modal
-) {
-
-    const cerrar =
-        modal.querySelector(
-            "#close-gift-modal"
-        );
-
-
-    if (cerrar) {
-
-        cerrar.addEventListener(
-            "click",
-            () => {
-
-                modal.classList.remove(
-                    "visible"
-                );
-
-                document.body.classList.remove(
-                    "gift-open"
-                );
-
-            }
-        );
-
-    }
-
-
-    const overlay =
-        modal.querySelector(
-            ".gift-modal-overlay"
-        );
-
-
-    if (overlay) {
-
-        overlay.addEventListener(
-            "click",
-            () => {
-
-                modal.classList.remove(
-                    "visible"
-                );
-
-                document.body.classList.remove(
-                    "gift-open"
-                );
-
-            }
-        );
-
-    }
-
-
-    const siguiente1 =
-        modal.querySelector(
-            "#gift-next-1"
-        );
-
-
-    const siguiente2 =
-        modal.querySelector(
-            "#gift-next-2"
-        );
-
-
-    if (siguiente1) {
-
-        siguiente1.addEventListener(
-            "click",
-            () => {
-
-                mostrarPasoRegalo(
-                    2
-                );
-
-            }
-        );
-
-    }
-
-
-    if (siguiente2) {
-
-        siguiente2.addEventListener(
-            "click",
-            () => {
-
-                mostrarPasoRegalo(
-                    3
-                );
-
-            }
-        );
-
-    }
-
-}
-
-
-/* =========================================================
-   PASOS DEL REGALO
-   ========================================================= */
-
-function mostrarPasoRegalo(
-    numero
-) {
-
-    document
-        .querySelectorAll(
-            ".gift-step"
+    return String(valor)
+        .replace(
+            /&/g,
+            "&amp;"
         )
-        .forEach(
-            paso => {
-
-                paso.hidden =
-                    true;
-
-            }
+        .replace(
+            /</g,
+            "&lt;"
+        )
+        .replace(
+            />/g,
+            "&gt;"
+        )
+        .replace(
+            /"/g,
+            "&quot;"
+        )
+        .replace(
+            /'/g,
+            "&#039;"
         );
-
-
-    const paso =
-        document.getElementById(
-            `gift-step-${numero}`
-        );
-
-
-    if (paso) {
-
-        paso.hidden =
-            false;
-
-    }
-
 }
 
 
-/* =========================================================
-   REVELAR VIAJE
-   ========================================================= */
+function escaparAtributo(
+    valor
+) {
 
-async function revelarViaje() {
-
-    guardarViajeDesbloqueado();
-
-
-    lanzarConfeti();
-
-
-    const modal =
-        document.getElementById(
-            "gift-modal"
-        );
-
-
-    if (modal) {
-
-        modal.classList.remove(
-            "visible"
-        );
-
-    }
-
-
-    document.body.classList.remove(
-        "gift-open"
+    return escaparHTML(
+        valor
     );
-
-
-    await desbloquearYcargarViaje();
-
-}
-
-
-/* =========================================================
-   ACTIVAR VIAJE
-   ========================================================= */
-
-function activarViajeDesbloqueado() {
-
-    estadoApp.viajeDesbloqueado =
-        true;
-
-
-    mostrarNavegacion();
-
-
-    cambiarHero(
-
-        "Nos vamos a Florencia 🇮🇹",
-
-        "18 — 21 diciembre 2026",
-
-        "✨ NUESTRO VIAJE"
-
-    );
-
-
-    const waiting =
-        document.getElementById(
-            "waiting-screen"
-        );
-
-
-    if (waiting) {
-
-        waiting.hidden =
-            true;
-
-    }
-
-
-    /*
-        Mostrar inicio.
-    */
-
-    cambiarSeccion(
-        "inicio"
-    );
-
-}
-
-
-/* =========================================================
-   CUENTA ATRÁS
-   ========================================================= */
-
-function iniciarCuentaAtras() {
-
-    actualizarCuentaAtras();
-
-
-    setInterval(
-        actualizarCuentaAtras,
-        1000
-    );
-
-}
-
-
-/* =========================================================
-   ACTUALIZAR CUENTA ATRÁS
-   ========================================================= */
-
-function actualizarCuentaAtras() {
-
-    if (
-        estadoApp.viajeDesbloqueado
-    ) {
-
-        return;
-
-    }
-
-
-    if (
-        estadoApp.cumpleanosSimulado
-    ) {
-
-        return;
-
-    }
-
-
-    const ahora =
-        new Date();
-
-
-    const cumpleanos =
-        new Date(
-            CONFIG.fechaCumpleanos
-        );
-
-
-    const diferencia =
-        cumpleanos - ahora;
-
-
-    if (
-        diferencia <= 0
-    ) {
-
-        activarModoCumpleanos();
-
-        return;
-
-    }
-
-
-    const dias =
-        Math.floor(
-            diferencia /
-            (1000 * 60 * 60 * 24)
-        );
-
-
-    const horas =
-        Math.floor(
-            (
-                diferencia /
-                (1000 * 60 * 60)
-            ) % 24
-        );
-
-
-    const minutos =
-        Math.floor(
-            (
-                diferencia /
-                (1000 * 60)
-            ) % 60
-        );
-
-
-    const segundos =
-        Math.floor(
-            (
-                diferencia /
-                1000
-            ) % 60
-        );
-
-
-    const days =
-        document.getElementById(
-            "countdown-days"
-        );
-
-
-    const hours =
-        document.getElementById(
-            "countdown-hours"
-        );
-
-
-    const minutes =
-        document.getElementById(
-            "countdown-minutes"
-        );
-
-
-    const seconds =
-        document.getElementById(
-            "countdown-seconds"
-        );
-
-
-    if (days) {
-
-        days.textContent =
-            dias;
-
-    }
-
-
-    if (hours) {
-
-        hours.textContent =
-            String(horas)
-                .padStart(2, "0");
-
-    }
-
-
-    if (minutes) {
-
-        minutes.textContent =
-            String(minutos)
-                .padStart(2, "0");
-
-    }
-
-
-    if (seconds) {
-
-        seconds.textContent =
-            String(segundos)
-                .padStart(2, "0");
-
-    }
-
 }
 
 
@@ -2427,119 +3031,77 @@ function lanzarConfeti() {
         80;
 
 
-    const simbolos = [
-
-        "❤️",
-        "✨",
-        "🎉",
-        "💝",
-        "🎁"
-
-    ];
-
-
     for (
         let i = 0;
         i < cantidad;
         i++
     ) {
 
-        const confeti =
-            document.createElement(
-                "div"
-            );
-
-
-        confeti.className =
-            "confetti";
-
-
-        confeti.textContent =
-            simbolos[
-                Math.floor(
-                    Math.random() *
-                    simbolos.length
-                )
-            ];
-
-
-        confeti.style.left =
-            `${Math.random() * 100}%`;
-
-
-        confeti.style.animationDelay =
-            `${Math.random() * 1.5}s`;
-
-
-        confeti.style.fontSize =
-            `${14 + Math.random() * 20}px`;
-
-
-        document.body.appendChild(
-            confeti
-        );
-
-
-        setTimeout(
-            () => {
-
-                confeti.remove();
-
-            },
-            4000
-        );
-
+        crearParticulaConfeti();
     }
-
 }
 
 
-/* =========================================================
-   FORMATEAR FECHA
-   ========================================================= */
+function crearParticulaConfeti() {
 
-function formatearFecha(
-    fecha
-) {
-
-    if (!fecha) {
-        return "";
-    }
+    const confeti =
+        document.createElement(
+            "div"
+        );
 
 
-    const date =
-        new Date(fecha);
+    confeti.className =
+        "confetti";
 
 
-    if (
-        Number.isNaN(
-            date.getTime()
-        )
-    ) {
+    const tamaño =
+        Math.random() * 8 + 5;
 
-        return fecha;
+    const izquierda =
+        Math.random() * 100;
 
-    }
+    const duracion =
+        Math.random() * 2 + 2;
+
+    const retraso =
+        Math.random() * 0.5;
 
 
-    return new Intl.DateTimeFormat(
-        "es-ES",
-        {
+    confeti.style.width =
+        `${tamaño}px`;
 
-            day:
-                "numeric",
+    confeti.style.height =
+        `${tamaño * 0.55}px`;
 
-            month:
-                "long",
+    confeti.style.left =
+        `${izquierda}vw`;
 
-            year:
-                "numeric"
+    confeti.style.top =
+        "-20px";
 
-        }
-    ).format(
-        date
+    confeti.style.animationDuration =
+        `${duracion}s`;
+
+    confeti.style.animationDelay =
+        `${retraso}s`;
+
+
+    document.body.appendChild(
+        confeti
     );
 
+
+    setTimeout(
+        () => {
+
+            confeti.remove();
+
+        },
+        (
+            duracion +
+            retraso
+        ) * 1000 + 500
+    );
 }
 
 
@@ -2549,74 +3111,32 @@ function formatearFecha(
 
 function registrarServiceWorker() {
 
-    /*
-        Lo registramos únicamente cuando
-        el viaje ya está desbloqueado.
-
-        Así evitamos que el Service Worker
-        pueda cachear información del viaje
-        antes de tiempo.
-    */
-
     if (
-        !estadoApp.viajeDesbloqueado
+        "serviceWorker" in
+        navigator
     ) {
 
-        return;
+        navigator.serviceWorker
+            .register(
+                "./service-worker.js"
+            )
+            .then(
+                registro => {
 
+                    console.log(
+                        "Service Worker registrado:",
+                        registro.scope
+                    );
+                }
+            )
+            .catch(
+                error => {
+
+                    console.error(
+                        "Error registrando Service Worker:",
+                        error
+                    );
+                }
+            );
     }
-
-
-    if (
-        !("serviceWorker" in navigator)
-    ) {
-
-        return;
-
-    }
-
-
-    navigator.serviceWorker
-        .register(
-            "./service-worker.js"
-        )
-        .then(
-            registro => {
-
-                console.log(
-                    "✅ Service Worker:",
-                    registro.scope
-                );
-
-            }
-        )
-        .catch(
-            error => {
-
-                console.warn(
-                    "⚠️ Service Worker:",
-                    error
-                );
-
-            }
-        );
-
 }
-
-
-/* =========================================================
-   DEBUG
-   ========================================================= */
-
-console.log(
-    "%c🎁 Una sorpresa para ti",
-    "font-size:20px;font-weight:bold;"
-);
-
-console.log(
-    "🛠️ Ctrl + Shift + G → simular cumpleaños"
-);
-
-console.log(
-    "🔄 Ctrl + Shift + R → reiniciar sorpresa"
-);
