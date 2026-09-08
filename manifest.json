@@ -1,0 +1,11 @@
+{
+    "name": "Florence Trip",
+    "short_name": "Florence Trip",
+    "description": "Guía personal de nuestro viaje a Florencia y Pisa",
+    "start_url": "./index.html",
+    "display": "standalone",
+    "background_color": "#f6f1e8",
+    "theme_color": "#8f4f3a",
+    "lang": "es",
+    "icons": []
+}

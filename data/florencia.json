@@ -1,0 +1,909 @@
+{
+    "viaje": {
+        "destino": "Florencia y Pisa",
+        "pais": "Italia",
+        "fechas": {
+            "inicio": "2026-12-18",
+            "fin": "2026-12-21",
+            "noches": 3
+        },
+        "viajeros": 2,
+        "hotel": {
+            "nombre": "La Scaletta al Ponte Vecchio",
+            "ciudad": "Florencia",
+            "direccion": "",
+            "google_maps": "https://www.google.com/maps/search/?api=1&query=La+Scaletta+al+Ponte+Vecchio+Florence"
+        },
+        "itinerario": [
+            {
+                "dia": "viernes",
+                "fecha": "2026-12-18",
+                "titulo": "Llegada a Florencia",
+                "actividades": [
+                    {
+                        "hora": "15:00",
+                        "titulo": "Llegada a Florencia",
+                        "tipo": "transporte",
+                        "descripcion": "Llegada a Florencia y traslado hasta el hotel."
+                    },
+                    {
+                        "hora": "16:30",
+                        "titulo": "Check-in en La Scaletta al Ponte Vecchio",
+                        "tipo": "hotel",
+                        "descripcion": "Dejar las maletas, instalarnos y descansar un poco."
+                    },
+                    {
+                        "hora": "18:00",
+                        "titulo": "Primer paseo por Florencia",
+                        "tipo": "paseo",
+                        "descripcion": "Paseo tranquilo por Ponte Vecchio, Piazza della Signoria y el centro histórico."
+                    },
+                    {
+                        "hora": "20:30",
+                        "titulo": "Cena",
+                        "tipo": "restaurante",
+                        "descripcion": "Primera cena del viaje en un restaurante tradicional de Florencia."
+                    }
+                ]
+            },
+            {
+                "dia": "sábado",
+                "fecha": "2026-12-19",
+                "titulo": "Florencia monumental + aperitivo romántico",
+                "actividades": [
+                    {
+                        "hora": "09:00",
+                        "titulo": "Desayuno",
+                        "tipo": "desayuno",
+                        "descripcion": "Desayuno italiano con café y cornetto."
+                    },
+                    {
+                        "hora": "10:00",
+                        "titulo": "Duomo de Florencia",
+                        "tipo": "monumento",
+                        "descripcion": "Visita al complejo del Duomo y sus principales edificios."
+                    },
+                    {
+                        "hora": "12:00",
+                        "titulo": "Free Tour por Florencia",
+                        "tipo": "tour",
+                        "descripcion": "Recorrido guiado por el centro histórico de Florencia."
+                    },
+                    {
+                        "hora": "14:30",
+                        "titulo": "Street food",
+                        "tipo": "comida",
+                        "descripcion": "Probar una schiacciata o un bocadillo típico toscano."
+                    },
+                    {
+                        "hora": "16:00",
+                        "titulo": "Paseo por Oltrarno",
+                        "tipo": "paseo",
+                        "descripcion": "Recorrer Santo Spirito, Via Maggio y las calles del barrio de Oltrarno."
+                    },
+                    {
+                        "hora": "18:30",
+                        "titulo": "Aperitivo en Il Santino",
+                        "tipo": "aperitivo",
+                        "descripcion": "Aperitivo con vino toscano, quesos, embutidos y pequeños platos."
+                    },
+                    {
+                        "hora": "20:30",
+                        "titulo": "Cena romántica en Cabiria",
+                        "tipo": "restaurante",
+                        "descripcion": "Cena especial para dos en Piazza Santo Spirito."
+                    }
+                ]
+            },
+            {
+                "dia": "domingo",
+                "fecha": "2026-12-20",
+                "titulo": "Arte + Florencia desde las alturas",
+                "actividades": [
+                    {
+                        "hora": "07:30",
+                        "titulo": "Desayuno",
+                        "tipo": "desayuno",
+                        "descripcion": "Desayuno antes de comenzar la jornada cultural."
+                    },
+                    {
+                        "hora": "08:15",
+                        "titulo": "Galería Uffizi",
+                        "tipo": "museo",
+                        "descripcion": "Visita a la Galería Uffizi."
+                    },
+                    {
+                        "hora": "12:00",
+                        "titulo": "Galería de la Accademia",
+                        "tipo": "museo",
+                        "descripcion": "Visita para ver el David de Miguel Ángel y las principales obras de la colección."
+                    },
+                    {
+                        "hora": "13:30",
+                        "titulo": "Almuerzo en Mercato Centrale",
+                        "tipo": "comida",
+                        "descripcion": "Comer y probar diferentes especialidades italianas y toscanas."
+                    },
+                    {
+                        "hora": "15:30",
+                        "titulo": "Paseo por San Lorenzo",
+                        "tipo": "paseo",
+                        "descripcion": "Recorrer la zona de San Lorenzo y el centro histórico."
+                    },
+                    {
+                        "hora": "17:00",
+                        "titulo": "Piazzale Michelangelo",
+                        "tipo": "mirador",
+                        "descripcion": "Subir al mirador para disfrutar de las vistas de Florencia y el atardecer."
+                    },
+                    {
+                        "hora": "20:30",
+                        "titulo": "Última cena en Florencia",
+                        "tipo": "restaurante",
+                        "descripcion": "Cena en un restaurante recomendado de Florencia."
+                    }
+                ]
+            },
+            {
+                "dia": "lunes",
+                "fecha": "2026-12-21",
+                "titulo": "Pisa + regreso",
+                "actividades": [
+                    {
+                        "hora": "08:00",
+                        "titulo": "Check-out",
+                        "tipo": "hotel",
+                        "descripcion": "Dejar el hotel y comenzar el último día del viaje."
+                    },
+                    {
+                        "hora": "09:00",
+                        "titulo": "Tren a Pisa",
+                        "tipo": "transporte",
+                        "descripcion": "Desplazamiento desde Florencia hasta Pisa."
+                    },
+                    {
+                        "hora": "10:00",
+                        "titulo": "Piazza dei Miracoli",
+                        "tipo": "monumento",
+                        "descripcion": "Visita a la Torre de Pisa, Catedral y Baptisterio."
+                    },
+                    {
+                        "hora": "12:30",
+                        "titulo": "Comida típica de Pisa",
+                        "tipo": "comida",
+                        "descripcion": "Probar cecina o torta di ceci y alguna especialidad local."
+                    },
+                    {
+                        "hora": "14:00",
+                        "titulo": "Regreso a Florencia",
+                        "tipo": "transporte",
+                        "descripcion": "Volver a Florencia para recoger el equipaje y continuar hacia el aeropuerto."
+                    },
+                    {
+                        "hora": "17:00",
+                        "titulo": "Regreso a Madrid",
+                        "tipo": "transporte",
+                        "descripcion": "Fin del viaje."
+                    }
+                ]
+            }
+        ]
+    },
+    "guia_gastronomica": {
+        "criterios": {
+            "objetivo": "Comer muy bien durante el viaje sin centrarnos en restaurantes de lujo.",
+            "preferencias": [
+                "Cocina tradicional toscana",
+                "Restaurantes bonitos y con encanto",
+                "Opciones románticas para parejas",
+                "Buena relación calidad-precio",
+                "Street food típico",
+                "Desayunos italianos",
+                "Gelato artesanal"
+            ],
+            "presupuesto": "€€ / €€€",
+            "evitar": [
+                "Restaurantes excesivamente caros",
+                "Restaurantes de alta cocina de lujo"
+            ]
+        },
+        "zonas": [
+            {
+                "nombre": "Oltrarno",
+                "descripcion": "La zona más interesante para ambiente local, aperitivo y cenas románticas."
+            },
+            {
+                "nombre": "Centro histórico",
+                "descripcion": "Perfecta para comer durante las visitas turísticas."
+            },
+            {
+                "nombre": "Santa Croce",
+                "descripcion": "Zona con restaurantes tradicionales y buen ambiente."
+            },
+            {
+                "nombre": "San Lorenzo",
+                "descripcion": "Ideal para Mercato Centrale, street food y comida rápida."
+            },
+            {
+                "nombre": "Pisa",
+                "descripcion": "Especialidades locales como cecina y torta di ceci."
+            }
+        ],
+        "restaurantes_destacados": [
+            {
+                "nombre": "Cabiria Firenze",
+                "categoria": "restaurante",
+                "zona": "Oltrarno",
+                "direccion": "Piazza Santo Spirito 4r, Firenze",
+                "precio": "€€",
+                "calidad": 9.5,
+                "romanticismo": 10,
+                "tipo": "Romántico",
+                "platos_recomendados": [
+                    "Pasta fresca del día",
+                    "Platos toscanos de temporada",
+                    "Especialidades de la casa",
+                    "Postre casero"
+                ],
+                "google_maps": "https://www.google.com/maps/search/?api=1&query=Cabiria+Firenze"
+            },
+            {
+                "nombre": "Zeb",
+                "categoria": "restaurante",
+                "zona": "Oltrarno",
+                "direccion": "Via San Miniato 2r, Firenze",
+                "precio": "€€€",
+                "calidad": 9.5,
+                "romanticismo": 8,
+                "tipo": "Toscana contemporánea",
+                "platos_recomendados": [
+                    "Ribollita",
+                    "Pici",
+                    "Peposo",
+                    "Carnes toscanas",
+                    "Platos de temporada"
+                ],
+                "google_maps": "https://www.google.com/maps/search/?api=1&query=Zeb+Firenze"
+            },
+            {
+                "nombre": "L'Ortone",
+                "categoria": "restaurante",
+                "zona": "Santa Croce",
+                "direccion": "Piazza Lorenzo Ghiberti 87r, Firenze",
+                "precio": "€€€",
+                "calidad": 9.5,
+                "romanticismo": 8.5,
+                "tipo": "Toscana contemporánea",
+                "platos_recomendados": [
+                    "Pasta fresca de temporada",
+                    "Pici",
+                    "Platos de carne",
+                    "Especialidades de temporada",
+                    "Postres caseros"
+                ],
+                "google_maps": "https://www.google.com/maps/search/?api=1&query=L'Ortone+Firenze"
+            },
+            {
+                "nombre": "Il Santo Bevitore",
+                "categoria": "restaurante",
+                "zona": "Oltrarno",
+                "direccion": "Via Santo Spirito 64r, Firenze",
+                "precio": "€€€",
+                "calidad": 9,
+                "romanticismo": 9,
+                "tipo": "Toscano tradicional",
+                "platos_recomendados": [
+                    "Pasta fresca de temporada",
+                    "Carnes toscanas",
+                    "Platos de caza",
+                    "Postres caseros"
+                ],
+                "google_maps": "https://www.google.com/maps/search/?api=1&query=Il+Santo+Bevitore+Firenze"
+            },
+            {
+                "nombre": "La Buchetta Food & Wine",
+                "categoria": "restaurante",
+                "zona": "Santa Croce",
+                "direccion": "Via dei Benci 3, Firenze",
+                "precio": "€€€",
+                "calidad": 9,
+                "romanticismo": 8,
+                "tipo": "Toscano",
+                "platos_recomendados": [
+                    "Bistecca alla Fiorentina",
+                    "Pasta fresca",
+                    "Ragù toscano",
+                    "Tiramisú",
+                    "Vino toscano"
+                ],
+                "google_maps": "https://www.google.com/maps/search/?api=1&query=La+Buchetta+Food+%26+Wine+Florence"
+            },
+            {
+                "nombre": "Trattoria Zà Zà",
+                "categoria": "restaurante",
+                "zona": "San Lorenzo",
+                "direccion": "Piazza del Mercato Centrale 26r, Firenze",
+                "precio": "€€",
+                "calidad": 9,
+                "romanticismo": 7.5,
+                "tipo": "Toscano tradicional",
+                "platos_recomendados": [
+                    "Bistecca alla Fiorentina",
+                    "Tagliatelle al tartufo",
+                    "Pasta fresca",
+                    "Pappardelle al cinghiale",
+                    "Tiramisú"
+                ],
+                "google_maps": "https://www.google.com/maps/search/?api=1&query=Trattoria+Za+Za+Firenze"
+            },
+            {
+                "nombre": "I' Girone De' Ghiotti",
+                "categoria": "street_food",
+                "zona": "Centro histórico",
+                "direccion": "Via dei Cimatori 23, Firenze",
+                "precio": "€",
+                "calidad": 9.5,
+                "romanticismo": 5,
+                "tipo": "Schiacciata",
+                "platos_recomendados": [
+                    "Schiacciata con prosciutto",
+                    "Salami toscano",
+                    "Pecorino",
+                    "Porchetta"
+                ],
+                "google_maps": "https://www.google.com/maps/search/?api=1&query=I+Girone+De+Ghiotti+Firenze"
+            },
+            {
+                "nombre": "Il Santino",
+                "categoria": "aperitivo",
+                "zona": "Oltrarno",
+                "direccion": "Via Santo Spirito 60r, Firenze",
+                "precio": "€",
+                "calidad": 9,
+                "romanticismo": 9.5,
+                "tipo": "Aperitivo",
+                "platos_recomendados": [
+                    "Tabla de quesos toscanos",
+                    "Embutidos",
+                    "Crostini",
+                    "Pequeños platos del día",
+                    "Vino toscano"
+                ],
+                "google_maps": "https://www.google.com/maps/search/?api=1&query=Il+Santino+Firenze"
+            },
+            {
+                "nombre": "Il Brindellone",
+                "categoria": "restaurante",
+                "zona": "Oltrarno",
+                "direccion": "Piazza Piattellina 10, Firenze",
+                "precio": "€€",
+                "calidad": 8.5,
+                "romanticismo": 7,
+                "tipo": "Toscano tradicional",
+                "platos_recomendados": [
+                    "Bistecca alla Fiorentina",
+                    "Pasta con ragù",
+                    "Pappardelle",
+                    "Platos tradicionales toscanos"
+                ],
+                "google_maps": "https://www.google.com/maps/search/?api=1&query=Il+Brindellone+Firenze"
+            },
+            {
+                "nombre": "Il Latini",
+                "categoria": "restaurante",
+                "zona": "Centro histórico",
+                "direccion": "Via dei Palchetti 6R, Firenze",
+                "precio": "€€€",
+                "calidad": 9,
+                "romanticismo": 8,
+                "tipo": "Toscano tradicional",
+                "platos_recomendados": [
+                    "Bistecca alla Fiorentina",
+                    "Antipasti toscanos",
+                    "Pasta casera",
+                    "Carnes a la parrilla",
+                    "Cantucci con Vin Santo"
+                ],
+                "google_maps": "https://www.google.com/maps/search/?api=1&query=Il+Latini+Firenze"
+            },
+            {
+                "nombre": "Osteria Antica Casa Torre",
+                "categoria": "restaurante",
+                "zona": "Centro histórico",
+                "direccion": "Piazza di San Pier Maggiore 7R, Firenze",
+                "precio": "€€",
+                "calidad": 9,
+                "romanticismo": 8,
+                "tipo": "Toscano tradicional",
+                "platos_recomendados": [
+                    "Pici al ragù",
+                    "Ribollita",
+                    "Bistecca",
+                    "Platos de temporada",
+                    "Tiramisú"
+                ],
+                "google_maps": "https://www.google.com/maps/search/?api=1&query=Osteria+Antica+Casa+Torre+Firenze"
+            },
+            {
+                "nombre": "Osteria del Proconsolo",
+                "categoria": "restaurante",
+                "zona": "Centro histórico",
+                "direccion": "Via del Proconsolo 59, Firenze",
+                "precio": "€€",
+                "calidad": 8.5,
+                "romanticismo": 7,
+                "tipo": "Toscano tradicional",
+                "platos_recomendados": [
+                    "Bistecca alla Fiorentina",
+                    "Pappardelle al cinghiale",
+                    "Ribollita",
+                    "Pici",
+                    "Cantucci"
+                ],
+                "google_maps": "https://www.google.com/maps/search/?api=1&query=Osteria+del+Proconsolo+Firenze"
+            },
+            {
+                "nombre": "Osteria del Corso",
+                "categoria": "restaurante",
+                "zona": "Centro histórico",
+                "direccion": "Via del Corso 36r, Firenze",
+                "precio": "€€",
+                "calidad": 8.5,
+                "romanticismo": 7.5,
+                "tipo": "Toscano",
+                "platos_recomendados": [
+                    "Pasta fresca",
+                    "Carnes toscanas",
+                    "Platos tradicionales"
+                ],
+                "google_maps": "https://www.google.com/maps/search/?api=1&query=Osteria+del+Corso+Firenze"
+            },
+            {
+                "nombre": "Osteria La Dolce Vita",
+                "categoria": "restaurante",
+                "zona": "Centro histórico",
+                "direccion": "Via dei Tavolini 3r, Firenze",
+                "precio": "€€",
+                "calidad": 8.5,
+                "romanticismo": 8,
+                "tipo": "Toscano",
+                "platos_recomendados": [
+                    "Pici",
+                    "Pappardelle",
+                    "Platos de temporada",
+                    "Tiramisú"
+                ],
+                "google_maps": "https://www.google.com/maps/search/?api=1&query=Osteria+La+Dolce+Vita+Firenze"
+            },
+            {
+                "nombre": "Cibrèo Ristorante",
+                "categoria": "restaurante",
+                "zona": "Santa Croce",
+                "direccion": "Via Andrea del Verrocchio 8r, Firenze",
+                "precio": "€€€",
+                "calidad": 9,
+                "romanticismo": 8,
+                "tipo": "Toscano tradicional",
+                "platos_recomendados": [
+                    "Pollo al Cibrèo",
+                    "Sopas tradicionales",
+                    "Platos de temporada",
+                    "Especialidades toscanas"
+                ],
+                "google_maps": "https://www.google.com/maps/search/?api=1&query=Cibreo+Ristorante+Firenze"
+            },
+            {
+                "nombre": "Trattoria Cibrèo - Il Cibrèino",
+                "categoria": "restaurante",
+                "zona": "Santa Croce",
+                "direccion": "Via dei Macci 122r, Firenze",
+                "precio": "€€",
+                "calidad": 9.5,
+                "romanticismo": 8,
+                "tipo": "Toscano tradicional",
+                "platos_recomendados": [
+                    "Pollo al Cibrèo",
+                    "Sopas toscanas",
+                    "Pasta fresca",
+                    "Platos tradicionales de temporada"
+                ],
+                "google_maps": "https://www.google.com/maps/search/?api=1&query=Trattoria+Cibreo+Il+Cibreino+Firenze"
+            },
+            {
+                "nombre": "All'Antico Vinaio",
+                "categoria": "street_food",
+                "zona": "Centro histórico",
+                "direccion": "Via dei Neri 65, Firenze",
+                "precio": "€",
+                "calidad": 8.5,
+                "romanticismo": 5,
+                "tipo": "Schiacciata",
+                "platos_recomendados": [
+                    "La Favolosa",
+                    "Schiacciata con mortadella",
+                    "Prosciutto",
+                    "Porchetta"
+                ],
+                "google_maps": "https://www.google.com/maps/search/?api=1&query=All'Antico+Vinaio+Firenze"
+            },
+            {
+                "nombre": "La Schiacciata Firenze",
+                "categoria": "street_food",
+                "zona": "San Lorenzo",
+                "direccion": "Piazza del Mercato Centrale 4, Firenze",
+                "precio": "€",
+                "calidad": 9,
+                "romanticismo": 5,
+                "tipo": "Schiacciata",
+                "platos_recomendados": [
+                    "Schiacciata de prosciutto",
+                    "Schiacciata de salami",
+                    "Schiacciata con pecorino",
+                    "Combinaciones de embutidos toscanos"
+                ],
+                "google_maps": "https://www.google.com/maps/search/?api=1&query=La+Schiacciata+Firenze"
+            },
+            {
+                "nombre": "Ditta Artigianale",
+                "categoria": "desayuno",
+                "zona": "Centro histórico",
+                "direccion": "Via dei Neri 32R, Firenze",
+                "precio": "€",
+                "calidad": 9,
+                "romanticismo": 7,
+                "tipo": "Café de especialidad",
+                "platos_recomendados": [
+                    "Cappuccino",
+                    "Espresso",
+                    "Cornetto",
+                    "Desayuno dulce",
+                    "Café de especialidad"
+                ],
+                "google_maps": "https://www.google.com/maps/search/?api=1&query=Ditta+Artigianale+Via+dei+Neri"
+            },
+            {
+                "nombre": "Rooster Cafe Firenze",
+                "categoria": "desayuno",
+                "zona": "Centro histórico",
+                "direccion": "Via Porta Rossa 63R, Firenze",
+                "precio": "€€",
+                "calidad": 9,
+                "romanticismo": 8,
+                "tipo": "Brunch",
+                "platos_recomendados": [
+                    "Pancakes",
+                    "Eggs Benedict",
+                    "Huevos",
+                    "Tostadas",
+                    "Café"
+                ],
+                "google_maps": "https://www.google.com/maps/search/?api=1&query=Rooster+Cafe+Firenze"
+            },
+            {
+                "nombre": "Ala Grande Caffè",
+                "categoria": "desayuno",
+                "zona": "San Lorenzo",
+                "direccion": "Via San Gallo 29R, Firenze",
+                "precio": "€",
+                "calidad": 9,
+                "romanticismo": 7,
+                "tipo": "Café italiano",
+                "platos_recomendados": [
+                    "Espresso",
+                    "Cappuccino",
+                    "Cornetto",
+                    "Pastelería"
+                ],
+                "google_maps": "https://www.google.com/maps/search/?api=1&query=Ala+Grande+Caffe+Firenze"
+            },
+            {
+                "nombre": "Le Vespe Cafè",
+                "categoria": "desayuno",
+                "zona": "Santa Croce",
+                "direccion": "Via Ghibellina 76r, Firenze",
+                "precio": "€€",
+                "calidad": 8.5,
+                "romanticismo": 8,
+                "tipo": "Brunch",
+                "platos_recomendados": [
+                    "Huevos",
+                    "Tostadas",
+                    "Pancakes",
+                    "Brunch",
+                    "Café"
+                ],
+                "google_maps": "https://www.google.com/maps/search/?api=1&query=Le+Vespe+Cafe+Firenze"
+            },
+            {
+                "nombre": "Gelateria dei Neri",
+                "categoria": "gelateria",
+                "zona": "Centro histórico",
+                "direccion": "Via dei Neri 9/11R, Firenze",
+                "precio": "€",
+                "calidad": 9.5,
+                "romanticismo": 8,
+                "tipo": "Gelateria",
+                "platos_recomendados": [
+                    "Pistacho",
+                    "Chocolate",
+                    "Avellana",
+                    "Sabores de temporada"
+                ],
+                "google_maps": "https://www.google.com/maps/search/?api=1&query=Gelateria+dei+Neri+Firenze"
+            },
+            {
+                "nombre": "Vivoli",
+                "categoria": "gelateria",
+                "zona": "Centro histórico",
+                "direccion": "Via Isola delle Stinche 7r, Firenze",
+                "precio": "€",
+                "calidad": 9,
+                "romanticismo": 8,
+                "tipo": "Gelateria histórica",
+                "platos_recomendados": [
+                    "Crema",
+                    "Chocolate",
+                    "Pistacho",
+                    "Affogato"
+                ],
+                "google_maps": "https://www.google.com/maps/search/?api=1&query=Vivoli+Firenze"
+            },
+            {
+                "nombre": "L'Ostellino",
+                "categoria": "street_food",
+                "zona": "Pisa",
+                "direccion": "Piazza Felice Cavallotti 1, Pisa",
+                "precio": "€",
+                "calidad": 9.5,
+                "romanticismo": 6,
+                "tipo": "Panini / comida rápida",
+                "platos_recomendados": [
+                    "Panino de porchetta",
+                    "Embutidos italianos",
+                    "Quesos toscanos",
+                    "Especialidades del día"
+                ],
+                "google_maps": "https://www.google.com/maps/search/?api=1&query=L'Ostellino+Pisa"
+            },
+            {
+                "nombre": "Osteria dei Cavalieri",
+                "categoria": "restaurante",
+                "zona": "Pisa",
+                "direccion": "Via San Frediano 16, Pisa",
+                "precio": "€€€",
+                "calidad": 9,
+                "romanticismo": 8,
+                "tipo": "Toscano tradicional",
+                "platos_recomendados": [
+                    "Bordatino alla pisana",
+                    "Pasta fresca",
+                    "Platos toscanos",
+                    "Carne de temporada"
+                ],
+                "google_maps": "https://www.google.com/maps/search/?api=1&query=Osteria+dei+Cavalieri+Pisa"
+            },
+            {
+                "nombre": "Osteria In Domo",
+                "categoria": "restaurante",
+                "zona": "Pisa",
+                "direccion": "Via Santa Maria 129, Pisa",
+                "precio": "€€",
+                "calidad": 8.5,
+                "romanticismo": 7.5,
+                "tipo": "Toscano",
+                "platos_recomendados": [
+                    "Pasta fresca",
+                    "Pescado según disponibilidad",
+                    "Platos toscanos",
+                    "Postres caseros"
+                ],
+                "google_maps": "https://www.google.com/maps/search/?api=1&query=Osteria+In+Domo+Pisa"
+            },
+            {
+                "nombre": "Pizzeria Il Montino",
+                "categoria": "street_food",
+                "zona": "Pisa",
+                "direccion": "Via del Monte 1, Pisa",
+                "precio": "€",
+                "calidad": 9,
+                "romanticismo": 6,
+                "tipo": "Comida tradicional de Pisa",
+                "platos_recomendados": [
+                    "Cecina",
+                    "Torta di ceci",
+                    "Pizza tradicional"
+                ],
+                "google_maps": "https://www.google.com/maps/search/?api=1&query=Pizzeria+Il+Montino+Pisa"
+            },
+            {
+                "nombre": "Caffè dell'Ussero",
+                "categoria": "desayuno",
+                "zona": "Pisa",
+                "direccion": "Lungarno Antonio Pacinotti 27, Pisa",
+                "precio": "€€",
+                "calidad": 8.5,
+                "romanticismo": 8,
+                "tipo": "Café histórico",
+                "platos_recomendados": [
+                    "Espresso",
+                    "Cappuccino",
+                    "Pastelería italiana",
+                    "Desayuno ligero"
+                ],
+                "google_maps": "https://www.google.com/maps/search/?api=1&query=Caffe+dell'Ussero+Pisa"
+            }
+        ],
+        "comidas_tipicas": [
+            {
+                "nombre": "Bistecca alla Fiorentina",
+                "descripcion": "Corte grueso de ternera a la parrilla, tradicionalmente servido poco hecho."
+            },
+            {
+                "nombre": "Schiacciata",
+                "descripcion": "Pan plano toscano parecido a una focaccia, normalmente relleno de embutidos y quesos."
+            },
+            {
+                "nombre": "Pici al cinghiale",
+                "descripcion": "Pasta gruesa artesanal acompañada de ragù de jabalí."
+            },
+            {
+                "nombre": "Ribollita",
+                "descripcion": "Sopa espesa de verduras, alubias, pan y col negra."
+            },
+            {
+                "nombre": "Pappa al pomodoro",
+                "descripcion": "Plato tradicional elaborado con pan, tomate, aceite de oliva y hierbas."
+            },
+            {
+                "nombre": "Lampredotto",
+                "descripcion": "Plato florentino elaborado con uno de los estómagos de la ternera, normalmente servido en pan."
+            },
+            {
+                "nombre": "Peposo",
+                "descripcion": "Estofado de ternera cocinado lentamente con vino tinto, ajo y abundante pimienta."
+            },
+            {
+                "nombre": "Panzanella",
+                "descripcion": "Ensalada toscana de pan, tomate, cebolla, albahaca y aceite de oliva."
+            },
+            {
+                "nombre": "Cantucci con Vin Santo",
+                "descripcion": "Galletas tradicionales de almendra servidas para mojar en Vin Santo."
+            },
+            {
+                "nombre": "Gelato",
+                "descripcion": "Helado italiano artesanal, imprescindible durante el viaje."
+            },
+            {
+                "nombre": "Cecina / Torta di ceci",
+                "descripcion": "Especialidad de Pisa elaborada con harina de garbanzo, agua, aceite de oliva y sal."
+            },
+            {
+                "nombre": "Bordatino alla pisana",
+                "descripcion": "Sopa tradicional de Pisa elaborada con harina de maíz, verduras y legumbres."
+            }
+        ],
+        "checklist_comidas": [
+            "Bistecca alla Fiorentina",
+            "Schiacciata",
+            "Pici al cinghiale",
+            "Ribollita",
+            "Pappa al pomodoro",
+            "Lampredotto",
+            "Peposo",
+            "Panzanella",
+            "Cantucci con Vin Santo",
+            "Gelato",
+            "Espresso + cornetto",
+            "Cecina / Torta di ceci",
+            "Bordatino alla pisana"
+        ],
+        "checklist_experiencias": [
+            "Ver el Duomo de Florencia",
+            "Hacer un Free Tour",
+            "Visitar la Galería Uffizi",
+            "Ver el David de Miguel Ángel en la Accademia",
+            "Pasear por Oltrarno",
+            "Tomar un aperitivo en Il Santino",
+            "Tener una cena romántica en Cabiria",
+            "Ver el atardecer desde Piazzale Michelangelo",
+            "Pasear por Ponte Vecchio",
+            "Visitar Piazza della Signoria",
+            "Recorrer Mercato Centrale",
+            "Hacer una excursión a Pisa",
+            "Ver la Torre de Pisa",
+            "Visitar Piazza dei Miracoli"
+        ],
+        "ranking": {
+            "romantico": [
+                "Cabiria Firenze",
+                "Il Santino",
+                "Il Santo Bevitore",
+                "L'Ortone",
+                "La Buchetta Food & Wine"
+            ],
+            "calidad": [
+                "Cabiria Firenze",
+                "Zeb",
+                "L'Ortone",
+                "Trattoria Cibrèo - Il Cibrèino",
+                "I' Girone De' Ghiotti"
+            ],
+            "street_food": [
+                "I' Girone De' Ghiotti",
+                "La Schiacciata Firenze",
+                "All'Antico Vinaio"
+            ],
+            "desayuno": [
+                "Ditta Artigianale",
+                "Rooster Cafe Firenze",
+                "Ala Grande Caffè",
+                "Le Vespe Cafè"
+            ],
+            "gelato": [
+                "Gelateria dei Neri",
+                "Vivoli"
+            ],
+            "pisa": [
+                "L'Ostellino",
+                "Pizzeria Il Montino",
+                "Osteria dei Cavalieri",
+                "Osteria In Domo"
+            ]
+        },
+        "plan_comidas": {
+            "viernes": {
+                "desayuno": null,
+                "comida": null,
+                "aperitivo": null,
+                "cena": [
+                    "Il Santo Bevitore",
+                    "Il Latini",
+                    "La Buchetta Food & Wine"
+                ]
+            },
+            "sábado": {
+                "desayuno": [
+                    "Ditta Artigianale",
+                    "Ala Grande Caffè"
+                ],
+                "comida": [
+                    "I' Girone De' Ghiotti",
+                    "La Schiacciata Firenze"
+                ],
+                "aperitivo": [
+                    "Il Santino"
+                ],
+                "cena": [
+                    "Cabiria Firenze"
+                ]
+            },
+            "domingo": {
+                "desayuno": [
+                    "Rooster Cafe Firenze",
+                    "Ditta Artigianale"
+                ],
+                "comida": [
+                    "Trattoria Zà Zà",
+                    "Mercato Centrale"
+                ],
+                "aperitivo": null,
+                "cena": [
+                    "Zeb",
+                    "L'Ortone",
+                    "Il Santo Bevitore"
+                ]
+            },
+            "lunes": {
+                "desayuno": null,
+                "comida": [
+                    "L'Ostellino",
+                    "Pizzeria Il Montino",
+                    "Osteria dei Cavalieri"
+                ],
+                "aperitivo": null,
+                "cena": null
+            }
+        }
+    }
+}
