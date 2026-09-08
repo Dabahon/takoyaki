@@ -25,18 +25,43 @@ let intervaloCuentaAtras = null;
 document.addEventListener("DOMContentLoaded", iniciarApp);
 
 async function iniciarApp() {
+
     configurarEventosGlobales();
+
+    const parametros =
+        new URLSearchParams(
+            window.location.search
+        );
+
+    const modoDev =
+        parametros.get("dev") === "true";
+
+    if (modoDev) {
+
+        sessionStorage.setItem(
+            "florenceTrip_simularCumpleanos",
+            "true"
+        );
+    }
 
     const viajeDesbloqueado =
         comprobarViajeDesbloqueado();
 
     if (viajeDesbloqueado) {
+
         await desbloquearYcargarViaje();
+
     } else {
+
         mostrarPantallaSorpresa();
     }
 
     iniciarCuentaAtras();
+
+    if (modoDev && !viajeDesbloqueado) {
+
+        activarModoCumpleanos();
+    }
 }
 
 
@@ -3317,5 +3342,29 @@ function registrarServiceWorker() {
                     );
                 }
             );
+    }
+}
+
+function comprobarModoDesarrolloURL() {
+
+    const parametros =
+        new URLSearchParams(
+            window.location.search
+        );
+
+    if (
+        parametros.get("dev") === "true"
+    ) {
+
+        console.log(
+            "🔧 Modo desarrollador activado desde URL"
+        );
+
+        sessionStorage.setItem(
+            "florenceTrip_simularCumpleanos",
+            "true"
+        );
+
+        activarModoCumpleanos();
     }
 }
