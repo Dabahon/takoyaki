@@ -1983,71 +1983,6 @@ main {
 
 
 /* =========================================================
-   MAP
-   ========================================================= */
-
-.map-placeholder {
-
-    max-width:
-        700px;
-
-    margin:
-        0 auto;
-
-    padding:
-        70px 30px;
-
-    border:
-        1px solid var(--border);
-
-    border-radius:
-        var(--radius-large);
-
-    background:
-        var(--surface);
-
-    box-shadow:
-        var(--shadow-soft);
-
-    text-align:
-        center;
-}
-
-
-.map-icon {
-
-    margin-bottom:
-        15px;
-
-    font-size:
-        4rem;
-}
-
-
-.map-placeholder h3 {
-
-    margin-bottom:
-        8px;
-
-    font-size:
-        2rem;
-}
-
-
-.map-placeholder p {
-
-    max-width:
-        500px;
-
-    margin:
-        0 auto 25px;
-
-    font-size:
-        0.85rem;
-}
-
-
-/* =========================================================
    CHECKLIST
    ========================================================= */
 
@@ -3261,4 +3196,807 @@ input:focus-visible {
             0.01ms !important;
     }
 
+}
+
+
+/* =========================================================
+   AJUSTES DE EXPERIENCIA MÓVIL
+   ========================================================= */
+
+[hidden] {
+
+    display:
+        none !important;
+}
+
+
+html {
+
+    -webkit-text-size-adjust:
+        100%;
+}
+
+
+@media (max-width: 700px) {
+
+    .hero {
+
+        min-height:
+            100svh;
+
+        padding:
+            max(48px, env(safe-area-inset-top)) 20px 82px;
+    }
+
+
+    .hero-content {
+
+        max-width:
+            420px;
+    }
+
+
+    .hero-eyebrow {
+
+        margin-bottom:
+            16px;
+
+        line-height:
+            1.35;
+    }
+
+
+    .hero-title {
+
+        max-width:
+            360px;
+
+        margin-bottom:
+            18px;
+
+        line-height:
+            0.94;
+    }
+
+
+    .hero-subtitle {
+
+        max-width:
+            290px;
+
+        margin:
+            0 auto;
+
+        line-height:
+            1.6;
+    }
+
+
+    .countdown {
+
+        width:
+            100%;
+
+        max-width:
+            370px;
+
+        margin:
+            28px auto 0;
+    }
+
+
+    .countdown-item {
+
+        min-width:
+            0;
+
+        flex:
+            1;
+    }
+
+
+    .gift-button {
+
+        width:
+            min(100%, 300px);
+
+        min-height:
+            52px;
+
+        margin-top:
+            28px;
+    }
+
+
+    .main-nav {
+
+        top:
+            0;
+
+        padding:
+            8px 12px;
+
+        overscroll-behavior-x:
+            contain;
+    }
+
+
+    .nav-container {
+
+        gap:
+            5px;
+
+        padding-right:
+            10px;
+    }
+
+
+    .main-nav a {
+
+        min-height:
+            40px;
+
+        padding:
+            9px 13px;
+    }
+
+
+    main {
+
+        padding:
+            38px 18px 56px;
+    }
+
+
+    .section-header {
+
+        margin-bottom:
+            28px;
+    }
+
+
+    .section-header h2 {
+
+        font-size:
+            clamp(2.35rem, 11vw, 3rem);
+    }
+
+
+    .section-header p {
+
+        max-width:
+            340px;
+
+        font-size:
+            0.84rem;
+
+        line-height:
+            1.65;
+    }
+
+
+    .trip-grid {
+
+        gap:
+            13px;
+    }
+
+
+    .trip-card {
+
+        display:
+        grid;
+
+        grid-template-columns:
+            44px 1fr;
+
+        column-gap:
+            14px;
+
+        padding:
+            20px;
+    }
+
+
+    .trip-card-icon {
+
+        grid-row:
+            span 2;
+
+        margin:
+            2px 0 0;
+
+        font-size:
+            1.75rem;
+    }
+
+
+    .trip-card h3 {
+
+        margin-bottom:
+            4px;
+
+        font-size:
+            1.5rem;
+    }
+
+
+    .trip-card p {
+
+        line-height:
+            1.55;
+    }
+
+
+    .restaurant-filters {
+
+        scroll-snap-type:
+            x proximity;
+    }
+
+
+    .restaurant-filter {
+
+        min-height:
+            39px;
+
+        scroll-snap-align:
+            start;
+    }
+
+
+    .restaurant-card {
+
+        border-radius:
+            15px;
+    }
+
+
+    .restaurant-card-content {
+
+        padding:
+            20px;
+    }
+
+
+    .restaurant-header h3 {
+
+        font-size:
+            1.45rem;
+
+        line-height:
+            1.05;
+    }
+
+
+    .restaurant-actions .maps-button {
+
+        width:
+            100%;
+
+        min-height:
+            42px;
+    }
+
+
+    #itinerary-list {
+
+        gap:
+            18px;
+    }
+
+
+    .itinerary-day {
+
+        padding:
+            20px 16px;
+
+        border-radius:
+            16px;
+    }
+
+
+    .itinerary-day-header {
+
+        gap:
+            10px;
+
+        margin-bottom:
+            20px;
+
+        padding-bottom:
+            17px;
+    }
+
+
+    .itinerary-day-header h3 {
+
+        font-size:
+            1.55rem;
+
+        line-height:
+            1.02;
+    }
+
+
+    .itinerary-day-description {
+
+        margin-top:
+            8px;
+
+        font-size:
+            0.77rem;
+
+        line-height:
+            1.6;
+    }
+
+
+    .itinerary-timeline {
+
+        padding-left:
+            39px;
+    }
+
+
+    .itinerary-timeline::before {
+
+        left:
+            18px;
+    }
+
+
+    .itinerary-icon {
+
+        width:
+            36px;
+
+        height:
+            36px;
+
+        margin-left:
+            -19px;
+    }
+
+
+    .itinerary-item {
+
+        padding-bottom:
+            23px;
+    }
+
+
+    .itinerary-item h4 {
+
+        font-size:
+            0.90rem;
+
+        line-height:
+            1.35;
+    }
+
+
+    .itinerary-badges {
+
+        gap:
+            5px;
+
+        margin-bottom:
+            8px;
+    }
+
+
+    .itinerary-options {
+
+        margin-top:
+            10px;
+
+        padding:
+            10px 11px;
+    }
+
+
+    .itinerary-special {
+
+        margin-left:
+            -8px;
+
+        padding:
+            10px 8px;
+    }
+
+
+    .checklist-item {
+
+        min-height:
+            64px;
+
+        padding:
+            14px;
+    }
+
+
+    .checklist-item input {
+
+        width:
+            20px;
+
+        height:
+            20px;
+    }
+
+
+    #footer {
+
+        padding:
+            28px 18px calc(28px + env(safe-area-inset-bottom));
+    }
+}
+
+
+@media (max-width: 380px) {
+
+    .hero {
+
+        padding-right:
+            14px;
+
+        padding-left:
+            14px;
+    }
+
+
+    .hero-title {
+
+        font-size:
+            clamp(2.85rem, 14vw, 3.3rem);
+    }
+
+
+    .countdown {
+
+        gap:
+            5px;
+    }
+
+
+    .countdown-item {
+
+        padding:
+            10px 4px;
+    }
+
+
+    .countdown-item span {
+
+        font-size:
+            0.46rem;
+    }
+
+
+    main {
+
+        padding-right:
+            14px;
+
+        padding-left:
+            14px;
+    }
+}
+
+
+/* =========================================================
+   VIAJE REVELADO Y ACORDEÓN DEL ITINERARIO
+   ========================================================= */
+
+.hero.hero-trip-revealed {
+
+    min-height:
+        230px;
+
+    padding:
+        38px 25px 52px;
+
+    transition:
+        min-height 0.65s cubic-bezier(0.22, 1, 0.36, 1),
+        padding 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+
+.hero-trip-revealed::after {
+
+    height:
+        55px;
+}
+
+
+.hero-trip-revealed .hero-eyebrow {
+
+    margin-bottom:
+        9px;
+
+    font-size:
+        0.64rem;
+}
+
+
+.hero-trip-revealed .hero-title {
+
+    margin-bottom:
+        8px;
+
+    font-size:
+        clamp(3rem, 6vw, 4.4rem);
+
+    line-height:
+        0.95;
+}
+
+
+.hero-trip-revealed .hero-subtitle {
+
+    font-size:
+        0.70rem;
+}
+
+
+.itinerary-day-toggle {
+
+    display:
+        flex;
+
+    align-items:
+        flex-start;
+
+    justify-content:
+        space-between;
+
+    width:
+        100%;
+
+    border:
+        0;
+
+    background:
+        transparent;
+
+    color:
+        inherit;
+
+    font: inherit;
+
+    text-align:
+        left;
+}
+
+
+.itinerary-day-toggle .itinerary-day-header {
+
+    width:
+        calc(100% - 42px);
+}
+
+
+.itinerary-day-chevron {
+
+    display:
+        grid;
+
+    place-items:
+        center;
+
+    width:
+        32px;
+
+    height:
+        32px;
+
+    flex-shrink:
+        0;
+
+    margin-top:
+        5px;
+
+    border:
+        1px solid var(--border);
+
+    border-radius:
+        50%;
+
+    color:
+        var(--primary);
+
+    font-size:
+        1.1rem;
+
+    line-height:
+        1;
+
+    transition:
+        transform 0.35s ease,
+        background 0.25s ease;
+}
+
+
+.itinerary-day-toggle:hover .itinerary-day-chevron {
+
+    background:
+        var(--surface-soft);
+}
+
+
+.itinerary-day-toggle[aria-expanded="false"] .itinerary-day-chevron {
+
+    transform:
+        rotate(-90deg);
+}
+
+
+.itinerary-day-panel {
+
+    display:
+        grid;
+
+    grid-template-rows:
+        1fr;
+
+    opacity:
+        1;
+
+    transition:
+        grid-template-rows 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+        opacity 0.25s ease;
+}
+
+
+.itinerary-day-panel-inner {
+
+    min-height:
+        0;
+
+    overflow:
+        hidden;
+}
+
+
+.itinerary-day-panel.is-collapsed {
+
+    grid-template-rows:
+        0fr;
+
+    opacity:
+        0;
+}
+
+
+.itinerary-day:has(.itinerary-day-panel.is-collapsed) .itinerary-day-header {
+
+    margin-bottom:
+        0;
+
+    padding-bottom:
+        0;
+
+    border-bottom-color:
+        transparent;
+}
+
+
+@keyframes pageContentIn {
+
+    from {
+
+        opacity:
+            0;
+
+        transform:
+            translateY(12px);
+    }
+
+    to {
+
+        opacity:
+            1;
+
+        transform:
+            translateY(0);
+    }
+}
+
+
+.page-enter .section-header,
+.page-enter .trip-card,
+.page-enter .itinerary-day,
+.page-enter .restaurant-card,
+.page-enter .checklist-item {
+
+    animation:
+        pageContentIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+
+.page-enter .trip-card:nth-child(1),
+.page-enter .itinerary-day:nth-child(1),
+.page-enter .restaurant-card:nth-child(1),
+.page-enter .checklist-item:nth-child(1) {
+
+    animation-delay:
+        0.05s;
+}
+
+
+.page-enter .trip-card:nth-child(2),
+.page-enter .itinerary-day:nth-child(2),
+.page-enter .restaurant-card:nth-child(2),
+.page-enter .checklist-item:nth-child(2) {
+
+    animation-delay:
+        0.10s;
+}
+
+
+.page-enter .trip-card:nth-child(3),
+.page-enter .itinerary-day:nth-child(3),
+.page-enter .restaurant-card:nth-child(3),
+.page-enter .checklist-item:nth-child(3) {
+
+    animation-delay:
+        0.15s;
+}
+
+
+@media (max-width: 700px) {
+
+    .hero.hero-trip-revealed {
+
+        min-height:
+            170px;
+
+        padding:
+            max(28px, env(safe-area-inset-top)) 20px 42px;
+    }
+
+
+    .hero-trip-revealed .hero-title {
+
+        font-size:
+            2.8rem;
+    }
+
+
+    .hero-trip-revealed .hero-subtitle {
+
+        font-size:
+            0.61rem;
+    }
+
+
+    .itinerary-day-toggle .itinerary-day-header {
+
+        width:
+            calc(100% - 37px);
+    }
+
+
+    .itinerary-day-chevron {
+
+        width:
+            29px;
+
+        height:
+            29px;
+
+        margin-top:
+            2px;
+
+        font-size:
+            1rem;
+    }
+
+
+    .itinerary-day:has(.itinerary-day-panel.is-collapsed) {
+
+        padding-bottom:
+            18px;
+    }
 }

@@ -117,7 +117,7 @@
                 "fecha": "2026-12-19",
                 "numero": 2,
                 "titulo": "Firenze Storica ❤️",
-                "descripcion": "Un día para descubrir la Florencia monumental, perdernos por Oltrarno y terminar con nuestro aperitivo y cena romántica.",
+                "descripcion": "Un día para descubrir la Florencia monumental, perdernos por Oltrarno y terminar con un aperitivo y una cena con encanto.",
                 "actividades": [
                     {
                         "hora": "08:30",
@@ -186,10 +186,10 @@
                     },
                     {
                         "hora": "21:00",
-                        "titulo": "Cena romántica en Cabiria ❤️",
+                        "titulo": "Cena especial en Cabiria ❤️",
                         "tipo": "restaurante",
                         "duracion": "≈ 2 h",
-                        "descripcion": "La cena romántica del viaje en Piazza Santo Spirito.",
+                        "descripcion": "Una cena especial en Piazza Santo Spirito para cerrar el día.",
                         "ubicacion": "Cabiria Firenze — Piazza Santo Spirito 4r, Firenze",
                         "google_maps": "https://www.google.com/maps/search/?api=1&query=Cabiria+Firenze",
                         "especial": true,
@@ -446,7 +446,7 @@
             "preferencias": [
                 "Cocina tradicional toscana",
                 "Restaurantes bonitos y con encanto",
-                "Opciones románticas para parejas",
+                "Opciones con encanto para una ocasión especial",
                 "Buena relación calidad-precio",
                 "Street food típico",
                 "Desayunos italianos",
@@ -461,7 +461,7 @@
         "zonas": [
             {
                 "nombre": "Oltrarno",
-                "descripcion": "La zona más interesante para ambiente local, aperitivo y cenas románticas."
+                "descripcion": "La zona más interesante para ambiente local, aperitivo y cenas con encanto."
             },
             {
                 "nombre": "Centro histórico",
@@ -1056,7 +1056,7 @@
             "Ver el David de Miguel Ángel en la Accademia",
             "Pasear por Oltrarno",
             "Tomar un aperitivo en Il Santino",
-            "Tener una cena romántica en Cabiria",
+            "Disfrutar de una cena especial en Cabiria",
             "Ver el atardecer desde Piazzale Michelangelo",
             "Pasear por Ponte Vecchio",
             "Visitar Piazza della Signoria",

@@ -228,17 +228,17 @@ function actualizarHeroEspera() {
 
     if (eyebrow) {
         eyebrow.textContent =
-            "🎁 UNA SORPRESA PARA TI";
+            "🎁 Tic tac...";
     }
 
     if (titulo) {
         titulo.textContent =
-            "Tengo algo preparado para ti";
+            "Hay un plan esperándote";
     }
 
     if (subtitulo) {
         subtitulo.textContent =
-            "Solo tienes que esperar un poquito";
+            "Solo falta un poquito";
     }
 
     const boton =
@@ -419,17 +419,17 @@ function activarModoCumpleanos() {
 
     if (eyebrow) {
         eyebrow.textContent =
-            "🎂 HOY ES TU DÍA";
+            "🎂 LLEGÓ EL DÍA";
     }
 
     if (titulo) {
         titulo.textContent =
-            "BUON COMPLEANNO ❤️";
+            "FELICES 30";
     }
 
     if (subtitulo) {
         subtitulo.textContent =
-            "Y tengo una pequeña sorpresa preparada para ti...";
+            "Una escapada para celebrarlo como merece.";
     }
 
     const boton =
@@ -506,6 +506,8 @@ function abrirRegalo() {
         boton.classList.add(
             "gift-opening"
         );
+
+        boton.hidden = true;
     }
 
     crearModalRegalo();
@@ -595,16 +597,15 @@ function crearModalRegalo() {
                 </div>
 
                 <p class="gift-small">
-                    TENGO ALGO PARA TI
+                    HOY TOCA CELEBRAR
                 </p>
 
                 <h2 id="gift-title">
-                    Tu regalo es...
+                    Tus 30 empiezan así
                 </h2>
 
                 <p>
-                    Algo que llevamos un tiempo
-                    esperando.
+                    He preparado un plan para que los estrenes bien.
                 </p>
 
                 <button
@@ -612,7 +613,7 @@ function crearModalRegalo() {
                     class="gift-main-button"
                     data-gift-next="2"
                 >
-                    Descubrir
+                    Ver el plan
                 </button>
 
             </div>
@@ -633,15 +634,15 @@ function crearModalRegalo() {
                 </div>
 
                 <p class="gift-small">
-                    PREPÁRATE
+                    UNA PISTA
                 </p>
 
                 <h2>
-                    Nos vamos de viaje
+                    Nos escapamos unos días
                 </h2>
 
                 <p>
-                    Pero todavía falta descubrir...
+                    Ahora solo queda saber dónde.
                 </p>
 
                 <button
@@ -649,7 +650,7 @@ function crearModalRegalo() {
                     class="gift-main-button"
                     data-gift-next="3"
                 >
-                    ¿A dónde?
+                    Dime dónde
                 </button>
 
             </div>
@@ -670,7 +671,7 @@ function crearModalRegalo() {
                 </div>
 
                 <p class="gift-small">
-                    NUESTRO DESTINO
+                    DESTINO
                 </p>
 
                 <h1>
@@ -682,8 +683,7 @@ function crearModalRegalo() {
                 </p>
 
                 <p>
-                    Tres noches, nosotros dos,
-                    comida italiana y una ciudad preciosa.
+                    Tres noches, arte, paseos y toda la comida italiana posible.
                 </p>
 
                 <button
@@ -691,7 +691,7 @@ function crearModalRegalo() {
                     class="gift-main-button"
                     data-gift-reveal
                 >
-                    Descubrir nuestro viaje ❤️
+                    Ver la escapada
                 </button>
 
             </div>
@@ -850,6 +850,23 @@ function cerrarModalRegalo() {
     document.body.classList.remove(
         "gift-open"
     );
+
+    const boton =
+        document.getElementById(
+            "open-gift"
+        );
+
+    if (
+        boton &&
+        !comprobarViajeDesbloqueado()
+    ) {
+
+        boton.hidden = false;
+
+        boton.classList.remove(
+            "gift-opening"
+        );
+    }
 
     setTimeout(() => {
 
@@ -1025,6 +1042,11 @@ function activarViajeDesbloqueado() {
 
 function actualizarHeroViaje() {
 
+    const hero =
+        document.getElementById(
+            "hero"
+        );
+
     const eyebrow =
         document.querySelector(
             ".hero-eyebrow"
@@ -1043,19 +1065,26 @@ function actualizarHeroViaje() {
     if (eyebrow) {
 
         eyebrow.textContent =
-            "✨ NUESTRO VIAJE";
+            "ESCAPADA DE CUMPLEAÑOS";
     }
 
     if (titulo) {
 
         titulo.textContent =
-            "Nos vamos a Florencia 🇮🇹";
+            "Florencia";
     }
 
     if (subtitulo) {
 
         subtitulo.textContent =
             "18 — 21 diciembre 2026";
+    }
+
+    if (hero) {
+
+        hero.classList.add(
+            "hero-trip-revealed"
+        );
     }
 
     const countdown =
@@ -1133,7 +1162,7 @@ function mostrarErrorCarga() {
 
             <p>
                 No hemos podido cargar
-                nuestra escapada.
+                el plan del viaje.
             </p>
 
             <p>
@@ -1271,6 +1300,10 @@ function mostrarPagina(
 
     if (pagina) {
         pagina.hidden = false;
+
+        animarEntradaPagina(
+            pagina
+        );
     }
 
 
@@ -1304,6 +1337,21 @@ function mostrarPagina(
     window.scrollTo({
         top: 0,
         behavior: "smooth"
+    });
+}
+
+
+function animarEntradaPagina(pagina) {
+
+    pagina.classList.remove(
+        "page-enter"
+    );
+
+    requestAnimationFrame(() => {
+
+        pagina.classList.add(
+            "page-enter"
+        );
     });
 }
 
@@ -2368,6 +2416,127 @@ function crearElementoItinerario(
     `;
 
 
+    const cabecera =
+        elemento.querySelector(
+            ".itinerary-day-header"
+        );
+
+    const timeline =
+        elemento.querySelector(
+            ".itinerary-timeline"
+        );
+
+    if (cabecera && timeline) {
+
+        const abierto =
+            Number(numero) === 1;
+
+        const idPanel =
+            `itinerary-day-${
+                numero ||
+                fecha ||
+                "plan"
+            }`;
+
+        const boton =
+            document.createElement(
+                "button"
+            );
+
+        const panel =
+            document.createElement(
+                "div"
+            );
+
+        boton.type = "button";
+        boton.className =
+            "itinerary-day-toggle";
+
+        boton.setAttribute(
+            "aria-expanded",
+            String(abierto)
+        );
+
+        boton.setAttribute(
+            "aria-controls",
+            idPanel
+        );
+
+        panel.id = idPanel;
+        panel.className =
+            `itinerary-day-panel${
+                abierto
+                    ? ""
+                    : " is-collapsed"
+            }`;
+
+        panel.setAttribute(
+            "aria-hidden",
+            String(!abierto)
+        );
+
+        panel.inert =
+            !abierto;
+
+        const contenidoPanel =
+            document.createElement(
+                "div"
+            );
+
+        contenidoPanel.className =
+            "itinerary-day-panel-inner";
+
+        const indicador =
+            document.createElement(
+                "span"
+            );
+
+        indicador.className =
+            "itinerary-day-chevron";
+
+        indicador.setAttribute(
+            "aria-hidden",
+            "true"
+        );
+
+        indicador.textContent = "↓";
+
+        cabecera.before(boton);
+        boton.append(cabecera, indicador);
+        timeline.before(panel);
+        contenidoPanel.append(timeline);
+        panel.append(contenidoPanel);
+
+        boton.addEventListener(
+            "click",
+            () => {
+
+                const expandido =
+                    boton.getAttribute(
+                        "aria-expanded"
+                    ) === "true";
+
+                boton.setAttribute(
+                    "aria-expanded",
+                    String(!expandido)
+                );
+
+                panel.classList.toggle(
+                    "is-collapsed",
+                    expandido
+                );
+
+                panel.setAttribute(
+                    "aria-hidden",
+                    String(expandido)
+                );
+
+                panel.inert =
+                    expandido;
+            }
+        );
+    }
+
     return elemento;
 }
 
@@ -2826,7 +2995,7 @@ function renderizarChecklist() {
                 </span>
 
                 <h3>
-                    Nuestra checklist
+                    La lista del viaje
                 </h3>
 
                 <p>
