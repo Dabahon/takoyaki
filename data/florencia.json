@@ -35,7 +35,7 @@
                 "dia": "viernes",
                 "fecha": "2026-12-18",
                 "numero": 1,
-                "titulo": "Benvenuti a Firenze 🇮🇹",
+                "titulo": "Benvenuti a Firenze",
                 "descripcion": "Llegamos a Italia, dejamos Pisa para el último día y comenzamos nuestra escapada en Florencia.",
                 "actividades": [
                     {
@@ -116,7 +116,7 @@
                 "dia": "sábado",
                 "fecha": "2026-12-19",
                 "numero": 2,
-                "titulo": "Firenze Storica ❤️",
+                "titulo": "Firenze Storica",
                 "descripcion": "Un día para descubrir la Florencia monumental, perdernos por Oltrarno y terminar con un aperitivo y una cena con encanto.",
                 "actividades": [
                     {
@@ -216,7 +216,7 @@
                 "dia": "domingo",
                 "fecha": "2026-12-20",
                 "numero": 3,
-                "titulo": "Arte & Firenze desde las alturas ❤️",
+                "titulo": "Arte & Firenze desde las alturas",
                 "descripcion": "Nuestro día cultural: Uffizi, David de Miguel Ángel, gastronomía toscana y el gran atardecer sobre Florencia.",
                 "actividades": [
                     {
@@ -325,7 +325,7 @@
                 "dia": "lunes",
                 "fecha": "2026-12-21",
                 "numero": 4,
-                "titulo": "Pisa & Arrivederci 🇮🇹",
+                "titulo": "Pisa & Arrivederci",
                 "descripcion": "Última mañana del viaje. Dejamos Florencia para descubrir Pisa y volamos directamente desde su aeropuerto a Madrid.",
                 "actividades": [
                     {

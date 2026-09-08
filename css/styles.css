@@ -157,45 +157,52 @@ p {
 
 .hero {
 
-    position:
-        relative;
+    position: relative;
 
-    min-height:
-        525px;
+    min-height: 525px;
 
-    display:
-        flex;
+    display: flex;
 
-    align-items:
-        center;
+    align-items: center;
 
-    justify-content:
-        center;
+    justify-content: center;
 
-    padding:
-        60px 25px;
+    padding: 60px 25px;
 
-    overflow:
-        hidden;
+    overflow: hidden;
 
-    color:
-        white;
+    color: white;
 
-    text-align:
-        center;
+    text-align: center;
 
-    background:
-        radial-gradient(
-            circle at 50% 15%,
-            rgba(255, 255, 255, 0.18),
-            transparent 35%
-        ),
+    background-image:
         linear-gradient(
-            145deg,
-            #9b5944 0%,
-            #8f4f3a 38%,
-            #6f3828 100%
-        );
+            rgba(0, 0, 0, 0.35),
+            rgba(0, 0, 0, 0.35)
+        ),
+        url("../assets/images/inicio.jpg");
+
+    background-size: cover;
+
+    background-position: center center;
+
+    background-repeat: no-repeat;
+}
+
+body.viaje-desbloqueado .hero {
+
+    background-image:
+        linear-gradient(
+            rgba(0, 0, 0, 0.30),
+            rgba(0, 0, 0, 0.30)
+        ),
+        url("../assets/images/florence.jpg");
+
+    background-size: cover;
+
+    background-position: center center;
+
+    background-repeat: no-repeat;
 }
 
 

@@ -170,6 +170,11 @@ function guardarViajeDesbloqueado() {
 
 function mostrarPantallaSorpresa() {
 
+
+    document.body.classList.remove(
+        "viaje-desbloqueado"
+    );
+
     const waitingScreen =
         document.getElementById(
             "waiting-screen"
@@ -667,7 +672,7 @@ function crearModalRegalo() {
             >
 
                 <div class="gift-big-icon">
-                    🇮🇹
+                    🏛️
                 </div>
 
                 <p class="gift-small">
@@ -998,6 +1003,11 @@ async function desbloquearYcargarViaje() {
    ========================================================= */
 
 function activarViajeDesbloqueado() {
+
+
+    document.body.classList.add(
+        "viaje-desbloqueado"
+    );
 
     const waitingScreen =
         document.getElementById(
