@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="cielo" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#120f24"/><stop offset=".55" stop-color="#2a1f45"/>
+      <stop offset=".85" stop-color="#4a2c4a"/><stop offset="1" stop-color="#7a4440"/>
+    </linearGradient>
+    <radialGradient id="horizonte" cx=".5" cy="1.15" r=".75">
+      <stop offset="0" stop-color="#e88c60" stop-opacity=".75"/>
+      <stop offset=".45" stop-color="#b8745d" stop-opacity=".25"/>
+      <stop offset="1" stop-color="#b8745d" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="halo"><stop offset="0" stop-color="#ffe9c7" stop-opacity=".55"/><stop offset="1" stop-color="#ffe9c7" stop-opacity="0"/></radialGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="url(#cielo)"/>
+  <rect width="64" height="64" rx="14" fill="url(#horizonte)"/>
+  
+  <g fill="none" stroke="#ffe9c7" stroke-opacity=".55" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round">
+    <polyline points="8.9,15.5 21.2,13.7 24.7,22.5 15.9,28.7 25.6,34.8 22.1,45.0 8.5,43.6"/><polygon points="41.5,14.6 51.1,17.7 54.7,30.0 50.3,42.8 39.7,45.4 34.4,31.3 36.6,19.0"/>
+  </g>
+  <circle cx="8.9" cy="15.5" r="10.4" fill="url(#halo)"/><circle cx="8.9" cy="15.5" r="4.0" fill="#fff6e8"/><circle cx="21.2" cy="13.7" r="8.3" fill="url(#halo)"/><circle cx="21.2" cy="13.7" r="3.2" fill="#fff6e8"/><circle cx="24.7" cy="22.5" r="8.3" fill="url(#halo)"/><circle cx="24.7" cy="22.5" r="3.2" fill="#fff6e8"/><circle cx="15.9" cy="28.7" r="10.4" fill="url(#halo)"/><circle cx="15.9" cy="28.7" r="4.0" fill="#fff6e8"/><circle cx="25.6" cy="34.8" r="8.3" fill="url(#halo)"/><circle cx="25.6" cy="34.8" r="3.2" fill="#fff6e8"/><circle cx="22.1" cy="45.0" r="8.3" fill="url(#halo)"/><circle cx="22.1" cy="45.0" r="3.2" fill="#fff6e8"/><circle cx="8.5" cy="43.6" r="10.4" fill="url(#halo)"/><circle cx="8.5" cy="43.6" r="4.0" fill="#fff6e8"/><circle cx="41.5" cy="14.6" r="8.3" fill="url(#halo)"/><circle cx="41.5" cy="14.6" r="3.2" fill="#fff6e8"/><circle cx="51.1" cy="17.7" r="8.3" fill="url(#halo)"/><circle cx="51.1" cy="17.7" r="3.2" fill="#fff6e8"/><circle cx="54.7" cy="30.0" r="10.4" fill="url(#halo)"/><circle cx="54.7" cy="30.0" r="4.0" fill="#fff6e8"/><circle cx="50.3" cy="42.8" r="8.3" fill="url(#halo)"/><circle cx="50.3" cy="42.8" r="3.2" fill="#fff6e8"/><circle cx="39.7" cy="45.4" r="8.3" fill="url(#halo)"/><circle cx="39.7" cy="45.4" r="3.2" fill="#fff6e8"/><circle cx="34.4" cy="31.3" r="10.4" fill="url(#halo)"/><circle cx="34.4" cy="31.3" r="4.0" fill="#fff6e8"/><circle cx="36.6" cy="19.0" r="8.3" fill="url(#halo)"/><circle cx="36.6" cy="19.0" r="3.2" fill="#fff6e8"/>
+</svg>

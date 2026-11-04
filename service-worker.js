@@ -12,14 +12,16 @@
    siguiente visita, sin tener que borrar nada.
    ========================================================= */
 
-const CACHE_NAME = "un-plan-v5";
+const CACHE_NAME = "un-plan-v6";
 
 const FILES_TO_CACHE = [
     "./",
     "./index.html",
     "./css/styles.css",
     "./js/app.js",
-    "./manifest.json"
+    "./manifest.json",
+    "./assets/icons/icono-192.png",
+    "./assets/icons/favicon.svg"
     // data/sorpresa.json no se descarga por adelantado (pesa ~1 MB):
     // se guarda en caché la primera vez que se abre el regalo.
 ];

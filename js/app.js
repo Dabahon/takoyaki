@@ -1957,6 +1957,11 @@ function abrirViaje() {
 
     document.body.classList.remove("modo-apertura");
 
+    // Barra del navegador en terracota, como el plan
+    document
+        .querySelector('meta[name="theme-color"]')
+        ?.setAttribute("content", "#8f4f3a");
+
     const pistas =
         document.getElementById("pistas");
 
@@ -2616,6 +2621,325 @@ function renderizarHotel() {
 }
 
 
+/* =========================================================
+   MODO "HOY"
+   Antes del viaje: cuenta atrás. Durante: qué toca ahora.
+   ========================================================= */
+
+let intervaloHoy = null;
+
+// Diciembre: hora de invierno (UTC+1) en todo el viaje.
+const ZONA_VIAJE = "+01:00";
+
+
+function momentoActividad(fecha, hora) {
+
+    if (!fecha || !/^\d{1,2}:\d{2}$/.test(hora || "")) {
+        return null;
+    }
+
+    const [h, m] = hora.split(":");
+
+    return new Date(`${fecha}T${h.padStart(2, "0")}:${m}:00${ZONA_VIAJE}`);
+}
+
+
+/*
+ * "≈ 2 h 30 min" -> 150, "45 min" -> 45, "—" -> 0
+ */
+function minutosDeDuracion(texto) {
+
+    const horas = /(\d+)\s*h/.exec(texto || "");
+    const minutos = /(\d+)\s*min/.exec(texto || "");
+
+    return (horas ? Number(horas[1]) * 60 : 0) + (minutos ? Number(minutos[1]) : 0);
+}
+
+
+function textoDentroDe(minutos) {
+
+    if (minutos < 1) {
+        return "ya";
+    }
+
+    if (minutos < 60) {
+        return `en ${minutos} min`;
+    }
+
+    const h = Math.floor(minutos / 60);
+    const m = minutos % 60;
+
+    return m ? `en ${h} h ${m} min` : `en ${h} h`;
+}
+
+
+/*
+ * Actividades de un día con su inicio y su fin.
+ */
+function actividadesConHorario(dia) {
+
+    const lista =
+        (dia?.actividades || [])
+            .filter(actividad => typeof actividad === "object")
+            .map(actividad => ({
+                ...actividad,
+                inicio: momentoActividad(dia.fecha, actividad.hora)
+            }))
+            .filter(actividad => actividad.inicio);
+
+    lista.forEach((actividad, i) => {
+
+        const siguiente =
+            lista[i + 1]?.inicio;
+
+        const duracion =
+            minutosDeDuracion(actividad.duracion);
+
+        if (duracion) {
+
+            // Termina al acabar su duración (o antes, si empieza la siguiente)
+            const porDuracion =
+                new Date(actividad.inicio.getTime() + duracion * 60000);
+
+            actividad.fin =
+                siguiente && siguiente < porDuracion ? siguiente : porDuracion;
+
+        } else {
+
+            // Sin duración: hasta la siguiente, o una hora si es la última
+            actividad.fin =
+                siguiente || new Date(actividad.inicio.getTime() + 3600000);
+        }
+    });
+
+    return lista;
+}
+
+
+function filaActividadHoy(actividad, etiqueta, extra) {
+
+    const mapa =
+        actividad.google_maps
+            ? `<a class="hoy-mapa" href="${escaparAtributo(actividad.google_maps)}" target="_blank" rel="noopener noreferrer" aria-label="Abrir en Maps">📍</a>`
+            : "";
+
+    return `
+        <li class="hoy-fila${etiqueta === "Ahora" ? " ahora" : ""}">
+            <span class="hoy-icono" aria-hidden="true">${escaparHTML(obtenerIconoActividad(actividad.tipo))}</span>
+            <div class="hoy-texto">
+                <small>
+                    ${escaparHTML(etiqueta)}
+                    ${extra ? `<b>${escaparHTML(extra)}</b>` : ""}
+                </small>
+                <strong>${escaparHTML(actividad.titulo || "")}</strong>
+                ${actividad.ubicacion ? `<span>${escaparHTML(actividad.ubicacion)}</span>` : ""}
+            </div>
+            <span class="hoy-hora">${escaparHTML(actividad.hora || "")}</span>
+            ${mapa}
+        </li>
+    `;
+}
+
+
+function renderizarHoy() {
+
+    const contenedor =
+        document.getElementById("next-plan");
+
+    const itinerario =
+        datosViaje?.viaje?.itinerario || [];
+
+    if (!contenedor || !itinerario.length) {
+        return;
+    }
+
+    const momento =
+        ahora();
+
+    const dias =
+        itinerario.map(dia => ({ ...dia, actividadesHorario: actividadesConHorario(dia) }));
+
+    const primera =
+        dias[0].actividadesHorario[0];
+
+    const ultimoDia =
+        dias[dias.length - 1];
+
+    const finViaje =
+        ultimoDia.actividadesHorario.at(-1)?.fin ||
+        new Date(`${ultimoDia.fecha}T23:59:00${ZONA_VIAJE}`);
+
+    const diaEnZona = fecha =>
+        fecha.toLocaleDateString("sv-SE", { timeZone: "Europe/Madrid" });
+
+    const hoyTexto =
+        diaEnZona(momento);
+
+
+    // Después del viaje: nada
+    if (momento > finViaje) {
+        contenedor.hidden = true;
+        return;
+    }
+
+
+    // ---------- Antes del viaje ----------
+    if (primera && momento < primera.inicio) {
+
+        const diasQueFaltan =
+            Math.round(
+                (Date.parse(dias[0].fecha) - Date.parse(hoyTexto)) / 86400000
+            );
+
+        const titular =
+            diasQueFaltan <= 0
+                ? "¡Hoy nos vamos!"
+                : diasQueFaltan === 1
+                    ? "¡Mañana nos vamos!"
+                    : `Nos vamos en ${diasQueFaltan} días`;
+
+        const diaSemana =
+            primera.inicio.toLocaleDateString("es-ES", {
+                weekday: "long", day: "numeric", timeZone: "Europe/Madrid"
+            });
+
+        contenedor.innerHTML = `
+            <article class="hoy hoy-antes">
+                <span class="hoy-eyebrow">✨ Cuenta atrás</span>
+                <h3>${escaparHTML(titular)}</h3>
+                ${
+                    diasQueFaltan > 0
+                        ? `<div class="hoy-dias" aria-hidden="true">
+                               ${Array.from({ length: Math.min(diasQueFaltan, 14) }, () => "<span></span>").join("")}
+                               ${diasQueFaltan > 14 ? `<em>+${diasQueFaltan - 14}</em>` : ""}
+                           </div>`
+                        : ""
+                }
+                <ul class="hoy-lista">
+                    ${filaActividadHoy(primera, "Primera parada", diaSemana)}
+                </ul>
+            </article>
+        `;
+
+        contenedor.hidden = false;
+        return;
+    }
+
+
+    // ---------- Durante el viaje ----------
+    let indiceDia =
+        dias.findIndex(dia => dia.fecha === hoyTexto);
+
+    if (indiceDia === -1) {
+        indiceDia = 0;
+    }
+
+    const dia =
+        dias[indiceDia];
+
+    const lista =
+        dia.actividadesHorario;
+
+    const actual =
+        lista.find(a => a.inicio <= momento && momento < a.fin);
+
+    const proximas =
+        lista.filter(a => a.inicio > momento).slice(0, actual ? 2 : 3);
+
+    let filas = "";
+
+    if (actual) {
+        filas += filaActividadHoy(actual, "Ahora", `hasta las ${actual.fin.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Madrid" })}`);
+    }
+
+    proximas.forEach((actividad, i) => {
+
+        const minutos =
+            Math.round((actividad.inicio - momento) / 60000);
+
+        filas += filaActividadHoy(
+            actividad,
+            i === 0 ? "Siguiente" : "Después",
+            i === 0 ? textoDentroDe(minutos) : ""
+        );
+    });
+
+    // Se acabó el día: adelanto de mañana
+    const manana =
+        dias[indiceDia + 1];
+
+    if (!actual && !proximas.length && manana?.actividadesHorario[0]) {
+        filas += filaActividadHoy(manana.actividadesHorario[0], "Mañana", manana.titulo || "");
+    }
+
+    if (!filas) {
+        contenedor.hidden = true;
+        return;
+    }
+
+    // De noche, cuando solo queda el adelanto de mañana, el enlace lleva a mañana
+    const diaEnlace =
+        !actual && !proximas.length && manana ? manana : dia;
+
+    const fechaBonita =
+        new Date(`${dia.fecha}T12:00:00${ZONA_VIAJE}`)
+            .toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long", timeZone: "Europe/Madrid" });
+
+    contenedor.innerHTML = `
+        <article class="hoy hoy-durante">
+            <span class="hoy-eyebrow">
+                <i class="hoy-directo" aria-hidden="true"></i>
+                Hoy · ${escaparHTML(fechaBonita)}
+            </span>
+            <h3>${escaparHTML(dia.titulo || "")}</h3>
+            <ul class="hoy-lista">${filas}</ul>
+            <button type="button" class="hoy-ver-dia" data-ver-dia="${escaparAtributo(String(diaEnlace.numero || indiceDia + 1))}">
+                ${diaEnlace === dia ? "Ver todo el día →" : "Ver el plan de mañana →"}
+            </button>
+        </article>
+    `;
+
+    contenedor.hidden = false;
+
+    contenedor
+        .querySelector("[data-ver-dia]")
+        .addEventListener("click", event => abrirDiaItinerario(event.currentTarget.dataset.verDia));
+}
+
+
+function abrirDiaItinerario(numero) {
+
+    mostrarPagina("itinerario");
+
+    const boton =
+        document.querySelector(`.itinerary-day-toggle[aria-controls="itinerary-day-${CSS.escape(numero)}"]`);
+
+    if (!boton) {
+        return;
+    }
+
+    if (boton.getAttribute("aria-expanded") !== "true") {
+        boton.click();
+    }
+
+    setTimeout(
+        () => boton.scrollIntoView({ behavior: "smooth", block: "start" }),
+        120
+    );
+}
+
+
+function iniciarModoHoy() {
+
+    renderizarHoy();
+
+    clearInterval(intervaloHoy);
+
+    // Se actualiza cada minuto ("en 25 min", "Ahora"…)
+    intervaloHoy = setInterval(renderizarHoy, 60000);
+}
+
+
 function renderizarAplicacion() {
 
     if (!datosViaje) {
@@ -2625,6 +2949,8 @@ function renderizarAplicacion() {
     renderizarDatosGenerales();
 
     renderizarHotel();
+
+    iniciarModoHoy();
 
     renderizarRestaurantes();
 

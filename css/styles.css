@@ -6620,3 +6620,254 @@ button.pista-card:focus-visible {
 }
 
 
+
+
+/* =========================================================
+   MODO "HOY"
+   ========================================================= */
+
+#next-plan {
+    max-width: 760px;
+    margin: 0 auto 34px;
+}
+
+#next-plan[hidden] {
+    display: none !important;
+}
+
+.hoy {
+    position: relative;
+    overflow: hidden;
+    padding: 20px 20px 16px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    animation: aparecer 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Antes: la noche de la pantalla de espera */
+.hoy-antes {
+    background:
+        radial-gradient(ellipse at 50% 130%, rgba(232, 140, 96, 0.5), transparent 60%),
+        linear-gradient(165deg, #231a3d, #15122a);
+    color: #fff6e8;
+}
+
+/* Durante: papel cálido */
+.hoy-durante {
+    border: 1px solid rgba(143, 79, 58, 0.22);
+    background:
+        linear-gradient(160deg, #fbf3ea 0%, var(--surface) 65%);
+}
+
+.hoy-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+
+.hoy-antes .hoy-eyebrow { color: #ffe9c7; }
+.hoy-durante .hoy-eyebrow { color: var(--primary); }
+
+/* Punto "en directo" */
+.hoy-directo {
+    position: relative;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #d2483a;
+}
+
+.hoy-directo::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: #d2483a;
+    animation: pulsoDirecto 1.8s ease-out infinite;
+}
+
+@keyframes pulsoDirecto {
+    from { transform: scale(1); opacity: 0.7; }
+    to { transform: scale(3); opacity: 0; }
+}
+
+.hoy h3 {
+    margin: 4px 0 12px;
+    font-size: clamp(1.7rem, 6vw, 2.2rem);
+    line-height: 1.05;
+}
+
+.hoy-antes h3 { color: #fff; }
+
+/* Un puntito por cada día que falta */
+.hoy-dias {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 14px;
+}
+
+.hoy-dias span {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #ffe9c7;
+    box-shadow: 0 0 8px rgba(255, 233, 199, 0.7);
+    animation: aparecer 0.5s ease both;
+}
+
+.hoy-dias span:nth-child(n+2) { animation-delay: 0.05s; }
+.hoy-dias span:nth-child(n+4) { animation-delay: 0.1s; }
+.hoy-dias span:nth-child(n+7) { animation-delay: 0.15s; }
+
+.hoy-dias em {
+    color: rgba(255, 233, 199, 0.8);
+    font-size: 0.72rem;
+    font-style: normal;
+    font-weight: 700;
+}
+
+.hoy-lista {
+    display: grid;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.hoy-fila {
+    display: grid;
+    grid-template-columns: 34px 1fr auto auto;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+}
+
+.hoy-antes .hoy-fila {
+    border-color: rgba(255, 233, 199, 0.18);
+    background: rgba(255, 255, 255, 0.07);
+}
+
+.hoy-fila.ahora {
+    border-color: var(--primary);
+    background: var(--primary);
+    color: #fff;
+    box-shadow: 0 8px 20px rgba(143, 79, 58, 0.25);
+}
+
+.hoy-icono {
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    background: rgba(143, 79, 58, 0.08);
+    font-size: 1.1rem;
+}
+
+.hoy-fila.ahora .hoy-icono,
+.hoy-antes .hoy-icono {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.hoy-texto {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.hoy-texto small {
+    color: var(--primary);
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.hoy-texto small b {
+    margin-left: 4px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    opacity: 0.85;
+    text-transform: none;
+}
+
+.hoy-fila.ahora .hoy-texto small,
+.hoy-antes .hoy-texto small {
+    color: #ffe9c7;
+}
+
+.hoy-texto strong {
+    overflow: hidden;
+    font-size: 0.92rem;
+    font-weight: 600;
+    line-height: 1.25;
+    text-overflow: ellipsis;
+}
+
+.hoy-texto span {
+    overflow: hidden;
+    color: var(--text-light);
+    font-size: 0.72rem;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.hoy-fila.ahora .hoy-texto span,
+.hoy-antes .hoy-texto span {
+    color: rgba(255, 246, 232, 0.75);
+}
+
+.hoy-hora {
+    font-family: "Cormorant Garamond", serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.hoy-mapa {
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(143, 79, 58, 0.08);
+    font-size: 0.9rem;
+}
+
+.hoy-fila.ahora .hoy-mapa {
+    background: rgba(255, 255, 255, 0.18);
+}
+
+.hoy-ver-dia {
+    margin-top: 12px;
+    padding: 6px 0;
+    border: 0;
+    background: none;
+    color: var(--primary);
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.hoy-ver-dia:hover,
+.hoy-ver-dia:focus-visible {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .hoy,
+    .hoy-dias span,
+    .hoy-directo::after {
+        animation: none !important;
+    }
+}

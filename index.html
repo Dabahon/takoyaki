@@ -9,7 +9,8 @@
 
     <meta name="description" content="¿Estás preparada, justiciera?">
 
-    <meta name="theme-color" content="#8f4f3a">
+    <!-- Barra del navegador: noche mientras espera; terracota al abrir (lo cambia app.js) -->
+    <meta name="theme-color" content="#15122a">
 
     <title>Hay un plan esperándote ❤️</title>
 
@@ -19,6 +20,32 @@
         href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap">
 
     <link rel="manifest" href="manifest.json">
+
+
+    <!-- Icono de la app y de la pestaña -->
+    <link rel="icon" href="assets/icons/favicon.svg" type="image/svg+xml">
+    <link rel="icon" href="assets/icons/icono-192.png" type="image/png" sizes="192x192">
+    <link rel="apple-touch-icon" href="assets/icons/icono-180.png">
+
+    <!-- Al añadirla a la pantalla de inicio del iPhone -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Un plan ❤️">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+
+    <!-- Vista previa al compartir el enlace (WhatsApp, iMessage…).
+         Las rutas tienen que ser absolutas. -->
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="es_ES">
+    <meta property="og:url" content="https://dabahon.github.io/takoyaki/">
+    <meta property="og:title" content="Hay un plan esperándote ❤️">
+    <meta property="og:description" content="¿Estás preparada, justiciera? Se abre el 10 de diciembre a las 19:00.">
+    <meta property="og:image" content="https://dabahon.github.io/takoyaki/assets/compartir.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Un cielo nocturno con una constelación que forma un 30">
+    <meta name="twitter:card" content="summary_large_image">
 
 </head>
 
@@ -241,6 +268,9 @@
 
             <section id="page-inicio" data-page="inicio">
 
+                <!-- Modo "Hoy": se rellena con los datos del viaje -->
+                <div id="next-plan" hidden></div>
+
                 <div class="section-header">
 
                     <span class="section-eyebrow">
@@ -314,9 +344,6 @@
                     </article>
 
                 </div>
-
-
-                <div id="next-plan" hidden></div>
 
 
                 <!-- Se rellena con los datos del viaje -->
