@@ -29,7 +29,7 @@ const CONFIG = {
         { fecha: "2026-11-18T19:00:00+01:00", icono: "🧣", texto: "SGFyw6EgZnLDrW8uIEJ1ZmFuZGEsIHPDrS4gQmlraW5pLCBuby4=" },
         { fecha: "2026-11-25T19:00:00+01:00", icono: "🍷", texto: "UGlzdGEgbsK6IDQ6IGVsIHZpYWplIGluY2x1eWUgdmluby4gTXVjaG8gdmluby4gVHUgw7puaWNhIG1pc2nDs24sIGp1c3RpY2llcmE6IGVsZWdpciBsYSBtZWpvciBjZXBhLg==" },
         { fecha: "2026-12-02T19:00:00+01:00", icono: "🎨", texto: "SGFicsOhIGFydGUuIERlbCBxdWUgc2FsZSBlbiBsb3MgbGlicm9zIGRlbCBjb2xlLg==" },
-        { fecha: "2026-12-09T19:00:00+01:00", icono: "🕖", texto: "TWHDsWFuYSBhIGxhcyAxOTowMCwgY29ubWlnby4gTG8gZGVtw6FzLCB5YSBsbyB2ZXLDoXMu" }
+        { fecha: "2026-12-09T19:00:00+01:00", icono: "🪜", texto: "w5psdGltYSBwaXN0YSwganVzdGljaWVyYTogaGFicsOhIGVzY2Fsb25lcy4gTXVjaG9zLiBNdWNow61zaW1vcy4gUGVybyB0ZSBwcm9tZXRvIHF1ZSBsYXMgdmlzdGFzIGRlIGFycmliYSBsbyBjb21wZW5zYW4u" }
     ]
 };
 
