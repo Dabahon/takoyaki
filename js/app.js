@@ -58,7 +58,7 @@ function ahora() {
     return new Date(Date.now() + desfaseReloj);
 }
 
-async function sincronizarHora() {
+async function sincronizarHora(intento = 1) {
 
     // Si la red tarda, no hacemos esperar más de 2,5 s
     const control =
@@ -70,23 +70,65 @@ async function sincronizarHora() {
     try {
 
         const respuesta =
-            await fetch(window.location.pathname, {
-                method: "HEAD",
+            await fetch(`./version.json?h=${Date.now()}`, {
                 cache: "no-store",
                 signal: control.signal
             });
 
-        const fechaServidor =
-            new Date(respuesta.headers.get("Date") || "");
-
-        if (!Number.isNaN(fechaServidor.getTime())) {
-            desfaseReloj = fechaServidor.getTime() - Date.now();
-        }
+        aplicarHoraServidor(respuesta);
 
     } catch (error) {
-        // Sin conexión o muy lenta: usamos la hora del dispositivo.
+
+        // Un reintento (p. ej. si se cortó al activarse el modo sin conexión)
+        if (intento < 2) {
+            clearTimeout(limite);
+            await new Promise(resolver => setTimeout(resolver, 300));
+            return sincronizarHora(intento + 1);
+        }
+        // Sin conexión: usamos la hora del dispositivo.
+
     } finally {
         clearTimeout(limite);
+    }
+}
+
+
+/*
+ * La cabecera Date de cualquier respuesta del servidor dice la
+ * hora de verdad (aunque el móvil esté adelantado).
+ */
+function aplicarHoraServidor(respuesta) {
+
+    const fechaServidor =
+        new Date(respuesta?.headers?.get("Date") || "");
+
+    if (!Number.isNaN(fechaServidor.getTime())) {
+        desfaseReloj = fechaServidor.getTime() - Date.now();
+    }
+}
+
+
+function leerDato(tipo, clave) {
+    try {
+        return window[tipo].getItem(clave);
+    } catch (error) {
+        return null;
+    }
+}
+
+function guardarDato(tipo, clave, valor) {
+    try {
+        window[tipo].setItem(clave, valor);
+    } catch (error) {
+        // Sin almacenamiento: seguimos sin guardar
+    }
+}
+
+function borrarDato(tipo, clave) {
+    try {
+        window[tipo].removeItem(clave);
+    } catch (error) {
+        // Nada que borrar
     }
 }
 
@@ -112,7 +154,7 @@ document.addEventListener("DOMContentLoaded", iniciarApp);
    La versión la pone tools/nueva-version.mjs.
    ========================================================= */
 
-const VERSION_WEB = "20261104152144";
+const VERSION_WEB = "20261104154307";
 
 async function comprobarVersionNueva() {
 
@@ -130,6 +172,13 @@ async function comprobarVersionNueva() {
             return;
         }
 
+        aplicarHoraServidor(respuesta);
+
+        // Con la hora buena, la tarjeta "Hoy" se pone al día
+        if (datosViaje && typeof renderizarHoy === "function") {
+            renderizarHoy();
+        }
+
         const { v } =
             await respuesta.json();
 
@@ -141,11 +190,11 @@ async function comprobarVersionNueva() {
         const marca =
             `plan_recargado_${v}`;
 
-        if (sessionStorage.getItem(marca)) {
+        if (leerDato("sessionStorage", marca)) {
             return;
         }
 
-        sessionStorage.setItem(marca, "1");
+        guardarDato("sessionStorage", marca, "1");
 
         // Que el service worker también se ponga al día
         try {
@@ -209,13 +258,13 @@ async function iniciarApp() {
             "🔧 MODO DESARROLLADOR ACTIVADO"
         );
 
-        sessionStorage.setItem(
+        guardarDato("sessionStorage", 
             CONFIG.storage.simular,
             "true"
         );
 
         // Olvidamos la llave para probar la sorpresa desde cero.
-        localStorage.removeItem(
+        borrarDato("localStorage", 
             CONFIG.storage.llave
         );
     }
@@ -303,7 +352,7 @@ function manejarTeclasDesarrollo(event) {
             "🎂 Modo cumpleaños activado"
         );
 
-        sessionStorage.setItem(
+        guardarDato("sessionStorage", 
             CONFIG.storage.simular,
             "true"
         );
@@ -328,19 +377,19 @@ function manejarTeclasDesarrollo(event) {
             "🔄 Reiniciando regalo"
         );
 
-        localStorage.removeItem(
+        borrarDato("localStorage", 
             CONFIG.storage.llave
         );
 
-        localStorage.removeItem(
+        borrarDato("localStorage", 
             CONFIG.storage.checklist
         );
 
-        localStorage.removeItem(
+        borrarDato("localStorage", 
             CONFIG.storage.pistasVistas
         );
 
-        sessionStorage.removeItem(
+        borrarDato("sessionStorage", 
             CONFIG.storage.simular
         );
 
@@ -356,7 +405,7 @@ function manejarTeclasDesarrollo(event) {
 function comprobarViajeDesbloqueado() {
 
     return Boolean(
-        localStorage.getItem(
+        leerDato("localStorage", 
             CONFIG.storage.llave
         )
     );
@@ -481,7 +530,7 @@ function iniciarCuentaAtras() {
 function actualizarCuentaAtras() {
 
     const simulandoApertura =
-        sessionStorage.getItem(
+        leerDato("sessionStorage", 
             CONFIG.storage.simular
         ) === "true";
 
@@ -704,6 +753,10 @@ function activarModoCumpleanos() {
     // A esta hora ya se ven todas las pistas.
     renderizarPistas();
 
+    // Descargamos ya el regalo (cifrado): así se abre al instante
+    // y queda guardado aunque luego falle la conexión.
+    fetch(CONFIG.archivoSorpresa, { cache: "no-cache" }).catch(() => {});
+
     if (intervaloCuentaAtras) {
 
         clearInterval(
@@ -761,7 +814,7 @@ function obtenerPistasVistas() {
 
     try {
         return JSON.parse(
-            localStorage.getItem(CONFIG.storage.pistasVistas) || "[]"
+            leerDato("localStorage", CONFIG.storage.pistasVistas) || "[]"
         );
     } catch (error) {
         return [];
@@ -777,7 +830,7 @@ function guardarPistaVista(indice) {
     vistas.add(indice);
 
     try {
-        localStorage.setItem(
+        guardarDato("localStorage", 
             CONFIG.storage.pistasVistas,
             JSON.stringify([...vistas])
         );
@@ -836,6 +889,40 @@ function textoCuantoFalta(fecha) {
 }
 
 
+/*
+ * Reduce la letra de la pista hasta que quepa en su carta
+ * (en móviles pequeños las cartas son estrechas).
+ */
+function ajustarTextoPista(sobre) {
+
+    const carta =
+        sobre.querySelector(".sobre-carta");
+
+    const texto =
+        carta?.querySelector(".sobre-carta-texto");
+
+    if (!carta || !texto) {
+        return;
+    }
+
+    texto.style.fontSize = "";
+
+    let tamano =
+        parseFloat(getComputedStyle(texto).fontSize);
+
+    while (carta.scrollHeight > carta.clientHeight + 1 && tamano > 10) {
+        tamano -= 0.5;
+        texto.style.fontSize = `${tamano}px`;
+    }
+}
+
+window.addEventListener("resize", () =>
+    document
+        .querySelectorAll("button.sobre.abierto, button.sobre.abriendo")
+        .forEach(ajustarTextoPista)
+);
+
+
 function renderizarPistas() {
 
     const seccion =
@@ -852,7 +939,7 @@ function renderizarPistas() {
         ahora();
 
     const simulando =
-        sessionStorage.getItem(CONFIG.storage.simular) === "true";
+        leerDato("sessionStorage", CONFIG.storage.simular) === "true";
 
     const vistas =
         obtenerPistasVistas();
@@ -970,6 +1057,11 @@ function renderizarPistas() {
     }
 
 
+    // Las que ya estaban abiertas: texto ajustado a su tarjeta
+    lista
+        .querySelectorAll("button.sobre.abierto")
+        .forEach(ajustarTextoPista);
+
     const reducir =
         window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -992,10 +1084,13 @@ function renderizarPistas() {
 
                 if (reducir) {
                     sobre.classList.add("abierto");
+                    ajustarTextoPista(sobre);
                     return;
                 }
 
                 sobre.classList.add("abriendo");
+
+                ajustarTextoPista(sobre);
 
                 setTimeout(() => {
                     sobre.classList.remove("abriendo");
@@ -1802,7 +1897,7 @@ async function comprobarPalabraSecreta(event) {
         const { datos, llave } =
             await descifrarSorpresa({ palabra });
 
-        localStorage.setItem(CONFIG.storage.llave, llave);
+        guardarDato("localStorage", CONFIG.storage.llave, llave);
 
         prepararDatosViaje(datos);
 
@@ -2886,7 +2981,7 @@ async function descifrarSorpresa({ palabra, llaveGuardada }) {
 async function abrirConLlaveGuardada() {
 
     const llave =
-        localStorage.getItem(CONFIG.storage.llave);
+        leerDato("localStorage", CONFIG.storage.llave);
 
     if (!llave) {
         return false;
@@ -2909,7 +3004,7 @@ async function abrirConLlaveGuardada() {
 
         // Si es un fallo de red no borramos la llave.
         if (error?.name === "OperationError") {
-            localStorage.removeItem(CONFIG.storage.llave);
+            borrarDato("localStorage", CONFIG.storage.llave);
         }
 
         return false;
@@ -3116,102 +3211,6 @@ function actualizarHeroViaje() {
 /* =========================================================
    LOADING
    ========================================================= */
-
-function mostrarLoading() {
-
-    const waitingScreen =
-        document.getElementById(
-            "waiting-screen"
-        );
-
-    const loading =
-        document.getElementById(
-            "loading"
-        );
-
-    const content =
-        document.getElementById(
-            "content"
-        );
-
-    if (waitingScreen) {
-        waitingScreen.hidden = true;
-    }
-
-    if (content) {
-        content.hidden = true;
-    }
-
-    if (loading) {
-        loading.hidden = false;
-    }
-
-    ocultarNavegacion();
-}
-
-
-function mostrarErrorCarga() {
-
-    const loading =
-        document.getElementById(
-            "loading"
-        );
-
-    if (!loading) {
-        return;
-    }
-
-    loading.hidden = false;
-
-    loading.innerHTML = `
-
-        <div class="error-card">
-
-            <div class="error-icon">
-                😕
-            </div>
-
-            <h2>
-                Algo ha salido mal
-            </h2>
-
-            <p>
-                No hemos podido cargar
-                el plan del viaje.
-            </p>
-
-            <p>
-                Comprueba la conexión e inténtalo de nuevo.
-            </p>
-
-            <button
-                type="button"
-                class="gift-main-button"
-                id="retry-load"
-            >
-                Intentar de nuevo
-            </button>
-
-        </div>
-    `;
-
-    const boton =
-        document.getElementById(
-            "retry-load"
-        );
-
-    if (boton) {
-
-        boton.addEventListener(
-            "click",
-            () => {
-
-                window.location.reload();
-            }
-        );
-    }
-}
-
 
 /* =========================================================
    NAVEGACIÓN
@@ -5626,9 +5625,10 @@ function crearActividadHTML(
         actividad.tipo ||
         "";
 
+    // "—" significa sin duración: no mostramos la etiqueta
     const duracion =
-        actividad.duracion ||
-        "";
+        String(actividad.duracion || "")
+            .replace(/^[\s—–-]*$/, "");
 
     const descripcion =
         actividad.descripcion ||
@@ -6135,7 +6135,7 @@ function obtenerEstadoChecklist() {
     try {
 
         const guardado =
-            localStorage.getItem(
+            leerDato("localStorage", 
                 CONFIG.storage.checklist
             );
 
@@ -6170,7 +6170,7 @@ function guardarEstadoChecklist(
         valor;
 
 
-    localStorage.setItem(
+    guardarDato("localStorage", 
         CONFIG.storage.checklist,
         JSON.stringify(
             estado
@@ -6311,56 +6311,15 @@ function crearParticulaConfeti() {
 
 function registrarServiceWorker() {
 
-    if (
-        "serviceWorker" in
-        navigator
-    ) {
-
-        navigator.serviceWorker
-            .register(
-                "./service-worker.js"
-            )
-            .then(
-                registro => {
-
-                    console.log(
-                        "Service Worker registrado:",
-                        registro.scope
-                    );
-                }
-            )
-            .catch(
-                error => {
-
-                    console.error(
-                        "Error registrando Service Worker:",
-                        error
-                    );
-                }
-            );
+    if (!("serviceWorker" in navigator)) {
+        return;
     }
+
+    navigator.serviceWorker
+        .register("./service-worker.js")
+        .catch(() => {
+            // Sin modo sin conexión: la web funciona igual
+        });
 }
 
-function comprobarModoDesarrolloURL() {
 
-    const parametros =
-        new URLSearchParams(
-            window.location.search
-        );
-
-    if (
-        parametros.get("dev") === "true"
-    ) {
-
-        console.log(
-            "🔧 Modo desarrollador activado desde URL"
-        );
-
-        sessionStorage.setItem(
-            CONFIG.storage.simular,
-            "true"
-        );
-
-        activarModoCumpleanos();
-    }
-}
