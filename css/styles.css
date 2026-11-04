@@ -6264,12 +6264,16 @@ button.pista-card:focus-visible {
 
 
 /* Galería deslizable */
+.hotel-galeria-marco {
+    position: relative;
+    margin-bottom: 10px;
+}
+
 .hotel-galeria {
     display: flex;
-    gap: 10px;
-    margin-bottom: 8px;
     overflow-x: auto;
     border-radius: var(--radius);
+    box-shadow: var(--shadow);
     scroll-snap-type: x mandatory;
     scrollbar-width: none;
 }
@@ -6278,41 +6282,129 @@ button.pista-card:focus-visible {
     display: none;
 }
 
+.hotel-galeria:focus-visible {
+    outline: 3px solid var(--primary-light);
+    outline-offset: 3px;
+}
+
 .hotel-foto {
     position: relative;
     flex: 0 0 100%;
     margin: 0;
-    overflow: hidden;
-    border-radius: var(--radius);
     aspect-ratio: 4 / 3;
     scroll-snap-align: center;
+    scroll-snap-stop: always;
+}
+
+@media (min-width: 760px) {
+    .hotel-foto {
+        aspect-ratio: 16 / 9;
+    }
 }
 
 .hotel-foto img {
+    display: block;
     width: 100%;
     height: 100%;
     object-fit: cover;
 }
 
+/* Pie de foto sobre un degradado */
 .hotel-foto figcaption {
     position: absolute;
-    right: 8px;
-    bottom: 8px;
-    padding: 2px 8px;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    padding: 46px 18px 14px;
+    background: linear-gradient(to top, rgba(21, 14, 10, 0.72), transparent);
+    color: #fffdf8;
+    font-family: "Cormorant Garamond", serif;
+    font-size: 1.3rem;
+    font-weight: 600;
+    line-height: 1.15;
+    text-shadow: 0 1px 6px rgba(0, 0, 0, 0.35);
+}
+
+.hotel-contador {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    padding: 3px 10px;
     border-radius: 999px;
-    background: rgba(21, 18, 42, 0.55);
-    color: rgba(255, 255, 255, 0.85);
-    font-size: 0.6rem;
+    background: rgba(21, 14, 10, 0.5);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    color: rgba(255, 253, 248, 0.9);
+    font-size: 0.7rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.hotel-contador b {
+    color: #fffdf8;
+}
+
+.hotel-flecha {
+    position: absolute;
+    top: 50%;
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: rgba(255, 253, 248, 0.88);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+    color: var(--primary);
+    font-size: 1.6rem;
+    line-height: 1;
+    cursor: pointer;
+    transform: translateY(-50%);
+    transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.hotel-flecha span {
+    margin-top: -3px;
+}
+
+.hotel-flecha.anterior { left: 10px; }
+.hotel-flecha.siguiente { right: 10px; }
+
+.hotel-flecha:hover,
+.hotel-flecha:focus-visible {
+    background: #fffdf8;
+    transform: translateY(-50%) scale(1.08);
+}
+
+/* En el móvil se desliza con el dedo: flechas más discretas */
+@media (hover: none) {
+    .hotel-flecha {
+        width: 32px;
+        height: 32px;
+        opacity: 0.8;
+    }
 }
 
 .hotel-puntos {
     display: flex;
     justify-content: center;
-    gap: 6px;
-    margin-bottom: 16px;
+    gap: 2px;
+    margin-bottom: 18px;
 }
 
-.hotel-puntos span {
+.hotel-puntos button {
+    display: grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: pointer;
+}
+
+.hotel-puntos button::before {
+    content: "";
     width: 6px;
     height: 6px;
     border-radius: 999px;
@@ -6320,7 +6412,7 @@ button.pista-card:focus-visible {
     transition: width 0.3s ease, background 0.3s ease;
 }
 
-.hotel-puntos span.activo {
+.hotel-puntos button.activo::before {
     width: 18px;
     background: var(--primary);
 }
@@ -6344,104 +6436,48 @@ button.pista-card:focus-visible {
 
 .hotel-mapa {
     position: relative;
-    background: #f3ebdd;
+    min-height: 240px;
+    aspect-ratio: 4 / 3;
+    background:
+        repeating-linear-gradient(45deg, rgba(143, 79, 58, 0.04) 0 10px, transparent 10px 20px),
+        #f3ebdd;
 }
 
-.hotel-mapa-svg {
-    display: block;
+@media (min-width: 760px) {
+    .hotel-mapa {
+        aspect-ratio: auto;
+        min-height: 100%;
+    }
+}
+
+/* Visible mientras carga o si no hay conexión; el mapa lo tapa */
+.hotel-mapa-aviso {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 20px;
+    color: var(--primary);
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-align: center;
+}
+
+.hotel-mapa-aviso span:first-child {
+    font-size: 1.8rem;
+}
+
+.hotel-mapa iframe {
+    position: absolute;
+    inset: 0;
     width: 100%;
-    height: auto;
+    height: 100%;
+    border: 0;
 }
 
-.hotel-mapa-nota {
-    margin: 0;
-    padding: 0 12px 8px;
-    color: rgba(117, 111, 103, 0.8);
-    font-size: 0.56rem;
-    font-style: italic;
-}
-
-/* Colores del mapa ilustrado */
-.mapa-tierra { fill: #f3ebdd; }
-.mapa-grano { fill: rgba(143, 79, 58, 0.08); }
-.mapa-manzanas rect { fill: #e9dcc7; stroke: #dfcfb6; stroke-width: 0.8; }
-.mapa-rio { fill: #b9d3d2; stroke: #9fc0bf; stroke-width: 1; }
-
-.mapa-rio-texto {
-    fill: #5f8f8d;
-    font-family: "Cormorant Garamond", serif;
-    font-size: 13px;
-    font-style: italic;
-    font-weight: 600;
-    letter-spacing: 0.3em;
-}
-
-.mapa-puente rect { fill: #d9a77f; stroke: #8f4f3a; stroke-width: 1.2; }
-.mapa-puente path { stroke: #8f4f3a; stroke-width: 0.8; opacity: 0.6; }
-
-.mapa-etiqueta,
-.mapa-zona text,
-.mapa-bocadillo text,
-.mapa-norte text {
-    font-family: Inter, sans-serif;
-    font-size: 9px;
-    font-weight: 600;
-}
-
-.mapa-etiqueta { fill: #8f4f3a; }
-
-.mapa-calle {
-    fill: none;
-    stroke: #fffdf8;
-    stroke-width: 7;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-}
-
-.mapa-paseo {
-    fill: none;
-    stroke: #8f4f3a;
-    stroke-width: 1.6;
-    stroke-dasharray: 2 4;
-    stroke-linecap: round;
-    animation: estela 2s linear infinite;
-}
-
-.mapa-zona circle { fill: #66705a; }
-.mapa-zona text { fill: #66705a; }
-.mapa-zona-sur rect { fill: rgba(102, 112, 90, 0.14); stroke: rgba(102, 112, 90, 0.35); }
-
-.mapa-pin-cuerpo { fill: #8f4f3a; stroke: #fffdf8; stroke-width: 1.5; }
-.mapa-pin-punto { fill: #fffdf8; }
-
-.mapa-pin-pulso {
-    fill: rgba(143, 79, 58, 0.25);
-    transform-box: fill-box;
-    transform-origin: center;
-    animation: pulsoPin 2.2s ease-out infinite;
-}
-
-@keyframes pulsoPin {
-    from { transform: scale(0.4); opacity: 1; }
-    to { transform: scale(2.4); opacity: 0; }
-}
-
-.mapa-bocadillo rect { fill: #292621; }
-.mapa-bocadillo text { fill: #fffdf8; }
-
-.mapa-norte path { fill: #756f67; }
-.mapa-norte text { fill: #756f67; font-size: 7px; }
-
-/* El pin cae cuando se ve la sección */
-.page-enter .mapa-pin,
-.hotel:not([hidden]) .mapa-pin {
-    animation: caerPin 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 0.3s both;
-}
-
-@keyframes caerPin {
-    from { transform: translate(150px, 120px); opacity: 0; }
-    to { transform: translate(150px, 166px); opacity: 1; }
-}
 
 
 /* Datos */
@@ -6571,36 +6607,7 @@ button.pista-card:focus-visible {
     background: var(--primary-dark);
 }
 
-.hotel-ver-mapa {
-    margin-top: 14px;
-    padding: 0;
-    border: 0;
-    background: none;
-    color: var(--text-light);
-    font-size: 0.78rem;
-    font-weight: 600;
-    text-decoration: underline;
-    text-underline-offset: 3px;
-    cursor: pointer;
-}
 
-.hotel-mapa-real {
-    margin-top: 12px;
-    overflow: hidden;
-    border-radius: 14px;
-    aspect-ratio: 4 / 3;
-    background: var(--surface-soft);
-}
-
-.hotel-mapa-real[hidden] {
-    display: none;
-}
-
-.hotel-mapa-real iframe {
-    width: 100%;
-    height: 100%;
-    border: 0;
-}
 
 /* La tarjeta del hotel de arriba invita a bajar */
 .trip-card-enlace {
@@ -6612,10 +6619,4 @@ button.pista-card:focus-visible {
     outline-offset: 3px;
 }
 
-@media (prefers-reduced-motion: reduce) {
-    .mapa-paseo,
-    .mapa-pin-pulso,
-    .hotel:not([hidden]) .mapa-pin {
-        animation: none !important;
-    }
-}
+

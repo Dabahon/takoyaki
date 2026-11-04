@@ -12,16 +12,16 @@
    siguiente visita, sin tener que borrar nada.
    ========================================================= */
 
-const CACHE_NAME = "un-plan-v4";
+const CACHE_NAME = "un-plan-v5";
 
 const FILES_TO_CACHE = [
     "./",
     "./index.html",
     "./css/styles.css",
     "./js/app.js",
-    "./manifest.json",
-    // Va cifrado: guardarlo no revela nada sin la palabra.
-    "./data/sorpresa.json"
+    "./manifest.json"
+    // data/sorpresa.json no se descarga por adelantado (pesa ~1 MB):
+    // se guarda en caché la primera vez que se abre el regalo.
 ];
 
 

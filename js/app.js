@@ -2356,86 +2356,6 @@ function animarEntradaPagina(pagina) {
    aquí solo hay maquetación.
    ========================================================= */
 
-function crearMapaHotelSVG(mapa) {
-
-    const t = texto => escaparHTML(texto || "");
-
-    return `
-        <svg class="hotel-mapa-svg" viewBox="0 0 340 230" role="img" aria-label="${escaparAtributo(mapa.nota || "")}">
-
-            <defs>
-                <pattern id="mapa-papel" width="8" height="8" patternUnits="userSpaceOnUse">
-                    <circle cx="1" cy="1" r="0.6" class="mapa-grano" />
-                </pattern>
-            </defs>
-
-            <rect width="340" height="230" class="mapa-tierra" />
-            <rect width="340" height="230" fill="url(#mapa-papel)" />
-
-            <!-- Manzanas -->
-            <g class="mapa-manzanas">
-                <rect x="18" y="14" width="70" height="40" rx="4" />
-                <rect x="100" y="10" width="54" height="52" rx="4" />
-                <rect x="190" y="12" width="60" height="44" rx="4" />
-                <rect x="262" y="18" width="62" height="40" rx="4" />
-                <rect x="14" y="150" width="58" height="34" rx="4" />
-                <rect x="196" y="148" width="64" height="30" rx="4" />
-                <rect x="272" y="146" width="54" height="40" rx="4" />
-                <rect x="212" y="190" width="70" height="30" rx="4" />
-            </g>
-
-            <!-- Río -->
-            <path class="mapa-rio" d="M -10 92 C 60 80, 120 104, 180 96 S 290 84, 350 98 L 350 128 C 290 114, 230 128, 180 126 S 60 112, -10 122 Z" />
-            <text class="mapa-rio-texto" x="62" y="111">${t(mapa.rio)}</text>
-
-            <!-- Puente -->
-            <g class="mapa-puente">
-                <rect x="160" y="86" width="26" height="46" rx="3" />
-                <path d="M163 102 h20 M163 110 h20 M163 118 h20" />
-            </g>
-            <text class="mapa-etiqueta" x="196" y="82">${t(mapa.puente)}</text>
-
-            <!-- Calle del hotel hacia el sur -->
-            <path class="mapa-calle" d="M 173 132 L 150 168 L 128 196" />
-
-            <!-- Paseo a pie del hotel al puente -->
-            <path class="mapa-paseo" d="M 152 165 L 173 133" />
-
-            <!-- Lo que queda al norte y al sur -->
-            <g class="mapa-zona">
-                <circle cx="170" cy="40" r="3.5" />
-                <text x="170" y="30" text-anchor="middle">${t(mapa.norte)}</text>
-            </g>
-
-            <g class="mapa-zona mapa-zona-sur">
-                <rect x="78" y="196" width="72" height="22" rx="4" />
-                <text x="114" y="211" text-anchor="middle">${t(mapa.sur)}</text>
-            </g>
-
-            <!-- Pin del hotel -->
-            <g class="mapa-pin" transform="translate(150 166)">
-                <circle class="mapa-pin-pulso" r="9" />
-                <path class="mapa-pin-cuerpo" d="M0 0 C -9 -10, -9 -24, 0 -24 C 9 -24, 9 -10, 0 0 Z" />
-                <circle class="mapa-pin-punto" cy="-16" r="3.4" />
-            </g>
-
-            <g class="mapa-bocadillo" transform="translate(48 140)">
-                <rect width="88" height="22" rx="11" />
-                <text x="44" y="15" text-anchor="middle">${t(mapa.hotel)}</text>
-            </g>
-
-            <!-- Brújula -->
-            <g class="mapa-norte" transform="translate(316 210)">
-                <path d="M0 -12 L 5 4 L 0 1 L -5 4 Z" />
-                <text y="-15" text-anchor="middle">N</text>
-            </g>
-
-        </svg>
-        <p class="hotel-mapa-nota">${t(mapa.nota)}</p>
-    `;
-}
-
-
 function renderizarHotel() {
 
     const contenedor =
@@ -2457,18 +2377,46 @@ function renderizarHotel() {
     const fotos =
         (hotel.fotos || []).filter(foto => foto?.src);
 
+    const flecha = (dir, etiqueta) => `
+        <button type="button" class="hotel-flecha ${dir}" data-galeria="${dir}" aria-label="${etiqueta}">
+            <span aria-hidden="true">${dir === "anterior" ? "‹" : "›"}</span>
+        </button>
+    `;
+
     const galeria =
         fotos.length
             ? `
-                <div class="hotel-galeria" tabindex="0" aria-label="Fotos">
-                    ${fotos.map(foto => `
-                        <figure class="hotel-foto">
-                            <img src="${escaparAtributo(foto.src)}" alt="${escaparAtributo(foto.alt || "")}" loading="lazy">
-                            ${foto.credito ? `<figcaption>${escaparHTML(foto.credito)}</figcaption>` : ""}
-                        </figure>
-                    `).join("")}
+                <div class="hotel-galeria-marco">
+
+                    <div class="hotel-galeria" tabindex="0" aria-label="Fotos del hotel">
+                        ${fotos.map((foto, i) => `
+                            <figure class="hotel-foto">
+                                <img
+                                    src="${escaparAtributo(foto.src)}"
+                                    alt="${escaparAtributo(foto.alt || foto.texto || "")}"
+                                    style="object-position: ${escaparAtributo(foto.posicion || "center")}"
+                                    ${i > 0 ? 'loading="lazy"' : ""}
+                                >
+                                ${foto.texto ? `<figcaption>${escaparHTML(foto.texto)}</figcaption>` : ""}
+                            </figure>
+                        `).join("")}
+                    </div>
+
+                    ${fotos.length > 1 ? flecha("anterior", "Foto anterior") + flecha("siguiente", "Foto siguiente") : ""}
+
+                    ${fotos.length > 1 ? `<span class="hotel-contador"><b>1</b> / ${fotos.length}</span>` : ""}
+
                 </div>
-                ${fotos.length > 1 ? `<div class="hotel-puntos" aria-hidden="true">${fotos.map((_, i) => `<span${i === 0 ? ' class="activo"' : ""}></span>`).join("")}</div>` : ""}
+
+                ${
+                    fotos.length > 1
+                        ? `<div class="hotel-puntos">
+                               ${fotos.map((foto, i) => `
+                                   <button type="button" data-ir-foto="${i}" aria-label="Foto ${i + 1}"${i === 0 ? ' class="activo"' : ""}></button>
+                               `).join("")}
+                           </div>`
+                        : ""
+                }
             `
             : "";
 
@@ -2489,8 +2437,11 @@ function renderizarHotel() {
 
         <div class="hotel-tarjeta">
 
-            <div class="hotel-mapa">
-                ${crearMapaHotelSVG(hotel.mapa || {})}
+            <div class="hotel-mapa" data-mapa>
+                <a class="hotel-mapa-aviso" href="${escaparAtributo(enlaces.maps || "#")}" target="_blank" rel="noopener noreferrer">
+                    <span aria-hidden="true">📍</span>
+                    <span data-mapa-texto>${escaparHTML(textos.maps || "")}</span>
+                </a>
             </div>
 
             <div class="hotel-datos">
@@ -2525,13 +2476,6 @@ function renderizarHotel() {
                     ${boton(enlaces.web, textos.web, "hotel-boton")}
                 </div>
 
-                ${
-                    enlaces.mapa_embed
-                        ? `<button type="button" class="hotel-ver-mapa" data-ver-mapa>🗺️ ${escaparHTML(textos.ver_mapa || "")}</button>
-                           <div class="hotel-mapa-real" hidden></div>`
-                        : ""
-                }
-
             </div>
 
         </div>
@@ -2541,53 +2485,107 @@ function renderizarHotel() {
 
 
     /*
-     * El mapa real (Google) solo se carga si lo pide:
-     * así no gasta datos ni tarda en abrir.
+     * Google Maps dentro de la tarjeta. Sin conexión dejamos
+     * el aviso con el enlace en lugar de un mapa roto.
      */
-    const botonMapa =
-        contenedor.querySelector("[data-ver-mapa]");
+    const cajaMapa =
+        contenedor.querySelector("[data-mapa]");
 
-    botonMapa?.addEventListener("click", () => {
+    const ponerMapa = () => {
 
-        const caja =
-            contenedor.querySelector(".hotel-mapa-real");
-
-        if (!caja.firstChild) {
-            caja.innerHTML = `
-                <iframe
-                    src="${escaparAtributo(enlaces.mapa_embed)}"
-                    title="${escaparAtributo(hotel.nombre || "")}"
-                    loading="lazy"
-                    referrerpolicy="no-referrer-when-downgrade"
-                    allowfullscreen
-                ></iframe>
-            `;
+        if (!enlaces.mapa_embed || cajaMapa.querySelector("iframe")) {
+            return;
         }
 
-        caja.hidden = !caja.hidden;
-        botonMapa.setAttribute("aria-expanded", String(!caja.hidden));
-    });
+        if (!navigator.onLine) {
+            cajaMapa.querySelector("[data-mapa-texto]").textContent =
+                textos.mapa_offline || "";
+            return;
+        }
+
+        cajaMapa.insertAdjacentHTML("beforeend", `
+            <iframe
+                src="${escaparAtributo(enlaces.mapa_embed)}"
+                title="${escaparAtributo(hotel.nombre || "")}"
+                loading="lazy"
+                referrerpolicy="no-referrer-when-downgrade"
+                allowfullscreen
+            ></iframe>
+        `);
+    };
+
+    ponerMapa();
+    window.addEventListener("online", ponerMapa, { once: true });
 
 
     /*
-     * Puntitos de la galería al deslizar
+     * Galería: flechas, puntos y contador
      */
     const galeriaEl =
         contenedor.querySelector(".hotel-galeria");
 
-    const puntos =
-        contenedor.querySelectorAll(".hotel-puntos span");
+    if (galeriaEl && fotos.length > 1) {
 
-    if (galeriaEl && puntos.length) {
+        const puntos =
+            contenedor.querySelectorAll("[data-ir-foto]");
+
+        const contador =
+            contenedor.querySelector(".hotel-contador b");
+
+        const indiceActual = () =>
+            Math.round(galeriaEl.scrollLeft / galeriaEl.clientWidth);
+
+        const irA = indice => {
+
+            const destino =
+                (indice + fotos.length) % fotos.length;
+
+            const reducir =
+                window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+            galeriaEl.scrollTo({
+                left: destino * galeriaEl.clientWidth,
+                behavior: reducir ? "auto" : "smooth"
+            });
+        };
 
         galeriaEl.addEventListener("scroll", () => {
 
             const indice =
-                Math.round(galeriaEl.scrollLeft / galeriaEl.clientWidth);
+                indiceActual();
 
             puntos.forEach((punto, i) => punto.classList.toggle("activo", i === indice));
 
+            if (contador) {
+                contador.textContent = indice + 1;
+            }
+
         }, { passive: true });
+
+        contenedor
+            .querySelector('[data-galeria="anterior"]')
+            .addEventListener("click", () => irA(indiceActual() - 1));
+
+        contenedor
+            .querySelector('[data-galeria="siguiente"]')
+            .addEventListener("click", () => irA(indiceActual() + 1));
+
+        puntos.forEach(punto =>
+            punto.addEventListener("click", () => irA(Number(punto.dataset.irFoto)))
+        );
+
+        galeriaEl.addEventListener("keydown", event => {
+
+            if (event.key === "ArrowLeft") {
+                event.preventDefault();
+                irA(indiceActual() - 1);
+            }
+
+            if (event.key === "ArrowRight") {
+                event.preventDefault();
+                irA(indiceActual() + 1);
+            }
+        });
     }
 
 

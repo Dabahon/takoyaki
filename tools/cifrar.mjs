@@ -9,17 +9,19 @@
 
      PALABRA="..." node tools/cifrar.mjs cifrar
         lee  privado/viaje.json + privado/hero.jpg
+             + las fotos de privado/hotel/ que cite viaje.json
         crea data/sorpresa.json   (este sí se sube a GitHub)
 
      PALABRA="..." node tools/cifrar.mjs descifrar
         lee  data/sorpresa.json
-        crea privado/viaje.json + privado/hero.jpg
+        crea privado/viaje.json + privado/hero.jpg + privado/hotel/
 
    La carpeta privado/ está en .gitignore: nunca se sube.
    La palabra no se guarda en ningún archivo.
    ========================================================= */
 
 import { readFile, writeFile, mkdir } from "node:fs/promises";
+import { basename } from "node:path";
 import { webcrypto as crypto } from "node:crypto";
 
 const ITERACIONES = 600000;
@@ -76,6 +78,16 @@ async function cifrar(palabra) {
     datos.imagen_hero =
         "data:image/jpeg;base64," + imagen.toString("base64");
 
+    // Fotos del hotel: { "archivo": "privado/hotel/x.jpg" } -> { "src": "data:..." }
+    for (const foto of datos.hotel_detalle?.fotos || []) {
+
+        if (foto.archivo) {
+            const bytes = await readFile(foto.archivo);
+            foto.src = "data:image/jpeg;base64," + bytes.toString("base64");
+            delete foto.archivo;
+        }
+    }
+
     const sal = crypto.getRandomValues(new Uint8Array(16));
     const iv = crypto.getRandomValues(new Uint8Array(12));
     const clave = await derivarClave(palabra, sal, ITERACIONES);
@@ -130,7 +142,19 @@ async function descifrar(palabra) {
     const imagen = datos.imagen_hero;
     delete datos.imagen_hero;
 
-    await mkdir("privado", { recursive: true });
+    await mkdir("privado/hotel", { recursive: true });
+
+    for (const [indice, foto] of (datos.hotel_detalle?.fotos || []).entries()) {
+
+        if (foto.src?.startsWith("data:")) {
+            const nombre = foto.nombre || `foto-${indice + 1}.jpg`;
+            const ruta = `privado/hotel/${basename(nombre)}`;
+            await writeFile(ruta, Buffer.from(foto.src.split(",")[1], "base64"));
+            foto.archivo = ruta;
+            delete foto.src;
+        }
+    }
+
     await writeFile(RUTA_DATOS, JSON.stringify(datos, null, 4) + "\n");
 
     if (imagen) {
