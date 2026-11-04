@@ -66,9 +66,11 @@ async function iniciarApp() {
     } else {
 
         mostrarPantallaSorpresa();
-    }
 
-    iniciarCuentaAtras();
+        // La cuenta atrás solo tiene sentido mientras
+        // el regalo sigue cerrado.
+        iniciarCuentaAtras();
+    }
 
     if (modoDev) {
 
@@ -435,6 +437,24 @@ function comprobarFechaReal() {
 
 function activarModoCumpleanos() {
 
+    /*
+     * Si el viaje ya está desbloqueado, el hero muestra
+     * "Florencia": no volvemos a la pantalla del regalo.
+     */
+    if (
+        document.body.classList.contains(
+            "viaje-desbloqueado"
+        )
+    ) {
+
+        if (intervaloCuentaAtras) {
+            clearInterval(intervaloCuentaAtras);
+            intervaloCuentaAtras = null;
+        }
+
+        return;
+    }
+
     const waitingScreen =
         document.getElementById(
             "waiting-screen"
@@ -506,6 +526,20 @@ function activarModoCumpleanos() {
 
 
 function actualizarCuentaAtrasCumpleanos() {
+
+    /*
+     * El día del cumpleaños la cuenta atrás ya ha
+     * terminado: en lugar de cuatro "00" la ocultamos
+     * y el protagonista es el botón del regalo.
+     */
+    const countdown =
+        document.getElementById(
+            "countdown"
+        );
+
+    if (countdown) {
+        countdown.hidden = true;
+    }
 
     actualizarElemento(
         "countdown-days",
