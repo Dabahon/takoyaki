@@ -1345,7 +1345,8 @@ function prepararRasca(paso, revelacion) {
     const radio =
         Math.max(13, Math.min(18, width / 20));
 
-    const UMBRAL = 0.6;
+    // Hay que rascar casi toda la postal (88 %) para descubrirla
+    const UMBRAL = 0.88;
 
     const punto = event => {
         const r = lienzo.getBoundingClientRect();
