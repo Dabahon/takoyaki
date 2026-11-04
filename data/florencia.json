@@ -117,61 +117,107 @@
                 "fecha": "2026-12-19",
                 "numero": 2,
                 "titulo": "Firenze Storica",
-                "descripcion": "Un día para descubrir la Florencia monumental, perdernos por Oltrarno y terminar con un aperitivo y una cena con encanto.",
+                "descripcion": "Free tour por la Florencia monumental, subida a la cúpula del Duomo, atardecer en el Ponte Vecchio y una noche con encanto en Santo Spirito.",
                 "actividades": [
                     {
-                        "hora": "08:30",
+                        "hora": "08:45",
                         "titulo": "Desayuno en Ditta Artigianale",
                         "tipo": "desayuno",
                         "duracion": "≈ 45 min",
-                        "descripcion": "Cappuccino, espresso y cornetto para empezar el día.",
+                        "descripcion": "Cappuccino, espresso y cornetto sin madrugar demasiado: hoy toca caminar y subir escaleras.",
                         "ubicacion": "Ditta Artigianale — Via dei Neri 32R, Firenze",
                         "google_maps": "https://www.google.com/maps/search/?api=1&query=Ditta+Artigianale+Via+dei+Neri+Florence"
                     },
                     {
-                        "hora": "09:30",
-                        "titulo": "Duomo de Florencia",
-                        "tipo": "monumento",
-                        "duracion": "≈ 1 h",
-                        "descripcion": "Descubrimos la Piazza del Duomo, la Catedral de Santa Maria del Fiore, el Baptisterio y el Campanile de Giotto.",
-                        "ubicacion": "Piazza del Duomo, Firenze",
-                        "google_maps": "https://www.google.com/maps/search/?api=1&query=Piazza+del+Duomo+Florence"
+                        "hora": "09:40",
+                        "titulo": "Paseo hasta el punto de encuentro",
+                        "tipo": "paseo",
+                        "duracion": "≈ 15 min",
+                        "descripcion": "Salimos con margen para llegar al free tour unos minutos antes de las 10:00.",
+                        "ubicacion": "Centro histórico de Florencia"
                     },
                     {
-                        "hora": "11:00",
+                        "hora": "10:00",
                         "titulo": "Free Tour por Florencia",
                         "tipo": "tour",
                         "duracion": "≈ 2 h 30 min",
-                        "descripcion": "Recorrido guiado por el centro histórico para conocer la historia de Florencia.",
+                        "descripcion": "Recorrido guiado por el centro histórico: Duomo por fuera, Piazza della Signoria, Ponte Vecchio y la historia de los Medici. Así, por la tarde, la cúpula la subimos sabiendo lo que vemos.",
                         "ubicacion": "Centro histórico de Florencia",
                         "reserva": true
                     },
                     {
-                        "hora": "13:45",
+                        "hora": "12:45",
                         "titulo": "Schiacciata en I' Girone De' Ghiotti",
                         "tipo": "comida",
-                        "duracion": "≈ 45 min",
-                        "descripcion": "Primera gran parada gastronómica: schiacciata con embutidos y quesos toscanos.",
+                        "duracion": "≈ 1 h",
+                        "descripcion": "Schiacciata con embutidos y quesos toscanos. Comida ligera a propósito: a las 15:00 hay 463 escalones.",
                         "ubicacion": "I' Girone De' Ghiotti — Via dei Cimatori 23, Firenze",
                         "google_maps": "https://www.google.com/maps/search/?api=1&query=I+Girone+De+Ghiotti+Florence"
                     },
                     {
-                        "hora": "15:00",
-                        "titulo": "Paseo por Oltrarno",
-                        "tipo": "paseo",
-                        "duracion": "≈ 2 h 30 min",
-                        "descripcion": "Cruzamos el Arno y recorremos Santo Spirito, Via Maggio y las calles de Oltrarno sin prisas.",
-                        "ubicacion": "Oltrarno, Firenze",
-                        "google_maps": "https://www.google.com/maps/search/?api=1&query=Piazza+Santo+Spirito+Florence"
+                        "hora": "13:45",
+                        "titulo": "Sobremesa y café sentados",
+                        "tipo": "descanso",
+                        "duracion": "≈ 45 min",
+                        "descripcion": "Descansamos las piernas después del tour. Un café tranquilo cerca de Piazza della Repubblica antes de ir a la cúpula.",
+                        "ubicacion": "Piazza della Repubblica, Firenze",
+                        "google_maps": "https://www.google.com/maps/search/?api=1&query=Piazza+della+Repubblica+Florence"
                     },
                     {
-                        "hora": "16:30",
+                        "hora": "14:40",
+                        "titulo": "Llegada a la cúpula",
+                        "tipo": "paseo",
+                        "duracion": "≈ 5 min",
+                        "descripcion": "Llegamos con unos 15–20 minutos de margen sobre la hora de la reserva para el control de acceso.",
+                        "ubicacion": "Piazza del Duomo, Firenze",
+                        "google_maps": "https://www.google.com/maps/search/?api=1&query=Cupola+del+Brunelleschi+Florence"
+                    },
+                    {
+                        "hora": "15:00",
+                        "titulo": "Subida a la Cúpula de Brunelleschi ⭐",
+                        "tipo": "monumento",
+                        "duracion": "≈ 1 h",
+                        "descripcion": "463 escalones hasta lo alto de la cúpula. A mitad de subida vemos de cerca los frescos del Juicio Final y arriba, Florencia entera a nuestros pies con luz de tarde. Subimos a nuestro ritmo.",
+                        "ubicacion": "Cupola del Brunelleschi, Piazza del Duomo",
+                        "google_maps": "https://www.google.com/maps/search/?api=1&query=Cupola+del+Brunelleschi+Florence",
+                        "reserva": true,
+                        "especial": true
+                    },
+                    {
+                        "hora": "16:10",
                         "titulo": "Gelato en Gelateria dei Neri",
                         "tipo": "gelato",
-                        "duracion": "≈ 30 min",
-                        "descripcion": "Parada dulce para probar gelato artesanal.",
+                        "duracion": "≈ 20 min",
+                        "descripcion": "El premio después de la cúpula: gelato artesanal de camino al río.",
                         "ubicacion": "Gelateria dei Neri — Via dei Neri 9/11R, Firenze",
                         "google_maps": "https://www.google.com/maps/search/?api=1&query=Gelateria+dei+Neri+Florence"
+                    },
+                    {
+                        "hora": "16:35",
+                        "titulo": "Atardecer en el Ponte Vecchio ❤️",
+                        "tipo": "mirador",
+                        "duracion": "≈ 20 min",
+                        "descripcion": "El sol se pone sobre las 16:40. Lo vemos sobre el Arno desde el puente, a dos pasos del hotel.",
+                        "ubicacion": "Ponte Vecchio, Firenze",
+                        "google_maps": "https://www.google.com/maps/search/?api=1&query=Ponte+Vecchio+Florence",
+                        "especial": true
+                    },
+                    {
+                        "hora": "17:00",
+                        "titulo": "Descanso en el hotel",
+                        "tipo": "hotel",
+                        "duracion": "≈ 1 h 30 min",
+                        "descripcion": "Pies en alto, ducha y nos arreglamos con calma para la noche.",
+                        "ubicacion": "La Scaletta al Ponte Vecchio"
+                    },
+                    {
+                        "hora": "18:30",
+                        "titulo": "Paseo por Oltrarno",
+                        "tipo": "paseo",
+                        "duracion": "≈ 30 min",
+                        "descripcion": "Cruzamos el Arno y bajamos por Via Maggio hasta Santo Spirito, ya con las calles iluminadas.",
+                        "ubicacion": "Oltrarno, Firenze",
+                        "google_maps": "https://www.google.com/maps/search/?api=1&query=Piazza+Santo+Spirito+Florence"
                     },
                     {
                         "hora": "19:00",
@@ -1063,7 +1109,8 @@
             "Recorrer Mercato Centrale",
             "Hacer una excursión a Pisa",
             "Ver la Torre de Pisa",
-            "Visitar Piazza dei Miracoli"
+            "Visitar Piazza dei Miracoli",
+            "Subir a la cúpula de Brunelleschi"
         ],
         "ranking": {
             "romantico": [
