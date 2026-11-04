@@ -9086,3 +9086,136 @@ body:not(.viaje-desbloqueado) .countdown-item span {
         min-height: 100%;
     }
 }
+
+
+/* =========================================================
+   RITMO MÁS PAUSADO
+   Las transiciones van algo más despacio (≈ +35 %) para que
+   cada momento se disfrute. Los tiempos de app.js van a juego.
+   ========================================================= */
+
+/* Entrar y salir del regalo */
+.gift-modal {
+    transition: opacity 0.5s ease, visibility 0.5s ease;
+}
+
+.gift-modal-content {
+    animation-duration: 0.95s;
+}
+
+/* Cambio de paso: sale despacio y el nuevo entra con calma */
+.gift-step.saliendo {
+    animation-duration: 0.38s;
+}
+
+.gift-step.entrando {
+    animation-duration: 0.65s;
+}
+
+.gift-step.entrando > * {
+    animation-duration: 0.85s;
+}
+
+.gift-step.entrando > :nth-child(2) { animation-delay: 0.12s; }
+.gift-step.entrando > :nth-child(3) { animation-delay: 0.24s; }
+.gift-step.entrando > :nth-child(4) { animation-delay: 0.36s; }
+.gift-step.entrando > :nth-child(5) { animation-delay: 0.48s; }
+.gift-step.entrando > :nth-child(6) { animation-delay: 0.60s; }
+.gift-step.entrando > :nth-child(7) { animation-delay: 0.72s; }
+
+.gift-step.entrando > .gift-big-icon {
+    animation:
+        aparecer 0.85s cubic-bezier(0.22, 1, 0.36, 1) both,
+        floatingGift 2.5s ease-in-out 0.85s infinite;
+}
+
+/* Álbum: cada foto cae más despacio y el matasellos llega después */
+.polaroid.entrando {
+    animation-duration: 1s;
+}
+
+.polaroid.entrando .matasellos {
+    animation-duration: 0.55s;
+    animation-delay: 0.95s;
+}
+
+.polaroid {
+    transition:
+        transform 0.75s cubic-bezier(0.22, 1, 0.36, 1),
+        filter 0.75s ease,
+        opacity 0.55s ease;
+}
+
+.sello.puesto {
+    animation-duration: 0.55s;
+    animation-delay: 0.75s;
+}
+
+.recuerdos.despedida .album,
+.recuerdos.despedida .sellos {
+    animation-duration: 0.7s;
+}
+
+/* Cuaderno de viajes: sellos uno a uno, con pausa */
+.gift-step.cuaderno-paso.entrando > .cuaderno:nth-child(n) {
+    animation-duration: 0.7s;
+}
+
+.sello-pasaporte,
+.sello-cuaderno {
+    animation-duration: 0.55s;
+    animation-delay: calc(0.4s + var(--i) * 0.28s);
+}
+
+.visado-circulo {
+    animation-duration: 0.9s;
+    animation-delay: 1.6s;
+}
+
+.visado-interrogacion {
+    animation:
+        aparecerPop 0.55s cubic-bezier(0.3, 1.6, 0.5, 1) 2.2s both,
+        latido 1.6s ease-in-out 2.8s infinite;
+}
+
+.visado-texto {
+    animation-delay: 2.3s;
+}
+
+.gift-step.cuaderno-paso.entrando > h2:nth-child(n) { animation-delay: 2.4s; }
+.gift-step.cuaderno-paso.entrando > p:not(.gift-small):not(.gift-password-error):nth-child(n) { animation-delay: 2.5s; }
+.gift-step.cuaderno-paso.entrando > .gift-password-input:nth-child(n) { animation-delay: 2.6s; }
+.gift-step.cuaderno-paso.entrando > .gift-password-error:nth-child(n) { animation-delay: 2.6s; }
+.gift-step.cuaderno-paso.entrando > .gift-main-button:nth-child(n) { animation-delay: 2.7s; }
+
+.gift-password.desbloqueado .sello-dorado {
+    animation-duration: 0.75s;
+}
+
+/* Postal y billete */
+.rasca.descubierta .rasca-capa {
+    transition: opacity 0.85s ease, transform 0.85s ease;
+}
+
+.rasca.descubierta .gift-destination span {
+    animation-duration: 0.9s;
+    animation-delay: calc(0.25s + var(--i) * 0.08s);
+}
+
+.rasca-pie.descubierta .rasca-despues {
+    animation-duration: 0.9s;
+    animation-delay: 0.7s;
+}
+
+.gift-ticket.entrando .billete {
+    animation-duration: 1.8s;
+}
+
+/* Secciones del plan */
+.page-enter .section-header,
+.page-enter .trip-card,
+.page-enter .itinerary-day,
+.page-enter .restaurant-card,
+.page-enter .checklist-item {
+    animation-duration: 0.7s;
+}

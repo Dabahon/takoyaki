@@ -154,7 +154,7 @@ document.addEventListener("DOMContentLoaded", iniciarApp);
    La versión la pone tools/nueva-version.mjs.
    ========================================================= */
 
-const VERSION_WEB = "20261104154307";
+const VERSION_WEB = "20261104160001";
 
 async function comprobarVersionNueva() {
 
@@ -1325,7 +1325,7 @@ function iniciarRecuerdos() {
     indiceRecuerdo = -1;
 
     // Esperamos a que el paso haya entrado
-    setTimeout(siguienteRecuerdo, 260);
+    setTimeout(siguienteRecuerdo, 420);
 }
 
 
@@ -1364,11 +1364,11 @@ function siguienteRecuerdo() {
                 // …y la palabra se puede escribir cuando acaban de sellarse
                 setTimeout(
                     () => document.getElementById("gift-password-input")?.focus({ preventScroll: true }),
-                    reducir ? 0 : 1700
+                    reducir ? 0 : 2500
                 )
             );
 
-        }, reducir ? 0 : 520);
+        }, reducir ? 0 : 720);
 
         return;
     }
@@ -1441,7 +1441,7 @@ function siguienteRecuerdo() {
 
     // Un respiro para que no se salten fotos con dobles toques
     boton.disabled = true;
-    setTimeout(() => { boton.disabled = false; }, 650);
+    setTimeout(() => { boton.disabled = false; }, 950);
 }
 
 
@@ -1767,7 +1767,7 @@ function cambiarPasoRegalo(
             setTimeout(() => {
                 mostrar();
                 resolver();
-            }, 240)
+            }, 380)
         );
     }
 
@@ -1846,7 +1846,7 @@ function cerrarModalRegalo() {
             modal.remove();
         }
 
-    }, 350);
+    }, 520);
 
     document.removeEventListener(
         "keydown",
@@ -1908,7 +1908,7 @@ async function comprobarPalabraSecreta(event) {
         const reducir =
             window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-        await new Promise(resolver => setTimeout(resolver, reducir ? 0 : 1500));
+        await new Promise(resolver => setTimeout(resolver, reducir ? 0 : 1900));
 
         mostrarRevelacion();
 
@@ -2857,7 +2857,7 @@ async function revelarViaje() {
 
             document.removeEventListener("keydown", manejarEscapeModal);
 
-        }, 500);
+        }, 560);
     }
 }
 
