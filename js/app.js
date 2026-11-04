@@ -46,12 +46,20 @@ function ahora() {
 
 async function sincronizarHora() {
 
+    // Si la red tarda, no hacemos esperar más de 2,5 s
+    const control =
+        new AbortController();
+
+    const limite =
+        setTimeout(() => control.abort(), 2500);
+
     try {
 
         const respuesta =
             await fetch(window.location.pathname, {
                 method: "HEAD",
-                cache: "no-store"
+                cache: "no-store",
+                signal: control.signal
             });
 
         const fechaServidor =
@@ -62,7 +70,9 @@ async function sincronizarHora() {
         }
 
     } catch (error) {
-        // Sin conexión: usamos la hora del dispositivo.
+        // Sin conexión o muy lenta: usamos la hora del dispositivo.
+    } finally {
+        clearTimeout(limite);
     }
 }
 
@@ -120,6 +130,9 @@ async function iniciarApp() {
     if (abierto) {
         return;
     }
+
+    // No había llave (o no sirvió): ahora sí, pantalla de espera
+    document.documentElement.classList.remove("con-llave");
 
     await sincronizarHora();
 
@@ -403,6 +416,38 @@ function actualizarCuentaAtras() {
     actualizarElemento("countdown-hours", formatearNumero(horas));
     actualizarElemento("countdown-minutes", formatearNumero(minutos));
     actualizarElemento("countdown-seconds", formatearNumero(segundos));
+
+    document.getElementById("countdown")?.classList.add("listo");
+
+    refrescarPistasSiToca();
+}
+
+
+/*
+ * Si se desbloquea una pista (o cambia el día) con la web
+ * abierta, las volvemos a pintar sin tener que recargar.
+ */
+let estadoPistas = "";
+
+function refrescarPistasSiToca() {
+
+    const momento =
+        ahora();
+
+    const disponibles =
+        CONFIG.pistas.filter(pista => momento >= new Date(pista.fecha)).length;
+
+    const dia =
+        momento.toLocaleDateString("sv-SE", { timeZone: "Europe/Madrid" });
+
+    const estado =
+        `${disponibles}|${dia}`;
+
+    if (estadoPistas && estado !== estadoPistas) {
+        renderizarPistas();
+    }
+
+    estadoPistas = estado;
 }
 
 
@@ -447,7 +492,13 @@ function comprobarFechaReal() {
 }
 
 
+let modoCumpleanosActivo = false;
+
 function activarModoCumpleanos() {
+
+    if (modoCumpleanosActivo) {
+        return;
+    }
 
     /*
      * Si el viaje ya está desbloqueado, el hero muestra
@@ -527,9 +578,28 @@ function activarModoCumpleanos() {
         );
     }
 
+    // ¿Estaba la cuenta atrás en marcha delante de ella? Entonces lo celebramos
+    const enDirecto =
+        document.getElementById("countdown")?.classList.contains("listo") &&
+        !document.getElementById("countdown")?.hidden;
+
+    modoCumpleanosActivo = true;
+
     actualizarCuentaAtrasCumpleanos();
 
     document.body.classList.add("modo-apertura");
+
+    if (enDirecto) {
+
+        const contenidoHero =
+            document.querySelector(".hero-content");
+
+        contenidoHero?.classList.remove("reaparece");
+        void contenidoHero?.offsetWidth;
+        contenidoHero?.classList.add("reaparece");
+
+        lanzarConfeti();
+    }
 
     // A esta hora ya se ven todas las pistas.
     renderizarPistas();
@@ -1134,7 +1204,11 @@ function crearModalRegalo() {
      */
     modal
         .querySelector("[data-gift-close]")
-        .addEventListener("click", cerrarModalRegalo);
+        .addEventListener("click", () => {
+            if (sePuedeCerrarRegalo()) {
+                cerrarModalRegalo();
+            }
+        });
 
     document.addEventListener("keydown", manejarEscapeModal);
 }
@@ -1144,7 +1218,22 @@ function crearModalRegalo() {
    PASOS DEL REGALO
    ========================================================= */
 
-function mostrarPasoRegalo(
+let colaPasos = Promise.resolve();
+
+/*
+ * Los cambios de paso van en cola: si se toca dos veces
+ * seguidas, el segundo espera a que termine el primero.
+ */
+function mostrarPasoRegalo(numeroPaso) {
+
+    colaPasos =
+        colaPasos.then(() => cambiarPasoRegalo(numeroPaso));
+
+    return colaPasos;
+}
+
+
+function cambiarPasoRegalo(
     numeroPaso
 ) {
 
@@ -1187,8 +1276,13 @@ function mostrarPasoRegalo(
             });
     };
 
+    // Ya estamos en ese paso: nada que hacer
+    if (actual && Number(actual.dataset.step) === numeroPaso) {
+        return Promise.resolve();
+    }
+
     // El paso actual sale hacia la izquierda y entra el siguiente
-    if (actual && Number(actual.dataset.step) !== numeroPaso && !reducir) {
+    if (actual && !reducir) {
 
         actual.classList.add("saliendo");
 
@@ -1210,14 +1304,22 @@ function mostrarPasoRegalo(
    CERRAR MODAL
    ========================================================= */
 
+/*
+ * El regalo solo se puede cerrar antes de escribir la palabra:
+ * después, cerrar la dejaría sin botón y sin plan.
+ */
+function sePuedeCerrarRegalo() {
+
+    const comprobando =
+        document.querySelector("#gift-modal .gift-password button:disabled");
+
+    return !datosViaje && !comprobando;
+}
+
+
 function manejarEscapeModal(event) {
 
-    if (event.key !== "Escape") {
-        return;
-    }
-
-    // En la revelación no dejamos cerrar sin querer.
-    if (datosViaje) {
+    if (event.key !== "Escape" || !sePuedeCerrarRegalo()) {
         return;
     }
 
@@ -1295,6 +1397,11 @@ async function comprobarPalabraSecreta(event) {
 
     const boton =
         formulario.querySelector("button");
+
+    // Enter dos veces seguidas: ignoramos el segundo
+    if (boton.disabled) {
+        return;
+    }
 
     const palabra =
         entrada.value;
@@ -1572,11 +1679,25 @@ function prepararRasca(paso, revelacion) {
         descubrirDestino(paso, revelacion);
     };
 
-    lienzo.addEventListener("pointerdown", event => {
+    /*
+     * Se puede empezar a rascar desde cualquier punto del paso
+     * (no solo encima de la postal): lo normal es empezar el
+     * gesto un poco fuera y entrar arrastrando.
+     */
+    paso.classList.add("por-rascar");
+
+    paso.addEventListener("pointerdown", event => {
+
+        if (terminado || event.target.closest("button, a")) {
+            return;
+        }
 
         rascando = true;
         ultimo = punto(event);
+
+        // A partir de aquí todos los movimientos van a la postal
         lienzo.setPointerCapture?.(event.pointerId);
+
         rascar(ultimo, ultimo);
         caja.classList.add("rascando");
         paso.querySelector(".rasca-ayuda")?.classList.add("oculta");
@@ -1665,6 +1786,8 @@ function pintarPostalDorada(c, w, h) {
 
 
 function descubrirDestino(paso, revelacion) {
+
+    paso.classList.remove("por-rascar");
 
     const caja =
         paso.querySelector(".rasca");
@@ -2421,6 +2544,8 @@ function prepararDatosViaje(datos) {
 
 function abrirViaje() {
 
+    saltarA(0);
+
     if (intervaloCuentaAtras) {
         clearInterval(intervaloCuentaAtras);
         intervaloCuentaAtras = null;
@@ -2452,6 +2577,22 @@ function abrirViaje() {
     colocarBotonBillete();
 
     activarViajeDesbloqueado();
+
+    // Quitamos la marca de "cargando" cuando el hero ya tiene su
+    // tamaño final, para que no se anime su altura
+    requestAnimationFrame(() =>
+        requestAnimationFrame(() => {
+
+            const raiz =
+                document.documentElement;
+
+            // Volvía con la llave: la página entra con un fundido
+            if (raiz.classList.contains("con-llave")) {
+                document.body.classList.add("entrada-suave");
+                raiz.classList.remove("con-llave");
+            }
+        })
+    );
 }
 
 
@@ -2497,8 +2638,15 @@ function activarViajeDesbloqueado() {
 
     mostrarNavegacion();
 
+    // Si recarga estando en una sección (#comer…), se queda en ella
+    const desdeEnlace =
+        window.location.hash.replace("#", "");
+
+    const existe =
+        desdeEnlace && document.getElementById(`page-${desdeEnlace}`);
+
     mostrarPagina(
-        "inicio"
+        existe ? desdeEnlace : "inicio"
     );
 }
 
@@ -2800,10 +2948,54 @@ function mostrarPagina(
     );
 
 
-    window.scrollTo({
-        top: 0,
-        behavior: "smooth"
-    });
+    // Recordamos la sección para que al recargar se quede ahí
+    try {
+        history.replaceState(
+            null,
+            "",
+            nombrePagina === "inicio"
+                ? window.location.pathname + window.location.search
+                : `#${nombrePagina}`
+        );
+    } catch (error) {
+        // Sin historial (vista previa): no pasa nada
+    }
+
+    // Si estaba más abajo, subimos sin animación al principio
+    // de la sección (justo debajo del menú), no hasta arriba del todo
+    const contenido =
+        document.getElementById("content");
+
+    const menu =
+        document.getElementById("main-nav");
+
+    if (contenido) {
+
+        const inicioSeccion =
+            contenido.getBoundingClientRect().top + window.scrollY - (menu?.offsetHeight || 0);
+
+        if (window.scrollY > inicioSeccion) {
+            saltarA(Math.max(0, inicioSeccion));
+        }
+    }
+}
+
+
+/*
+ * Desplazamiento inmediato. La web tiene scroll-behavior: smooth
+ * en CSS, así que hay que desactivarlo un instante.
+ */
+function saltarA(posicion) {
+
+    const raiz =
+        document.documentElement;
+
+    const anterior =
+        raiz.style.scrollBehavior;
+
+    raiz.style.scrollBehavior = "auto";
+    window.scrollTo(0, posicion);
+    raiz.style.scrollBehavior = anterior;
 }
 
 

@@ -14,6 +14,17 @@
 
     <title>Hay un plan esperándote ❤️</title>
 
+    <!-- Antes de pintar nada: si ya abrió el regalo en este móvil,
+         no enseñamos la pantalla de espera mientras carga el plan.
+         (La clave es CONFIG.storage.llave de app.js) -->
+    <script>
+        try {
+            if (localStorage.getItem("plan_llave")) {
+                document.documentElement.classList.add("con-llave");
+            }
+        } catch (e) {}
+    </script>
+
     <link rel="stylesheet" href="css/styles.css">
 
     <link rel="stylesheet"

@@ -3804,9 +3804,9 @@ html {
     padding:
         38px 25px 52px;
 
-    transition:
-        min-height 0.65s cubic-bezier(0.22, 1, 0.36, 1),
-        padding 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+    /* Sin transición: el cambio de tamaño ocurre mientras el
+       regalo aún lo tapa, y al desvanecerse ya está todo quieto */
+    transition: none;
 }
 
 
@@ -6924,6 +6924,12 @@ button.pista-card:focus-visible {
     visibility: hidden;
 }
 
+/* Mientras quede postal por rascar, arrastrar el dedo por el
+   paso rasca en vez de desplazar la pantalla */
+.gift-step.por-rascar {
+    touch-action: none;
+}
+
 .rasca-capa {
     position: absolute;
     inset: 0;
@@ -7870,4 +7876,82 @@ button.sobre:focus-visible {
     .gift-step.entrando {
         animation: none !important;
     }
+}
+
+
+/* =========================================================
+   TRANSICIONES SIN SOBRESALTOS
+   ========================================================= */
+
+/* Ya abrió el regalo: mientras se descifra el plan no pintamos
+   nada (ni la pantalla de espera ni medio plan) y luego todo
+   aparece de golpe con un fundido. Si algo fallase, a los 4 s
+   la página se muestra igualmente. */
+html.con-llave {
+    background: var(--background);
+}
+
+html.con-llave body {
+    visibility: hidden;
+    animation: mostrarPorSiAcaso 0s linear 4s forwards;
+}
+
+@keyframes mostrarPorSiAcaso {
+    to { visibility: visible; }
+}
+
+html.con-llave .hero {
+    transition: none !important;
+}
+
+body.entrada-suave {
+    animation: entradaSuave 0.45s ease both;
+}
+
+@keyframes entradaSuave {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Los números de la cuenta atrás no se ven hasta tener la hora buena */
+.countdown:not(.listo) .countdown-item strong {
+    opacity: 0;
+}
+
+.countdown .countdown-item strong {
+    transition: opacity 0.35s ease;
+}
+
+/* A las 19:00 en directo: el texto del hero vuelve a entrar */
+body:not(.viaje-desbloqueado) .hero-content.reaparece > * {
+    animation: aparecerOtraVez 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+body:not(.viaje-desbloqueado) .hero-content.reaparece > :nth-child(2) { animation-delay: 0.12s; }
+body:not(.viaje-desbloqueado) .hero-content.reaparece > :nth-child(3) { animation-delay: 0.24s; }
+body:not(.viaje-desbloqueado) .hero-content.reaparece > :nth-child(4) { animation-delay: 0.36s; }
+body:not(.viaje-desbloqueado) .hero-content.reaparece > :nth-child(5) { animation-delay: 0.48s; }
+
+@keyframes aparecerOtraVez {
+    from { opacity: 0; transform: translateY(16px) scale(0.98); filter: blur(4px); }
+    to { opacity: 1; transform: none; filter: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    body:not(.viaje-desbloqueado) .hero-content.reaparece > *,
+    body.entrada-suave {
+        animation: none !important;
+    }
+}
+
+
+/* Nada puede ensanchar la página en el móvil (evita que el
+   navegador se aleje durante las animaciones) */
+html,
+body {
+    overflow-x: clip;
+}
+
+.gift-modal {
+    overflow: hidden;
 }
