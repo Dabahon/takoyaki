@@ -24,8 +24,8 @@ const CONFIG = {
      * vistazo en el código fuente antes de tiempo.
      */
     pistas: [
-        { fecha: "2026-11-04T19:00:00+01:00", icono: "🪪", texto: "UHJpbWVyYSBwaXN0YSwganVzdGljaWVyYTogZWwgcGFzYXBvcnRlIHNlIHF1ZWRhIGVuIGNhc2EuIEVsIEROSSwgbm8u" },
-        { fecha: "2026-11-11T19:00:00+01:00", icono: "🧳", texto: "Q29uIHVuYSBtYWxldGEgcGVxdWXDsWEgdGUgc29icmEuIExvIGltcG9ydGFudGUgbm8gc2UgbWV0ZSBlbiBsYSBtYWxldGEu" },
+        { fecha: "2026-11-04T19:00:00+01:00", icono: "📸", texto: "UHJpbWVyYSBwaXN0YSwganVzdGljaWVyYTogaGF6IGh1ZWNvIGVuIGVsIG3Ds3ZpbC4gVmFzIGEgaGFjZXIgbXVjaGFzIGZvdG9zLg==" },
+        { fecha: "2026-11-11T19:00:00+01:00", icono: "🧳", texto: "RW4gbGEgbWFsZXRhOiBhbGdvIGPDs21vZG8gcGFyYSBlbCBkw61hIHkgYWxnbyBib25pdG8gcGFyYSB1bmEgY2VuYSBlc3BlY2lhbC4=" },
         { fecha: "2026-11-18T19:00:00+01:00", icono: "🧣", texto: "SGFyw6EgZnLDrW8uIEJ1ZmFuZGEsIHPDrS4gQmlraW5pLCBuby4=" },
         { fecha: "2026-11-25T19:00:00+01:00", icono: "👟", texto: "Q2FsemFkbyBjw7Ntb2RvLCBwb3IgZmF2b3I6IHZhcyBhIHN1YmlyIG3DoXMgZXNjYWxvbmVzIGRlIGxvcyBxdWUgdGUgaW1hZ2luYXMu" },
         { fecha: "2026-12-02T19:00:00+01:00", icono: "🎨", texto: "SGFicsOhIGFydGUuIERlbCBxdWUgc2FsZSBlbiBsb3MgbGlicm9zIGRlbCBjb2xlLg==" },
@@ -119,17 +119,6 @@ async function iniciarApp() {
 
     if (abierto) {
         return;
-    }
-
-    // El avión de papel es animación SVG: la paramos a mano
-    // si el móvil pide menos movimiento.
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-
-        const vuelo =
-            document.querySelector(".sky-flight");
-
-        vuelo?.pauseAnimations?.();
-        vuelo?.setCurrentTime?.(9);
     }
 
     await sincronizarHora();
@@ -927,7 +916,7 @@ function crearModalRegalo() {
 
             <div class="gift-step" data-step="2" hidden>
 
-                <div class="gift-big-icon">✈️</div>
+                <div class="gift-big-icon">🧳</div>
 
                 <p class="gift-small">Una pista más</p>
 
@@ -3670,8 +3659,8 @@ function obtenerIconoActividad(
 ) {
 
     const iconos = {
-
-        vuelo: "✈️",
+        // Los tipos que delatan el viaje vienen en los datos cifrados.
+        ...(datosViaje?.tipos_extra?.iconos || {}),
 
         transporte: "🚆",
 
@@ -3700,8 +3689,6 @@ function obtenerIconoActividad(
         descanso: "☕",
 
         cafe: "☕",
-
-        aeropuerto: "✈️"
     };
 
 
@@ -3717,8 +3704,7 @@ function traducirTipoActividad(
 ) {
 
     const traducciones = {
-
-        vuelo: "Vuelo",
+        ...(datosViaje?.tipos_extra?.nombres || {}),
 
         transporte: "Transporte",
 
@@ -3747,8 +3733,6 @@ function traducirTipoActividad(
         descanso: "Descanso",
 
         cafe: "Café",
-
-        aeropuerto: "Aeropuerto"
     };
 
 

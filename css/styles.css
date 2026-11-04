@@ -5059,8 +5059,8 @@ span.meal-plan-chip.is-main {
 
 /* =========================================================
    PANTALLA DE ESPERA · CIELO NOCTURNO
-   Ilustración propia: estrellas, una estrella fugaz y un
-   avión de papel. Sugiere "viaje" sin decir adónde.
+   Ilustración propia: estrellas, una estrella fugaz y una
+   constelación que dibuja un "30". Nada de transportes.
    ========================================================= */
 
 .visually-hidden {
@@ -5174,38 +5174,49 @@ body.viaje-desbloqueado .hero-sky {
 }
 
 
-/* Estela y avión de papel */
-.sky-flight {
+/* Constelación "30": las líneas se dibujan y las estrellas laten */
+.sky-constellation {
     position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
+    top: max(3vh, 20px);
+    left: 50%;
+    /* Limitada también por la altura para no pisar el título */
+    width: min(230px, 56vw, 22vh);
+    overflow: visible;
+    transform: translateX(-50%);
+    opacity: 0.85;
 }
 
-.sky-flight-trail {
+.sky-line {
     fill: none;
-    stroke: rgba(255, 233, 199, 0.35);
-    stroke-width: 1.2;
-    vector-effect: non-scaling-stroke;
-    stroke-dasharray: 2 7;
-    stroke-linecap: round;
-    animation: estela 2.5s linear infinite;
+    stroke: rgba(255, 233, 199, 0.4);
+    stroke-width: 0.6;
+    stroke-linejoin: round;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    animation: trazar 3.2s ease-in-out 0.8s forwards;
 }
 
-@keyframes estela {
-    to { stroke-dashoffset: -18; }
+.sky-line-2 {
+    animation-delay: 2.4s;
 }
 
-.sky-plane path {
-    fill: #fff8ee;
+@keyframes trazar {
+    to { stroke-dashoffset: 0; }
 }
 
-.sky-plane .sky-plane-fold {
-    fill: #e6cdb3;
+.sky-star {
+    fill: #fff6e8;
+    filter: drop-shadow(0 0 2px rgba(255, 233, 199, 0.95));
+    opacity: 0;
+    animation:
+        encender 0.6s ease-out forwards,
+        parpadeo 3.5s ease-in-out infinite;
+    animation-delay: var(--d), calc(var(--d) + 0.6s);
 }
 
-.sky-plane {
-    filter: drop-shadow(0 0 6px rgba(255, 233, 199, 0.55));
+@keyframes encender {
+    from { opacity: 0; transform-box: fill-box; transform-origin: center; transform: scale(0.2); }
+    to { opacity: 1; transform-box: fill-box; transform-origin: center; transform: scale(1); }
 }
 
 
@@ -5860,7 +5871,6 @@ button.pista-card:focus-visible {
 
     .sky-stars,
     .sky-shooting,
-    .sky-flight-trail,
     .sky-horizon,
     .hero-scroll span,
     body.modo-apertura .gift-button::after,
@@ -5872,6 +5882,16 @@ button.pista-card:focus-visible {
 
     .sky-shooting {
         display: none;
+    }
+
+    .sky-line {
+        animation: none;
+        stroke-dashoffset: 0;
+    }
+
+    .sky-star {
+        animation: none;
+        opacity: 1;
     }
 
     body:not(.viaje-desbloqueado) .hero-content > *,
