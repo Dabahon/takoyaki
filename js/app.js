@@ -112,7 +112,7 @@ document.addEventListener("DOMContentLoaded", iniciarApp);
    La versión la pone tools/nueva-version.mjs.
    ========================================================= */
 
-const VERSION_WEB = "20261104151222";
+const VERSION_WEB = "20261104152144";
 
 async function comprobarVersionNueva() {
 

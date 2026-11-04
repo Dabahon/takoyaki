@@ -8902,3 +8902,38 @@ footer {
     top: 5px;
     height: calc(72% - 5px);
 }
+
+
+/* =========================================================
+   SAFARI: SIN ESPACIO VACÍO AL FINAL DE LA PANTALLA DE ESPERA
+   Safari puede calcular las capas 3D y las sombras de los
+   sobres más grandes de lo que son y alargar la página.
+   Encerramos la sección para que nada de dentro la agrande.
+   ========================================================= */
+
+.pistas {
+    position: relative;
+    overflow: hidden;
+    overflow: clip;
+    contain: paint;
+}
+
+/* Cada sobre, igual: lo que se vea de él no sale de su hueco
+   salvo durante la apertura (la carta sube por encima) */
+.pista {
+    contain: layout;
+}
+
+/* El pie es lo último de la página: nada después */
+footer {
+    position: relative;
+}
+
+html,
+body {
+    min-height: 0;
+}
+
+body {
+    min-height: 100vh;
+}
