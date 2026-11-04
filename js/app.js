@@ -1186,6 +1186,10 @@ async function comprobarPalabraSecreta(event) {
 /*
  * Paso 4: el destino, letra a letra.
  */
+/*
+ * Paso 4: el destino está tapado por una postal dorada
+ * que hay que rascar con el dedo.
+ */
 function mostrarRevelacion() {
 
     const revelacion =
@@ -1208,21 +1212,38 @@ function mostrarRevelacion() {
 
     paso.innerHTML = `
 
-        <div class="gift-big-icon">${escaparHTML(revelacion.icono || "✨")}</div>
+        <div class="gift-big-icon" data-icono-revelacion>✨</div>
 
         <p class="gift-small">Nos vamos a…</p>
 
-        <h1 class="gift-destination" aria-label="${escaparAtributo(revelacion.destino || "")}">
-            ${letras}
-        </h1>
+        <div class="rasca">
 
-        <p class="gift-dates">${escaparHTML(revelacion.fechas || "")}</p>
+            <div class="rasca-premio" aria-hidden="true">
+                <h1 class="gift-destination">${letras}</h1>
+                <p class="gift-dates">${escaparHTML(revelacion.fechas || "")}</p>
+            </div>
 
-        <p>${escaparHTML(revelacion.frase || "")}</p>
+            <canvas class="rasca-capa" aria-hidden="true"></canvas>
 
-        <button type="button" class="gift-main-button" data-gift-reveal>
-            ${escaparHTML(datosViaje?.billete?.boton_mas || "Ver nuestra escapada")}
+        </div>
+
+        <p class="rasca-ayuda">
+            <span aria-hidden="true">👆</span> Rasca con el dedo
+        </p>
+
+        <button type="button" class="rasca-saltar" data-rasca-saltar>
+            Descubrir sin rascar
         </button>
+
+        <div class="rasca-despues" hidden>
+
+            <p>${escaparHTML(revelacion.frase || "")}</p>
+
+            <button type="button" class="gift-main-button" data-gift-reveal>
+                ${escaparHTML(datosViaje?.billete?.boton_mas || "Ver nuestra escapada")}
+            </button>
+
+        </div>
     `;
 
     paso
@@ -1234,7 +1255,247 @@ function mostrarRevelacion() {
 
     mostrarPasoRegalo(4);
 
+    // Esperamos a que el paso tenga tamaño para pintar la postal
+    requestAnimationFrame(() =>
+        requestAnimationFrame(() => prepararRasca(paso, revelacion))
+    );
+}
+
+
+function prepararRasca(paso, revelacion) {
+
+    const caja =
+        paso.querySelector(".rasca");
+
+    const lienzo =
+        paso.querySelector(".rasca-capa");
+
+    const contexto =
+        lienzo?.getContext?.("2d");
+
+    // Sin canvas (muy raro): se descubre directamente
+    if (!caja || !contexto) {
+        descubrirDestino(paso, revelacion);
+        return;
+    }
+
+    const escala =
+        Math.min(window.devicePixelRatio || 1, 2);
+
+    const { width, height } =
+        caja.getBoundingClientRect();
+
+    lienzo.width = Math.round(width * escala);
+    lienzo.height = Math.round(height * escala);
+    contexto.scale(escala, escala);
+
+    pintarPostalDorada(contexto, width, height);
+
+    caja.classList.add("lista");
+
+
+    let rascando = false;
+    let ultimo = null;
+    let trazos = 0;
+    let terminado = false;
+
+    // Más o menos la mitad de la yema de un dedo
+    const radio =
+        Math.max(13, Math.min(18, width / 20));
+
+    const UMBRAL = 0.6;
+
+    const punto = event => {
+        const r = lienzo.getBoundingClientRect();
+        return { x: event.clientX - r.left, y: event.clientY - r.top };
+    };
+
+    const rascar = (desde, hasta) => {
+
+        contexto.globalCompositeOperation = "destination-out";
+        contexto.lineCap = "round";
+        contexto.lineJoin = "round";
+        contexto.lineWidth = radio * 2;
+
+        contexto.beginPath();
+        contexto.moveTo(desde.x, desde.y);
+        contexto.lineTo(hasta.x, hasta.y);
+        contexto.stroke();
+
+        contexto.beginPath();
+        contexto.arc(hasta.x, hasta.y, radio, 0, Math.PI * 2);
+        contexto.fill();
+    };
+
+    /*
+     * Porcentaje rascado, mirando una rejilla de puntos
+     * (rápido incluso en móviles antiguos).
+     */
+    const porcentajeRascado = () => {
+
+        const datos =
+            contexto.getImageData(0, 0, lienzo.width, lienzo.height).data;
+
+        const paso = 12;
+        let total = 0;
+        let vacios = 0;
+
+        for (let y = 0; y < lienzo.height; y += paso) {
+            for (let x = 0; x < lienzo.width; x += paso) {
+                total++;
+                if (datos[(y * lienzo.width + x) * 4 + 3] < 40) {
+                    vacios++;
+                }
+            }
+        }
+
+        return total ? vacios / total : 1;
+    };
+
+    const terminar = () => {
+
+        if (terminado) {
+            return;
+        }
+
+        terminado = true;
+        descubrirDestino(paso, revelacion);
+    };
+
+    lienzo.addEventListener("pointerdown", event => {
+
+        rascando = true;
+        ultimo = punto(event);
+        lienzo.setPointerCapture?.(event.pointerId);
+        rascar(ultimo, ultimo);
+        caja.classList.add("rascando");
+        paso.querySelector(".rasca-ayuda")?.classList.add("oculta");
+    });
+
+    lienzo.addEventListener("pointermove", event => {
+
+        if (!rascando || terminado) {
+            return;
+        }
+
+        const ahora = punto(event);
+        rascar(ultimo, ahora);
+        ultimo = ahora;
+
+        // Comprobamos cada pocos movimientos
+        if (++trazos % 8 === 0 && porcentajeRascado() > UMBRAL) {
+            terminar();
+        }
+    });
+
+    const soltar = () => {
+
+        if (!rascando) {
+            return;
+        }
+
+        rascando = false;
+        caja.classList.remove("rascando");
+
+        if (!terminado && porcentajeRascado() > UMBRAL) {
+            terminar();
+        }
+    };
+
+    lienzo.addEventListener("pointerup", soltar);
+    lienzo.addEventListener("pointercancel", soltar);
+
+    paso
+        .querySelector("[data-rasca-saltar]")
+        ?.addEventListener("click", terminar);
+}
+
+
+function pintarPostalDorada(c, w, h) {
+
+    // Oro con brillo diagonal
+    const oro = c.createLinearGradient(0, 0, w, h);
+    oro.addColorStop(0, "#b8862f");
+    oro.addColorStop(0.35, "#f3d27a");
+    oro.addColorStop(0.5, "#fff1c4");
+    oro.addColorStop(0.65, "#e6b955");
+    oro.addColorStop(1, "#a8762a");
+
+    c.fillStyle = oro;
+    c.fillRect(0, 0, w, h);
+
+    // Purpurina
+    for (let i = 0; i < (w * h) / 90; i++) {
+        const x = Math.random() * w;
+        const y = Math.random() * h;
+        c.fillStyle = Math.random() > 0.5
+            ? `rgba(255, 250, 230, ${0.25 + Math.random() * 0.5})`
+            : `rgba(120, 80, 20, ${0.08 + Math.random() * 0.15})`;
+        c.fillRect(x, y, 1.2, 1.2);
+    }
+
+    // Marco interior
+    c.strokeStyle = "rgba(255, 248, 225, 0.65)";
+    c.lineWidth = 1.5;
+    c.setLineDash([5, 5]);
+    c.strokeRect(9, 9, w - 18, h - 18);
+    c.setLineDash([]);
+
+    // Texto
+    c.textAlign = "center";
+    c.textBaseline = "middle";
+    c.fillStyle = "rgba(110, 70, 18, 0.85)";
+    c.font = `700 ${Math.round(Math.min(30, w / 10))}px "Cormorant Garamond", Georgia, serif`;
+    c.fillText("✦ Rasca aquí ✦", w / 2, h / 2 - 6);
+
+    c.font = `600 ${Math.round(Math.min(12, w / 26))}px Inter, Arial, sans-serif`;
+    c.fillStyle = "rgba(110, 70, 18, 0.7)";
+    c.fillText("TU DESTINO", w / 2, h / 2 + 24);
+}
+
+
+function descubrirDestino(paso, revelacion) {
+
+    const caja =
+        paso.querySelector(".rasca");
+
+    caja?.classList.add("descubierta");
+    caja?.querySelector(".rasca-premio")?.removeAttribute("aria-hidden");
+
+    const titulo =
+        caja?.querySelector(".gift-destination");
+
+    titulo?.setAttribute("aria-label", revelacion.destino || "");
+
+    const icono =
+        paso.querySelector("[data-icono-revelacion]");
+
+    if (icono) {
+        icono.textContent = revelacion.icono || "✨";
+    }
+
+    paso.querySelector(".rasca-ayuda")?.remove();
+    paso.querySelector("[data-rasca-saltar]")?.remove();
+
+    // La capa dorada se desvanece y luego desaparece
+    const capa =
+        paso.querySelector(".rasca-capa");
+
+    setTimeout(() => capa?.remove(), 700);
+
+    const despues =
+        paso.querySelector(".rasca-despues");
+
+    if (despues) {
+        despues.hidden = false;
+    }
+
     lanzarConfeti();
+
+    setTimeout(
+        () => paso.querySelector("[data-gift-reveal]")?.focus({ preventScroll: true }),
+        900
+    );
 }
 
 

@@ -5848,8 +5848,6 @@ button.pista-card:focus-visible {
 
 .gift-destination span {
     display: inline-block;
-    animation: letra 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
-    animation-delay: calc(0.35s + var(--i) * 0.09s);
 }
 
 @keyframes letra {
@@ -5857,10 +5855,7 @@ button.pista-card:focus-visible {
     to { opacity: 1; transform: none; filter: none; }
 }
 
-/* Que el resto aparezca después de las letras */
-.gift-reveal.entrando > .gift-dates { animation-delay: 1.3s; }
-.gift-reveal.entrando > p:not(.gift-small):not(.gift-dates) { animation-delay: 1.5s; }
-.gift-reveal.entrando > .gift-main-button { animation-delay: 1.8s; }
+
 
 
 /* =========================================================
@@ -6868,6 +6863,150 @@ button.pista-card:focus-visible {
     .hoy,
     .hoy-dias span,
     .hoy-directo::after {
+        animation: none !important;
+    }
+}
+
+
+
+/* =========================================================
+   RASCA Y DESCUBRE
+   ========================================================= */
+
+.rasca {
+    position: relative;
+    width: min(330px, 100%);
+    margin: 6px auto 0;
+    overflow: hidden;
+    border-radius: 18px;
+    background:
+        radial-gradient(circle at 50% 0%, rgba(232, 140, 96, 0.12), transparent 70%),
+        #fffaf1;
+    box-shadow:
+        inset 0 0 0 1px rgba(143, 79, 58, 0.15),
+        0 10px 26px rgba(143, 79, 58, 0.18);
+}
+
+.rasca-premio {
+    padding: 34px 12px 30px;
+}
+
+.rasca-premio .gift-destination {
+    margin: 0 0 6px;
+}
+
+.rasca-premio .gift-dates {
+    margin: 0;
+}
+
+/* Hasta que la postal está pintada, el premio no se ve */
+.rasca:not(.lista) .rasca-premio {
+    visibility: hidden;
+}
+
+.rasca-capa {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    cursor: grab;
+    touch-action: none;
+    transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.rasca.rascando .rasca-capa {
+    cursor: grabbing;
+}
+
+.rasca:not(.descubierta) {
+    animation: brilloPostal 2.6s ease-in-out 0.6s infinite;
+}
+
+@keyframes brilloPostal {
+    0%, 100% { box-shadow: inset 0 0 0 1px rgba(143, 79, 58, 0.15), 0 10px 26px rgba(143, 79, 58, 0.18); }
+    50% { box-shadow: inset 0 0 0 1px rgba(143, 79, 58, 0.15), 0 10px 34px rgba(230, 185, 85, 0.55); }
+}
+
+.rasca.descubierta .rasca-capa {
+    opacity: 0;
+    transform: scale(1.04);
+    pointer-events: none;
+}
+
+/* Al descubrirse, las letras dan un saltito una tras otra */
+.rasca.descubierta .gift-destination span {
+    animation: saltito 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    animation-delay: calc(0.15s + var(--i) * 0.06s);
+}
+
+@keyframes saltito {
+    0% { transform: translateY(0) scale(1); }
+    40% { transform: translateY(-14%) scale(1.08); }
+    100% { transform: none; }
+}
+
+.rasca-ayuda {
+    margin: 12px 0 0;
+    color: var(--text-light);
+    font-size: 0.8rem;
+    font-weight: 600;
+    transition: opacity 0.3s ease;
+}
+
+.rasca-ayuda span {
+    display: inline-block;
+    animation: frotar 1.4s ease-in-out infinite;
+}
+
+@keyframes frotar {
+    0%, 100% { transform: translateX(-4px) rotate(-8deg); }
+    50% { transform: translateX(4px) rotate(8deg); }
+}
+
+/* La animación de entrada del paso fija opacity:1; hay que anularla */
+.gift-step.entrando > .rasca-ayuda.oculta,
+.rasca-ayuda.oculta {
+    animation: none;
+    opacity: 0;
+}
+
+.rasca-saltar {
+    margin-top: 4px;
+    padding: 6px 8px;
+    border: 0;
+    background: none;
+    color: var(--text-light);
+    font-size: 0.7rem;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    cursor: pointer;
+    opacity: 0.7;
+}
+
+.rasca-despues {
+    margin-top: 16px;
+    animation: aparecer 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.5s both;
+}
+
+.rasca-despues[hidden] {
+    display: none;
+}
+
+.rasca-despues p {
+    max-width: 340px;
+    margin: 0 auto;
+    color: var(--text-light);
+}
+
+.rasca-despues .gift-main-button {
+    margin-top: 18px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .rasca:not(.descubierta),
+    .rasca-ayuda span,
+    .rasca.descubierta .gift-destination span,
+    .rasca-despues {
         animation: none !important;
     }
 }
