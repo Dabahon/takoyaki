@@ -7955,3 +7955,49 @@ body {
 .gift-modal {
     overflow: hidden;
 }
+
+
+/* =========================================================
+   FILTROS DE COMER EN EL MÓVIL
+   Alineados con las tarjetas (mismo margen) y con un
+   degradado a la derecha que indica que se pueden deslizar.
+   ========================================================= */
+
+@media (max-width: 700px) {
+
+    .restaurant-filters {
+        justify-content: flex-start;
+        flex-wrap: nowrap;
+        gap: 8px;
+        margin: 0 0 16px;
+        padding: 6px 28px 12px 0;
+        overflow-x: auto;
+        scroll-padding-left: 0;
+        scrollbar-width: none;
+        -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 36px), transparent);
+        mask-image: linear-gradient(to right, #000 calc(100% - 36px), transparent);
+    }
+
+    /* Al llegar al final, sin degradado */
+    .restaurant-filters.al-final {
+        -webkit-mask-image: none;
+        mask-image: none;
+    }
+
+    .restaurant-filter {
+        flex-shrink: 0;
+        min-height: 38px;
+        padding: 8px 14px;
+        font-size: 0.72rem;
+        scroll-snap-align: start;
+    }
+
+    .restaurant-filter:last-child {
+        margin-right: 0;
+    }
+
+    /* La fila recorta lo que sobresale: sin sombra que se corte */
+    .restaurant-filter.active {
+        box-shadow: none;
+    }
+}

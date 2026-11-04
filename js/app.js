@@ -27,7 +27,7 @@ const CONFIG = {
         { fecha: "2026-11-04T19:00:00+01:00", icono: "📸", texto: "UHJpbWVyYSBwaXN0YSwganVzdGljaWVyYTogaGF6IGh1ZWNvIGVuIGVsIG3Ds3ZpbC4gVmFzIGEgaGFjZXIgbXVjaGFzIGZvdG9zLg==" },
         { fecha: "2026-11-11T19:00:00+01:00", icono: "🧳", texto: "RW4gbGEgbWFsZXRhOiBhbGdvIGPDs21vZG8gcGFyYSBlbCBkw61hIHkgYWxnbyBib25pdG8gcGFyYSB1bmEgY2VuYSBlc3BlY2lhbC4=" },
         { fecha: "2026-11-18T19:00:00+01:00", icono: "🧣", texto: "SGFyw6EgZnLDrW8uIEJ1ZmFuZGEsIHPDrS4gQmlraW5pLCBuby4=" },
-        { fecha: "2026-11-25T19:00:00+01:00", icono: "🍷", texto: "UGlzdGEgbsK6IDQ6IGVsIHZpYWplIGluY2x1eWUgdmluby4gTXVjaG8gdmluby4gVHUgw7puaWNhIG1pc2nDs24sIGp1c3RpY2llcmE6IGVsZWdpciBsYSBtZWpvciBjZXBhLg==" },
+        { fecha: "2026-11-25T19:00:00+01:00", icono: "🍷", texto: "RWwgdmlhamUgaW5jbHV5ZSB2aW5vLiBNdWNobyB2aW5vLiBUdSDDum5pY2EgbWlzacOzbiwganVzdGljaWVyYTogZWxlZ2lyIGxhIG1lam9yIGNlcGEu" },
         { fecha: "2026-12-02T19:00:00+01:00", icono: "🎨", texto: "SGFicsOhIGFydGUuIERlbCBxdWUgc2FsZSBlbiBsb3MgbGlicm9zIGRlbCBjb2xlLg==" },
         { fecha: "2026-12-09T19:00:00+01:00", icono: "🪜", texto: "w5psdGltYSBwaXN0YSwganVzdGljaWVyYTogaGFicsOhIGVzY2Fsb25lcy4gTXVjaG9zLiBNdWNow61zaW1vcy4gUGVybyB0ZSBwcm9tZXRvIHF1ZSBsYXMgdmlzdGFzIGRlIGFycmliYSBsbyBjb21wZW5zYW4u" }
     ]
@@ -4078,6 +4078,25 @@ function obtenerCategoriaRestaurante(
    ========================================================= */
 
 function configurarFiltrosRestaurantes() {
+
+    // Quitamos el degradado de "hay más" cuando se llega al final
+    const fila =
+        document.getElementById("restaurant-filters");
+
+    if (fila && !fila.dataset.degradado) {
+
+        fila.dataset.degradado = "true";
+
+        const comprobar = () =>
+            fila.classList.toggle(
+                "al-final",
+                fila.scrollLeft + fila.clientWidth >= fila.scrollWidth - 4
+            );
+
+        fila.addEventListener("scroll", comprobar, { passive: true });
+        window.addEventListener("resize", comprobar);
+        requestAnimationFrame(comprobar);
+    }
 
     const filtros =
         document.querySelectorAll(
