@@ -4613,3 +4613,439 @@ body.viaje-desbloqueado .hero.hero-trip-revealed {
         transition: none;
     }
 }
+
+
+/* =========================================================
+   PLAN DE COMIDAS POR DÍA
+   ========================================================= */
+
+.meal-plan {
+
+    max-width:
+        760px;
+
+    margin:
+        0 auto 28px;
+
+    padding:
+        20px 20px 14px;
+
+    border:
+        1px solid rgba(143, 79, 58, 0.18);
+
+    border-radius:
+        var(--radius);
+
+    background:
+        linear-gradient(
+            160deg,
+            #fbf3ea 0%,
+            var(--surface) 70%
+        );
+
+    box-shadow:
+        var(--shadow-soft);
+}
+
+
+.meal-plan-header {
+
+    margin-bottom:
+        14px;
+}
+
+
+.meal-plan-header h3 {
+
+    margin-bottom:
+        2px;
+
+    font-size:
+        1.5rem;
+
+    line-height:
+        1.1;
+}
+
+
+.meal-plan-header p {
+
+    color:
+        var(--text-light);
+
+    font-size:
+        0.76rem;
+}
+
+
+/* Pestañas de días (control segmentado) */
+.meal-plan-tabs {
+
+    display:
+        grid;
+
+    grid-auto-columns:
+        1fr;
+
+    grid-auto-flow:
+        column;
+
+    gap:
+        4px;
+
+    margin-bottom:
+        6px;
+
+    padding:
+        4px;
+
+    border-radius:
+        12px;
+
+    background:
+        rgba(143, 79, 58, 0.07);
+}
+
+
+.meal-plan-tab {
+
+    position:
+        relative;
+
+    min-height:
+        38px;
+
+    padding:
+        6px 4px;
+
+    border:
+        0;
+
+    border-radius:
+        9px;
+
+    background:
+        transparent;
+
+    color:
+        var(--text-light);
+
+    font-size:
+        0.78rem;
+
+    font-weight:
+        600;
+
+    cursor:
+        pointer;
+
+    transition:
+        background 0.2s ease,
+        color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+
+.meal-plan-tab[aria-selected="true"] {
+
+    background:
+        var(--surface);
+
+    color:
+        var(--primary);
+
+    box-shadow:
+        0 1px 4px rgba(50, 40, 30, 0.12);
+}
+
+
+.meal-plan-tab:focus-visible {
+
+    outline:
+        2px solid var(--primary-light);
+
+    outline-offset:
+        2px;
+}
+
+
+.meal-plan-today {
+
+    display:
+        inline-block;
+
+    margin-left:
+        3px;
+
+    padding:
+        1px 5px;
+
+    border-radius:
+        999px;
+
+    background:
+        var(--primary);
+
+    color:
+        white;
+
+    font-size:
+        0.56rem;
+
+    font-weight:
+        700;
+
+    letter-spacing:
+        0.06em;
+
+    text-transform:
+        uppercase;
+
+    vertical-align:
+        1px;
+}
+
+
+/* Filas: momento del día + opciones */
+.meal-plan-row {
+
+    display:
+        grid;
+
+    grid-template-columns:
+        96px 1fr;
+
+    align-items:
+        start;
+
+    gap:
+        10px;
+
+    padding:
+        10px 0;
+
+    border-bottom:
+        1px dashed var(--border);
+}
+
+
+.meal-plan-row:last-child {
+
+    border-bottom:
+        0;
+}
+
+
+.meal-plan-moment {
+
+    display:
+        inline-flex;
+
+    align-items:
+        center;
+
+    gap:
+        6px;
+
+    min-height:
+        30px;
+
+    color:
+        var(--text-light);
+
+    font-size:
+        0.72rem;
+
+    font-weight:
+        700;
+
+    letter-spacing:
+        0.06em;
+
+    text-transform:
+        uppercase;
+}
+
+
+.meal-plan-options {
+
+    display:
+        flex;
+
+    flex-wrap:
+        wrap;
+
+    gap:
+        6px;
+}
+
+
+.meal-plan-chip {
+
+    display:
+        inline-flex;
+
+    align-items:
+        center;
+
+    min-height:
+        30px;
+
+    padding:
+        4px 11px;
+
+    border:
+        1px solid var(--border);
+
+    border-radius:
+        999px;
+
+    background:
+        var(--surface);
+
+    color:
+        var(--text);
+
+    font-family:
+        inherit;
+
+    font-size:
+        0.78rem;
+
+    line-height:
+        1.2;
+
+    text-align:
+        left;
+}
+
+
+button.meal-plan-chip {
+
+    cursor:
+        pointer;
+
+    transition:
+        border-color 0.2s ease,
+        background 0.2s ease;
+}
+
+
+button.meal-plan-chip:hover,
+button.meal-plan-chip:focus-visible {
+
+    border-color:
+        var(--primary-light);
+
+    background:
+        rgba(143, 79, 58, 0.06);
+}
+
+
+/* Plan A */
+.meal-plan-chip.is-main {
+
+    border-color:
+        var(--primary);
+
+    background:
+        var(--primary);
+
+    color:
+        white;
+
+    font-weight:
+        600;
+}
+
+
+button.meal-plan-chip.is-main:hover,
+button.meal-plan-chip.is-main:focus-visible {
+
+    border-color:
+        var(--primary-dark);
+
+    background:
+        var(--primary-dark);
+}
+
+
+/* Sitios que no tienen tarjeta (zona, hotel, mercado) */
+span.meal-plan-chip {
+
+    border-style:
+        dashed;
+
+    color:
+        var(--text-light);
+}
+
+
+/* Plan A sin tarjeta: relleno suave, para que no parezca un botón */
+span.meal-plan-chip.is-main {
+
+    border-style:
+        dashed;
+
+    background:
+        rgba(143, 79, 58, 0.10);
+
+    color:
+        var(--primary);
+}
+
+
+/* Tarjeta resaltada al llegar desde el plan */
+.restaurant-card.is-highlighted {
+
+    animation:
+        resaltarTarjeta 2.2s ease;
+}
+
+
+@keyframes resaltarTarjeta {
+
+    0%,
+    40% {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(143, 79, 58, 0.22), var(--shadow);
+    }
+
+    100% {
+        border-color: var(--border);
+        box-shadow: var(--shadow-soft);
+    }
+}
+
+
+@media (max-width: 420px) {
+
+    .meal-plan {
+
+        padding:
+            16px 14px 10px;
+    }
+
+
+    .meal-plan-row {
+
+        grid-template-columns:
+            1fr;
+
+        gap:
+            6px;
+    }
+}
+
+
+@media (prefers-reduced-motion: reduce) {
+
+    .restaurant-card.is-highlighted {
+
+        animation:
+            none;
+
+        border-color:
+            var(--primary);
+    }
+}

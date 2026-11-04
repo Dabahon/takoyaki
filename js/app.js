@@ -2065,6 +2065,327 @@ function renderizarRestaurantes() {
     configurarFiltrosRestaurantes();
 
     renderizarRestaurantesFiltrados();
+
+    renderizarPlanComidas();
+}
+
+
+/* =========================================================
+   PLAN DE COMIDAS POR DÍA
+   ========================================================= */
+
+const MOMENTOS_COMIDA = [
+    { clave: "desayuno", icono: "☕", nombre: "Desayuno" },
+    { clave: "comida", icono: "🍝", nombre: "Comida" },
+    { clave: "aperitivo", icono: "🥂", nombre: "Aperitivo" },
+    { clave: "cena", icono: "🍷", nombre: "Cena" }
+];
+
+
+/*
+ * "Sábado" -> "sabado", "L'Ortone" -> "l'ortone"
+ */
+function normalizarTexto(texto) {
+
+    return String(texto || "")
+        .normalize("NFD")
+        .replace(/[̀-ͯ]/g, "")
+        .toLowerCase()
+        .trim();
+}
+
+
+function renderizarPlanComidas() {
+
+    const contenedor =
+        document.getElementById("meal-plan");
+
+    const plan =
+        datosViaje?.guia_gastronomica?.plan_comidas;
+
+    if (!contenedor || !plan) {
+        return;
+    }
+
+
+    /*
+     * Fecha de cada día a partir del itinerario
+     * (el plan solo tiene "viernes", "sábado"...).
+     */
+    const itinerario =
+        datosViaje?.viaje?.itinerario || [];
+
+    const dias =
+        Object.keys(plan)
+            .filter(dia =>
+                MOMENTOS_COMIDA.some(
+                    momento => (plan[dia]?.[momento.clave] || []).length
+                )
+            )
+            .map(dia => {
+
+                const diaItinerario =
+                    itinerario.find(
+                        item =>
+                            normalizarTexto(item.dia) ===
+                            normalizarTexto(dia)
+                    );
+
+                return {
+                    clave: dia,
+                    fecha: crearFechaLocal(diaItinerario?.fecha),
+                    comidas: plan[dia]
+                };
+            });
+
+    if (!dias.length) {
+        return;
+    }
+
+
+    /*
+     * Si hoy es un día del viaje, abrimos ese día.
+     */
+    const hoy =
+        new Date();
+
+    const esHoy = fecha =>
+        fecha &&
+        fecha.getFullYear() === hoy.getFullYear() &&
+        fecha.getMonth() === hoy.getMonth() &&
+        fecha.getDate() === hoy.getDate();
+
+    const indiceInicial =
+        Math.max(
+            0,
+            dias.findIndex(dia => esHoy(dia.fecha))
+        );
+
+
+    const nombresRestaurantes =
+        new Set(
+            restaurantesCompletos.map(
+                restaurante => normalizarTexto(restaurante.nombre)
+            )
+        );
+
+
+    const etiquetaDia = dia => {
+
+        const nombre =
+            dia.clave.charAt(0).toUpperCase() +
+            dia.clave.slice(1, 3);
+
+        return dia.fecha
+            ? `${nombre} ${dia.fecha.getDate()}`
+            : nombre;
+    };
+
+
+    const crearChip = (sitio, indice) => {
+
+        const enLista =
+            nombresRestaurantes.has(normalizarTexto(sitio));
+
+        const clases =
+            `meal-plan-chip${indice === 0 ? " is-main" : ""}`;
+
+        return enLista
+            ? `<button type="button" class="${clases}"
+                   data-ir-restaurante="${escaparAtributo(sitio)}">
+                   ${escaparHTML(sitio)}
+               </button>`
+            : `<span class="${clases}">${escaparHTML(sitio)}</span>`;
+    };
+
+
+    const crearPanel = (dia, indice) => `
+
+        <div
+            class="meal-plan-panel"
+            role="tabpanel"
+            id="meal-plan-panel-${indice}"
+            aria-labelledby="meal-plan-tab-${indice}"
+            ${indice === indiceInicial ? "" : "hidden"}
+        >
+            ${MOMENTOS_COMIDA
+                .filter(momento => (dia.comidas?.[momento.clave] || []).length)
+                .map(momento => `
+
+                    <div class="meal-plan-row">
+
+                        <span class="meal-plan-moment">
+                            <span aria-hidden="true">${momento.icono}</span>
+                            ${momento.nombre}
+                        </span>
+
+                        <div class="meal-plan-options">
+                            ${dia.comidas[momento.clave]
+                                .map(crearChip)
+                                .join("")}
+                        </div>
+
+                    </div>
+                `)
+                .join("")}
+        </div>
+    `;
+
+
+    contenedor.innerHTML = `
+
+        <div class="meal-plan-header">
+
+            <h3>
+                Qué toca cada día
+            </h3>
+
+            <p>
+                El primero es el plan A; el resto, alternativas.
+            </p>
+
+        </div>
+
+
+        <div class="meal-plan-tabs" role="tablist" aria-label="Días del viaje">
+
+            ${dias
+                .map((dia, indice) => `
+
+                    <button
+                        type="button"
+                        role="tab"
+                        class="meal-plan-tab"
+                        id="meal-plan-tab-${indice}"
+                        aria-controls="meal-plan-panel-${indice}"
+                        aria-selected="${indice === indiceInicial}"
+                    >
+                        ${escaparHTML(etiquetaDia(dia))}
+                        ${esHoy(dia.fecha) ? `<span class="meal-plan-today">hoy</span>` : ""}
+                    </button>
+                `)
+                .join("")}
+
+        </div>
+
+
+        ${dias.map(crearPanel).join("")}
+    `;
+
+    contenedor.hidden = false;
+
+
+    /*
+     * Cambio de pestaña
+     */
+    const pestanas =
+        contenedor.querySelectorAll(".meal-plan-tab");
+
+    const paneles =
+        contenedor.querySelectorAll(".meal-plan-panel");
+
+    pestanas.forEach((pestana, indice) => {
+
+        pestana.addEventListener("click", () => {
+
+            pestanas.forEach((otra, i) =>
+                otra.setAttribute("aria-selected", String(i === indice))
+            );
+
+            paneles.forEach((panel, i) => {
+                panel.hidden = i !== indice;
+            });
+        });
+    });
+
+
+    /*
+     * Chip -> bajar hasta la tarjeta del restaurante
+     */
+    contenedor.addEventListener("click", event => {
+
+        const chip =
+            event.target.closest("[data-ir-restaurante]");
+
+        if (chip) {
+            irARestaurante(chip.dataset.irRestaurante);
+        }
+    });
+}
+
+
+function irARestaurante(nombre) {
+
+    const clave =
+        normalizarTexto(nombre);
+
+    const buscarTarjeta = () =>
+        document.querySelector(
+            `.restaurant-card[data-restaurante="${CSS.escape(clave)}"]`
+        );
+
+    let tarjeta =
+        buscarTarjeta();
+
+
+    /*
+     * Si un filtro la está ocultando, volvemos a "Todos".
+     */
+    if (!tarjeta && filtroRestauranteActual !== "todos") {
+
+        filtroRestauranteActual =
+            "todos";
+
+        document
+            .querySelectorAll("[data-restaurant-filter]")
+            .forEach(filtro =>
+                filtro.classList.toggle(
+                    "active",
+                    filtro.dataset.restaurantFilter === "todos"
+                )
+            );
+
+        renderizarRestaurantesFiltrados();
+
+        // Que el botón "Todos" vuelva a verse en la fila de filtros.
+        const filaFiltros =
+            document.getElementById("restaurant-filters");
+
+        if (filaFiltros) {
+            filaFiltros.scrollLeft = 0;
+        }
+
+        tarjeta =
+            buscarTarjeta();
+    }
+
+    if (!tarjeta) {
+        return;
+    }
+
+    const detalles =
+        tarjeta.querySelector("details");
+
+    if (detalles) {
+        detalles.open = true;
+    }
+
+    const reducirMovimiento =
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    tarjeta.scrollIntoView({
+        behavior: reducirMovimiento ? "auto" : "smooth",
+        block: "center"
+    });
+
+    tarjeta.classList.remove("is-highlighted");
+    void tarjeta.offsetWidth;
+    tarjeta.classList.add("is-highlighted");
+
+    setTimeout(
+        () => tarjeta.classList.remove("is-highlighted"),
+        2200
+    );
 }
 
 
@@ -2083,6 +2404,9 @@ function crearTarjetaRestaurante(
 
     tarjeta.className =
         "restaurant-card";
+
+    tarjeta.dataset.restaurante =
+        normalizarTexto(restaurante.nombre);
 
 
     const contenido =
