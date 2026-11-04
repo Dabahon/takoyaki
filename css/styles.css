@@ -7346,7 +7346,7 @@ button.sobre:focus-visible {
 
 /* Sello de cera */
 .sobre-sello {
-    top: calc(60% - 27px);
+    top: calc(52% - 27px);
     left: calc(50% - 27px);
     z-index: 4;
     display: grid;
@@ -8891,4 +8891,46 @@ body:not(.viaje-desbloqueado).bajado::before {
 /* Pie de página por encima de la barra de inicio */
 footer {
     padding-bottom: calc(24px + var(--zona-segura-abajo));
+}
+
+
+
+/* Sobres bloqueados: el candado un poco más arriba para dejar
+   sitio a la fecha y a "cuánto falta" */
+.sobre.bloqueado .sobre-sello {
+    top: calc(46% - 27px);
+}
+
+/* Sobres estrechos (móviles pequeños): sello y textos más compactos */
+.sobre {
+    container-type: inline-size;
+}
+
+@container (max-width: 150px) {
+
+    .sobre .sobre-sello {
+        top: calc(44% - 21px);
+        left: calc(50% - 21px);
+        width: 42px;
+        height: 42px;
+        font-size: 1rem;
+    }
+
+    .sobre.bloqueado .sobre-sello {
+        top: calc(36% - 21px);
+    }
+
+    .sobre .sobre-numero {
+        font-size: 1rem;
+    }
+
+    .sobre .sobre-pie {
+        bottom: 8px;
+        gap: 2px;
+    }
+
+    .sobre .sobre-instruccion,
+    .sobre .sobre-fecha {
+        font-size: 0.56rem;
+    }
 }
