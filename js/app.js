@@ -693,6 +693,14 @@ function renderizarPistas() {
     let abiertas =
         0;
 
+    // Las capas del sobre, comunes a todos
+    const capas = `
+        <span class="sobre-fondo" aria-hidden="true"></span>
+        <span class="sobre-bolsillo" aria-hidden="true"></span>
+        <span class="sobre-sombra" aria-hidden="true"></span>
+        <span class="sobre-solapa" aria-hidden="true"></span>
+    `;
+
     lista.innerHTML =
         CONFIG.pistas
             .map((pista, indice) => {
@@ -703,10 +711,11 @@ function renderizarPistas() {
                 const numero =
                     indice + 1;
 
-                const abierta =
+                const disponible =
                     simulando || momento >= fecha;
 
-                if (!abierta) {
+                // ---------- Sobre cerrado con fecha ----------
+                if (!disponible) {
 
                     const esSiguiente =
                         !siguienteMarcada;
@@ -715,15 +724,18 @@ function renderizarPistas() {
 
                     return `
                         <li class="pista">
-                            <div class="pista-card bloqueada${esSiguiente ? " siguiente" : ""}">
-                                <span class="pista-numero">${numero}</span>
-                                <span class="pista-candado" aria-hidden="true">🔒</span>
-                                <span class="pista-fecha">${escaparHTML(textoCuandoAbre(fecha))}</span>
-                                ${
-                                    esSiguiente
-                                        ? `<span class="pista-falta">${escaparHTML(textoCuantoFalta(fecha))}</span>`
-                                        : ""
-                                }
+                            <div class="sobre bloqueado${esSiguiente ? " siguiente" : ""}">
+                                ${capas}
+                                <span class="sobre-sello" aria-hidden="true">🔒</span>
+                                <span class="sobre-pie">
+                                    <span class="sobre-numero">Pista nº ${numero}</span>
+                                    <span class="sobre-fecha">${escaparHTML(textoCuandoAbre(fecha))}</span>
+                                    ${
+                                        esSiguiente
+                                            ? `<span class="sobre-falta">${escaparHTML(textoCuantoFalta(fecha))}</span>`
+                                            : ""
+                                    }
+                                </span>
                             </div>
                         </li>
                     `;
@@ -731,28 +743,38 @@ function renderizarPistas() {
 
                 abiertas++;
 
-                const vista =
+                const abierta =
                     vistas.includes(indice);
 
+                // ---------- Sobre disponible ----------
                 return `
                     <li class="pista">
                         <button
                             type="button"
-                            class="pista-card${vista ? " girada" : " nueva"}"
+                            class="sobre${abierta ? " abierto" : " nuevo"}"
                             data-pista="${indice}"
-                            aria-pressed="${vista}"
+                            aria-expanded="${abierta}"
                             aria-label="Pista ${numero}"
                         >
-                            <span class="pista-cara pista-frente">
-                                <span class="pista-numero">${numero}</span>
-                                ${vista ? "" : `<span class="pista-badge">Nueva</span>`}
-                                <span class="pista-sello" aria-hidden="true">✦</span>
-                                <span class="pista-instruccion">Toca para verla</span>
+                            <span class="sobre-fondo" aria-hidden="true"></span>
+
+                            <span class="sobre-carta">
+                                <span class="sobre-carta-etiqueta">Pista nº ${numero}</span>
+                                <span class="sobre-carta-icono" aria-hidden="true">${pista.icono}</span>
+                                <span class="sobre-carta-texto">${escaparHTML(textoDeBase64(pista.texto))}</span>
                             </span>
-                            <span class="pista-cara pista-dorso">
-                                <span class="pista-icono" aria-hidden="true">${pista.icono}</span>
-                                <span class="pista-texto">${escaparHTML(textoDeBase64(pista.texto))}</span>
+
+                            <span class="sobre-bolsillo" aria-hidden="true"></span>
+                            <span class="sobre-sombra" aria-hidden="true"></span>
+                            <span class="sobre-solapa" aria-hidden="true"></span>
+                            <span class="sobre-sello" aria-hidden="true">✦</span>
+
+                            <span class="sobre-pie" aria-hidden="true">
+                                <span class="sobre-numero">Pista nº ${numero}</span>
+                                <span class="sobre-instruccion">Toca para abrir</span>
                             </span>
+
+                            ${abierta ? "" : `<span class="sobre-nueva">Nueva</span>`}
                         </button>
                     </li>
                 `;
@@ -778,24 +800,37 @@ function renderizarPistas() {
     }
 
 
+    const reducir =
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
     lista
-        .querySelectorAll("[data-pista]")
-        .forEach(carta => {
+        .querySelectorAll("button.sobre")
+        .forEach(sobre => {
 
-            carta.addEventListener("click", () => {
+            sobre.addEventListener("click", () => {
 
-                const girada =
-                    carta.classList.toggle("girada");
-
-                carta.classList.remove("nueva");
-
-                carta.setAttribute("aria-pressed", String(girada));
-
-                carta.querySelector(".pista-badge")?.remove();
-
-                if (girada) {
-                    guardarPistaVista(Number(carta.dataset.pista));
+                // Una vez abierto, se queda abierto
+                if (sobre.classList.contains("abierto") || sobre.classList.contains("abriendo")) {
+                    return;
                 }
+
+                sobre.classList.remove("nuevo");
+                sobre.querySelector(".sobre-nueva")?.remove();
+                sobre.setAttribute("aria-expanded", "true");
+
+                guardarPistaVista(Number(sobre.dataset.pista));
+
+                if (reducir) {
+                    sobre.classList.add("abierto");
+                    return;
+                }
+
+                sobre.classList.add("abriendo");
+
+                setTimeout(() => {
+                    sobre.classList.remove("abriendo");
+                    sobre.classList.add("abierto");
+                }, 1700);
             });
         });
 }
@@ -804,6 +839,95 @@ function renderizarPistas() {
 /* =========================================================
    REGALO
    ========================================================= */
+
+/* =========================================================
+   ESCENAS ILUSTRADAS DEL REGALO
+   Dibujos propios en SVG; nada que dé pistas del destino.
+   ========================================================= */
+
+const CHISPAS = `
+    <g class="escena-chispas" fill="#ffe9c7">
+        <path class="chispa" style="--d:0s" d="M14 22 l2 5 5 2 -5 2 -2 5 -2 -5 -5 -2 5 -2z" />
+        <path class="chispa" style="--d:.7s" d="M104 16 l1.6 4 4 1.6 -4 1.6 -1.6 4 -1.6 -4 -4 -1.6 4 -1.6z" />
+        <path class="chispa" style="--d:1.3s" d="M100 70 l1.4 3.4 3.4 1.4 -3.4 1.4 -1.4 3.4 -1.4 -3.4 -3.4 -1.4 3.4 -1.4z" />
+        <path class="chispa" style="--d:.4s" d="M10 78 l1.2 3 3 1.2 -3 1.2 -1.2 3 -1.2 -3 -3 -1.2 3 -1.2z" />
+    </g>
+`;
+
+const ESCENAS = {
+
+    regalo: `
+        <svg viewBox="0 0 120 110" aria-hidden="true">
+            ${CHISPAS}
+            <g class="regalo-caja">
+                <rect x="24" y="50" width="72" height="54" rx="6" fill="#c9765b" />
+                <rect x="24" y="50" width="72" height="10" fill="#000" opacity=".12" />
+                <rect x="55" y="50" width="10" height="54" fill="#f3d27a" />
+            </g>
+            <g class="regalo-tapa">
+                <rect x="18" y="36" width="84" height="17" rx="5" fill="#dc8e70" />
+                <rect x="55" y="36" width="10" height="17" fill="#f6dc8e" />
+                <path d="M60 36 C 46 14, 26 20, 38 33 C 44 38, 54 37, 60 36 Z" fill="#f3d27a" />
+                <path d="M60 36 C 74 14, 94 20, 82 33 C 76 38, 66 37, 60 36 Z" fill="#e6b955" />
+                <circle cx="60" cy="35" r="5.5" fill="#d9a441" />
+            </g>
+        </svg>
+    `,
+
+    maleta: `
+        <svg viewBox="0 0 120 110" aria-hidden="true">
+            ${CHISPAS}
+            <g class="maleta">
+                <path d="M47 32 V22 a7 7 0 0 1 7 -7 h12 a7 7 0 0 1 7 7 V32" fill="none" stroke="#e9dcc7" stroke-width="5" stroke-linecap="round" />
+                <rect x="18" y="30" width="84" height="64" rx="11" fill="#c9765b" />
+                <rect x="18" y="30" width="84" height="64" rx="11" fill="none" stroke="#000" stroke-opacity=".12" stroke-width="2" />
+                <rect x="34" y="30" width="8" height="64" fill="#8f4f3a" />
+                <rect x="78" y="30" width="8" height="64" fill="#8f4f3a" />
+                <circle cx="60" cy="52" r="12" fill="#ffe9c7" />
+                <text x="60" y="56.5" text-anchor="middle" font-family="Georgia, serif" font-size="12" font-weight="700" fill="#8f4f3a">30</text>
+                <rect x="47" y="70" width="18" height="14" rx="3" fill="#f3d27a" transform="rotate(-8 56 77)" />
+                <text x="56" y="81" text-anchor="middle" font-size="10" fill="#8f4f3a" transform="rotate(-8 56 77)">✦</text>
+                <circle cx="94" cy="80" r="6" fill="#ffe9c7" />
+                <text x="94" y="83.5" text-anchor="middle" font-size="8" fill="#c0392b">♥</text>
+                <circle cx="30" cy="99" r="4" fill="#2a2048" />
+                <circle cx="90" cy="99" r="4" fill="#2a2048" />
+            </g>
+        </svg>
+    `,
+
+    candado: `
+        <svg viewBox="0 0 120 110" aria-hidden="true">
+            <defs>
+                <linearGradient id="oro-candado" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0" stop-color="#f6dc8e" />
+                    <stop offset=".55" stop-color="#e6b955" />
+                    <stop offset="1" stop-color="#b8862f" />
+                </linearGradient>
+            </defs>
+            ${CHISPAS}
+            <circle class="candado-halo" cx="60" cy="66" r="34" fill="#ffe9c7" opacity=".12" />
+            <g class="candado">
+                <path class="candado-arco" d="M41 54 V38 a19 19 0 0 1 38 0 V54" fill="none" stroke="#e6c06a" stroke-width="9" stroke-linecap="round" />
+                <rect x="28" y="50" width="64" height="50" rx="11" fill="url(#oro-candado)" />
+                <rect x="28" y="50" width="64" height="50" rx="11" fill="none" stroke="#fff6e8" stroke-opacity=".35" stroke-width="1.5" />
+                <circle cx="60" cy="70" r="6.5" fill="#6f3828" />
+                <path d="M57 72 h6 l2 15 h-10 z" fill="#6f3828" />
+            </g>
+        </svg>
+    `
+};
+
+
+function crearEscena(nombre, extra = "") {
+
+    return `
+        <div class="paso-escena escena-${nombre}">
+            ${ESCENAS[nombre] || ""}
+            ${extra}
+        </div>
+    `;
+}
+
 
 function abrirRegalo() {
 
@@ -894,9 +1018,9 @@ function crearModalRegalo() {
             </div>
 
 
-            <div class="gift-step" data-step="1">
+            <div class="gift-step con-escena" data-step="1">
 
-                <div class="gift-big-icon">🎁</div>
+                ${crearEscena("regalo")}
 
                 <p class="gift-small">Hoy toca celebrar</p>
 
@@ -908,15 +1032,15 @@ function crearModalRegalo() {
                 </p>
 
                 <button type="button" class="gift-main-button" data-gift-next="2">
-                    Sigue
+                    Sigue <span aria-hidden="true">→</span>
                 </button>
 
             </div>
 
 
-            <div class="gift-step" data-step="2" hidden>
+            <div class="gift-step con-escena" data-step="2" hidden>
 
-                <div class="gift-big-icon">🧳</div>
+                ${crearEscena("maleta")}
 
                 <p class="gift-small">Una pista más</p>
 
@@ -928,15 +1052,15 @@ function crearModalRegalo() {
                 </p>
 
                 <button type="button" class="gift-main-button" data-gift-next="3">
-                    ¿Adónde?
+                    ¿Adónde? <span aria-hidden="true">→</span>
                 </button>
 
             </div>
 
 
-            <form class="gift-step gift-password" data-step="3" hidden novalidate>
+            <form class="gift-step gift-password con-escena" data-step="3" hidden novalidate>
 
-                <div class="gift-big-icon">🔐</div>
+                ${crearEscena("candado")}
 
                 <p class="gift-small">La última puerta</p>
 
@@ -968,7 +1092,7 @@ function crearModalRegalo() {
             </form>
 
 
-            <div class="gift-step gift-reveal" data-step="4" hidden></div>
+            <div class="gift-step gift-reveal con-escena" data-step="4" hidden></div>
 
 
             <div class="gift-step gift-ticket" data-step="5" hidden></div>
@@ -1025,29 +1149,60 @@ function mostrarPasoRegalo(
 ) {
 
     const pasos =
-        document.querySelectorAll("#gift-modal .gift-step");
+        [...document.querySelectorAll("#gift-modal .gift-step")];
 
-    pasos.forEach(paso => {
+    const contenido =
+        document.querySelector("#gift-modal .gift-modal-content");
 
-        const activo =
-            Number(paso.dataset.step) === numeroPaso;
+    const actual =
+        pasos.find(paso => !paso.hidden);
 
-        paso.hidden = !activo;
+    const reducir =
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-        if (activo) {
+    const mostrar = () => {
 
-            // Reiniciamos la animación de entrada del paso.
-            paso.classList.remove("entrando");
-            void paso.offsetWidth;
-            paso.classList.add("entrando");
-        }
-    });
+        pasos.forEach(paso => {
 
-    document
-        .querySelectorAll("#gift-modal .gift-progress span")
-        .forEach((punto, indice) => {
-            punto.classList.toggle("activo", indice < numeroPaso);
+            const activo =
+                Number(paso.dataset.step) === numeroPaso;
+
+            paso.hidden = !activo;
+            paso.classList.remove("saliendo");
+
+            if (activo) {
+                // Reiniciamos la animación de entrada del paso
+                paso.classList.remove("entrando");
+                void paso.offsetWidth;
+                paso.classList.add("entrando");
+            }
         });
+
+        contenido?.setAttribute("data-paso", String(numeroPaso));
+
+        document
+            .querySelectorAll("#gift-modal .gift-progress span")
+            .forEach((punto, indice) => {
+                punto.classList.toggle("activo", indice < numeroPaso);
+            });
+    };
+
+    // El paso actual sale hacia la izquierda y entra el siguiente
+    if (actual && Number(actual.dataset.step) !== numeroPaso && !reducir) {
+
+        actual.classList.add("saliendo");
+
+        return new Promise(resolver =>
+            setTimeout(() => {
+                mostrar();
+                resolver();
+            }, 240)
+        );
+    }
+
+    mostrar();
+
+    return Promise.resolve();
 }
 
 
@@ -1162,6 +1317,15 @@ async function comprobarPalabraSecreta(event) {
 
         prepararDatosViaje(datos);
 
+        // El candado se abre antes de pasar a la postal
+        formulario.classList.add("desbloqueado");
+        boton.textContent = "¡Abierto!";
+
+        const reducir =
+            window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+        await new Promise(resolver => setTimeout(resolver, reducir ? 0 : 950));
+
         mostrarRevelacion();
 
     } catch (fallo) {
@@ -1212,7 +1376,9 @@ function mostrarRevelacion() {
 
     paso.innerHTML = `
 
-        <div class="gift-big-icon" data-icono-revelacion>✨</div>
+        <div class="paso-escena escena-estrellas">
+            <span class="escena-icono" data-icono-revelacion>✨</span>
+        </div>
 
         <p class="gift-small">Nos vamos a…</p>
 
@@ -1262,14 +1428,15 @@ function mostrarRevelacion() {
             datosViaje?.billete ? mostrarPasoBillete : revelarViaje
         );
 
-    mostrarPasoRegalo(4);
-
-    // Esperamos a que el paso tenga tamaño para ajustar el texto y pintar la postal
-    requestAnimationFrame(() =>
-        requestAnimationFrame(() => {
-            ajustarDestinoAlAncho(paso);
-            prepararRasca(paso, revelacion);
-        })
+    // Esperamos a que el paso esté visible y tenga tamaño
+    // para ajustar el texto y pintar la postal
+    mostrarPasoRegalo(4).then(() =>
+        requestAnimationFrame(() =>
+            requestAnimationFrame(() => {
+                ajustarDestinoAlAncho(paso);
+                prepararRasca(paso, revelacion);
+            })
+        )
     );
 }
 
@@ -2902,7 +3069,7 @@ function renderizarHotel() {
      * La tarjeta del hotel de arriba lleva hasta aquí
      */
     const tarjeta =
-        document.querySelector("[data-viaje-hotel]")?.closest(".trip-card");
+        document.querySelector("[data-viaje-hotel]")?.closest(".ficha-tramo, .trip-card");
 
     if (tarjeta && !tarjeta.dataset.enlazada) {
 

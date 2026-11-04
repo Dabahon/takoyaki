@@ -287,60 +287,53 @@
                 </div>
 
 
-                <div id="trip-info" class="trip-grid">
+                <!-- Ficha del viaje: un resguardo de billete con tres tramos -->
+                <div id="trip-info" class="ficha">
 
-                    <article class="trip-card">
+                    <div class="ficha-tramo">
 
-                        <div class="trip-card-icon">
-                            📍
+                        <span class="ficha-icono" aria-hidden="true">📍</span>
+
+                        <div class="ficha-texto">
+                            <span class="ficha-etiqueta">Destino</span>
+                            <strong data-viaje-destino>Destino</strong>
+                            <small data-viaje-destino-texto>Para recorrer sin prisa.</small>
                         </div>
 
-                        <h3 data-viaje-destino>
-                            Destino
-                        </h3>
-
-                        <p data-viaje-destino-texto>
-                            Para recorrer sin prisa.
-                        </p>
-
-                    </article>
+                    </div>
 
 
-                    <article class="trip-card">
+                    <div class="ficha-tramo">
 
-                        <div class="trip-card-icon">
-                            <span class="mini-calendar" aria-hidden="true">
+                        <span class="ficha-icono ficha-icono-calendario" aria-hidden="true">
+                            <span class="mini-calendar">
                                 <span class="mini-calendar-month" data-viaje-mes>dic</span>
                                 <span class="mini-calendar-day" data-viaje-dia>18</span>
                             </span>
+                        </span>
+
+                        <div class="ficha-texto">
+                            <span class="ficha-etiqueta">Fechas</span>
+                            <strong data-viaje-fechas>18 – 21 de diciembre</strong>
+                            <small data-viaje-fechas-detalle>3 noches · de viernes a lunes</small>
                         </div>
 
-                        <h3 data-viaje-fechas>
-                            18 – 21 de diciembre
-                        </h3>
-
-                        <p data-viaje-fechas-detalle>
-                            3 noches · de viernes a lunes
-                        </p>
-
-                    </article>
+                    </div>
 
 
-                    <article class="trip-card">
+                    <div class="ficha-tramo ficha-hotel">
 
-                        <div class="trip-card-icon">
-                            🏨
+                        <span class="ficha-icono" aria-hidden="true">🏨</span>
+
+                        <div class="ficha-texto">
+                            <span class="ficha-etiqueta">Dormimos en</span>
+                            <strong data-viaje-hotel>Hotel</strong>
+                            <small data-viaje-hotel-texto>Nuestro punto de partida.</small>
                         </div>
 
-                        <h3 data-viaje-hotel>
-                            Hotel
-                        </h3>
+                        <span class="ficha-flecha" aria-hidden="true">→</span>
 
-                        <p data-viaje-hotel-texto>
-                            Nuestro punto de partida.
-                        </p>
-
-                    </article>
+                    </div>
 
                 </div>
 
