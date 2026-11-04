@@ -27,7 +27,7 @@ const CONFIG = {
         { fecha: "2026-11-04T19:00:00+01:00", icono: "📸", texto: "UHJpbWVyYSBwaXN0YSwganVzdGljaWVyYTogaGF6IGh1ZWNvIGVuIGVsIG3Ds3ZpbC4gVmFzIGEgaGFjZXIgbXVjaGFzIGZvdG9zLg==" },
         { fecha: "2026-11-11T19:00:00+01:00", icono: "🧳", texto: "RW4gbGEgbWFsZXRhOiBhbGdvIGPDs21vZG8gcGFyYSBlbCBkw61hIHkgYWxnbyBib25pdG8gcGFyYSB1bmEgY2VuYSBlc3BlY2lhbC4=" },
         { fecha: "2026-11-18T19:00:00+01:00", icono: "🧣", texto: "SGFyw6EgZnLDrW8uIEJ1ZmFuZGEsIHPDrS4gQmlraW5pLCBuby4=" },
-        { fecha: "2026-11-25T19:00:00+01:00", icono: "👟", texto: "Q2FsemFkbyBjw7Ntb2RvLCBwb3IgZmF2b3I6IHZhcyBhIHN1YmlyIG3DoXMgZXNjYWxvbmVzIGRlIGxvcyBxdWUgdGUgaW1hZ2luYXMu" },
+        { fecha: "2026-11-25T19:00:00+01:00", icono: "🍷", texto: "UGlzdGEgbsK6IDQ6IGVsIHZpYWplIGluY2x1eWUgdmluby4gTXVjaG8gdmluby4gVHUgw7puaWNhIG1pc2nDs24sIGp1c3RpY2llcmE6IGVsZWdpciBsYSBtZWpvciBjZXBhLg==" },
         { fecha: "2026-12-02T19:00:00+01:00", icono: "🎨", texto: "SGFicsOhIGFydGUuIERlbCBxdWUgc2FsZSBlbiBsb3MgbGlicm9zIGRlbCBjb2xlLg==" },
         { fecha: "2026-12-09T19:00:00+01:00", icono: "🕖", texto: "TWHDsWFuYSBhIGxhcyAxOTowMCwgY29ubWlnby4gTG8gZGVtw6FzLCB5YSBsbyB2ZXLDoXMu" }
     ]
