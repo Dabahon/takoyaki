@@ -1266,6 +1266,14 @@ function barrasDesdeTexto(texto) {
 }
 
 
+/*
+ * "ancho" de un campo: true o 3 = fila entera, 2 = dos columnas.
+ */
+function columnasCampo(campo) {
+    return campo.ancho === true ? 3 : Math.min(3, Math.max(1, Number(campo.ancho) || 1));
+}
+
+
 function crearBilleteHTML(billete) {
 
     let x = 0;
@@ -1282,27 +1290,33 @@ function crearBilleteHTML(billete) {
     const campos =
         (billete.campos || [])
             .map(campo => `
-                <div class="billete-campo${campo.ancho ? " ancho" : ""}">
+                <div class="billete-campo" style="grid-column: span ${columnasCampo(campo)}">
                     <span>${escaparHTML(campo.etiqueta)}</span>
                     <strong>${escaparHTML(campo.valor)}</strong>
                 </div>
             `)
             .join("");
 
+    const ciudad = lugar => `
+        <div class="billete-ciudad">
+            <strong>${escaparHTML(lugar?.codigo || "")}</strong>
+            <span>${escaparHTML(lugar?.ciudad || "")}</span>
+            ${lugar?.hora ? `<em>${escaparHTML(lugar.hora)}</em>` : ""}
+        </div>
+    `;
+
+    // Ojo: div y no header/footer, para no heredar estilos de la web.
     return `
         <article class="billete" aria-label="${escaparAtributo(billete.titulo || "")}">
 
-            <header class="billete-cabecera">
+            <div class="billete-cabecera">
                 <span>${escaparHTML(billete.titulo || "")}</span>
                 <span aria-hidden="true">${escaparHTML(billete.icono || "")}</span>
-            </header>
+            </div>
 
             <div class="billete-ruta">
 
-                <div class="billete-ciudad">
-                    <strong>${escaparHTML(billete.origen?.codigo || "")}</strong>
-                    <span>${escaparHTML(billete.origen?.ciudad || "")}</span>
-                </div>
+                ${ciudad(billete.origen)}
 
                 <div class="billete-trayecto" aria-hidden="true">
                     <svg viewBox="0 0 100 30" preserveAspectRatio="none">
@@ -1311,10 +1325,7 @@ function crearBilleteHTML(billete) {
                     <span class="billete-icono-ruta">${escaparHTML(billete.icono || "")}</span>
                 </div>
 
-                <div class="billete-ciudad">
-                    <strong>${escaparHTML(billete.destino?.codigo || "")}</strong>
-                    <span>${escaparHTML(billete.destino?.ciudad || "")}</span>
-                </div>
+                ${ciudad(billete.destino)}
 
             </div>
 
@@ -1322,12 +1333,12 @@ function crearBilleteHTML(billete) {
 
             <div class="billete-corte" aria-hidden="true"></div>
 
-            <footer class="billete-pie">
+            <div class="billete-pie">
                 <svg class="billete-barras" viewBox="0 0 ${x} 40" preserveAspectRatio="none" aria-hidden="true">
                     ${barras}
                 </svg>
                 <p>${escaparHTML(billete.nota || "")}</p>
-            </footer>
+            </div>
 
         </article>
     `;
@@ -1364,7 +1375,7 @@ function mostrarPasoBillete() {
             </button>
 
             <button type="button" class="gift-main-button" data-gift-reveal>
-                Ver nuestra escapada
+                Ver la escapada
             </button>
 
         </div>
@@ -1544,8 +1555,32 @@ async function guardarBillete(billete) {
         c.fillRect(sx, sy, i % 4 === 0 ? 3 : 2, i % 4 === 0 ? 3 : 2);
     }
 
-    // Papel del billete
-    const bx = 90, by = 200, bw = W - 180, bh = H - 400;
+    // Cuántas filas de campos hay (rejilla de 3 columnas)
+    let filas = 0;
+    let enFila = 3;
+    (billete.campos || []).forEach(campo => {
+        const columnas = columnasCampo(campo);
+        if (enFila + columnas > 3) {
+            filas++;
+            enFila = 0;
+        }
+        enFila += columnas;
+    });
+
+    // El billete mide lo que necesita y va centrado
+    const bw = W - 180;
+    const bh = 570 + filas * 150 + 10 + 290;
+    const bx = 90;
+    const by = Math.round((H - bh) / 2);
+
+    // Reduce la letra hasta que el texto quepa en su hueco
+    const ajustar = (texto, peso, tamano, familia, maximo) => {
+        let t = tamano;
+        do {
+            c.font = `${peso} ${t}px ${familia}`;
+            t -= 2;
+        } while (c.measureText(texto).width > maximo && t > 30);
+    };
     c.save();
     c.shadowColor = "rgba(0, 0, 0, 0.35)";
     c.shadowBlur = 50;
@@ -1584,39 +1619,53 @@ async function guardarBillete(billete) {
     c.fillStyle = colores.suave;
     c.font = `500 36px ${sans}`;
     c.textAlign = "left";
-    c.fillText(billete.origen?.ciudad || "", bx + 64, ry + 100);
+    c.fillText(billete.origen?.ciudad || "", bx + 64, ry + 95);
     c.textAlign = "right";
-    c.fillText(billete.destino?.ciudad || "", bx + bw - 64, ry + 100);
+    c.fillText(billete.destino?.ciudad || "", bx + bw - 64, ry + 95);
 
-    // Arco punteado con el icono
+    c.fillStyle = colores.primario;
+    c.font = `700 52px ${serif}`;
+    c.textAlign = "left";
+    c.fillText(billete.origen?.hora || "", bx + 62, ry + 160);
+    c.textAlign = "right";
+    c.fillText(billete.destino?.hora || "", bx + bw - 62, ry + 160);
+
+    // Arco punteado con el icono, entre el final de un código y el inicio del otro
+    c.font = `700 130px ${serif}`;
+    const finOrigen = bx + 60 + c.measureText(billete.origen?.codigo || "").width + 24;
+    const inicioDestino = bx + bw - 60 - c.measureText(billete.destino?.codigo || "").width - 24;
+    const centroArco = (finOrigen + inicioDestino) / 2;
     c.save();
     c.strokeStyle = colores.primario;
     c.lineWidth = 4;
     c.setLineDash([4, 14]);
     c.lineCap = "round";
     c.beginPath();
-    c.moveTo(bx + 380, ry + 10);
-    c.quadraticCurveTo(W / 2, ry - 110, bx + bw - 380, ry + 10);
+    c.moveTo(finOrigen, ry + 10);
+    c.quadraticCurveTo(centroArco, ry - 110, inicioDestino, ry + 10);
     c.stroke();
     c.restore();
     c.fillStyle = colores.primario;
     c.font = `60px ${sans}`;
     c.textAlign = "center";
-    c.fillText(billete.icono || "", W / 2, ry - 60);
+    c.fillText(billete.icono || "", centroArco, ry - 60);
 
-    // Campos en dos columnas
-    let fy = ry + 210;
-    let columna = 0;
-    const colX = [bx + 60, bx + bw / 2 + 20];
+    // Campos en una rejilla de 3 columnas
+    const anchoColumna = (bw - 120) / 3;
+    let fy = ry + 270;
+    let ocupadas = 0;
 
     (billete.campos || []).forEach(campo => {
 
-        if (campo.ancho && columna === 1) {
-            columna = 0;
-            fy += 145;
+        const columnas =
+            columnasCampo(campo);
+
+        if (ocupadas + columnas > 3) {
+            ocupadas = 0;
+            fy += 150;
         }
 
-        const x = colX[columna];
+        const x = bx + 60 + ocupadas * anchoColumna;
 
         c.textAlign = "left";
         c.fillStyle = colores.suave;
@@ -1624,19 +1673,16 @@ async function guardarBillete(billete) {
         c.fillText((campo.etiqueta || "").toUpperCase(), x, fy);
 
         c.fillStyle = colores.texto;
-        c.font = `700 ${campo.ancho ? 60 : 54}px ${serif}`;
+        ajustar(campo.valor || "", 700, columnas === 3 ? 62 : 54, serif, anchoColumna * columnas - 24);
         c.fillText(campo.valor || "", x, fy + 62);
 
-        if (campo.ancho || columna === 1) {
-            columna = 0;
-            fy += 145;
-        } else {
-            columna = 1;
-        }
+        ocupadas += columnas;
     });
 
+    fy += 150;
+
     // Línea de corte con muescas
-    const cy = Math.max(fy + 20, by + bh - 330);
+    const cy = by + 570 + filas * 150 + 10;
     c.save();
     c.strokeStyle = colores.borde;
     c.lineWidth = 4;
