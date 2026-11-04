@@ -28,6 +28,8 @@ async function iniciarApp() {
 
     configurarEventosGlobales();
 
+    registrarServiceWorker();
+
     const parametros =
         new URLSearchParams(
             window.location.search
