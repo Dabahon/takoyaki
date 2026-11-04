@@ -2350,6 +2350,274 @@ function animarEntradaPagina(pagina) {
    RENDER PRINCIPAL
    ========================================================= */
 
+/* =========================================================
+   HOTEL
+   Todos los nombres y datos vienen de los datos cifrados;
+   aquí solo hay maquetación.
+   ========================================================= */
+
+function crearMapaHotelSVG(mapa) {
+
+    const t = texto => escaparHTML(texto || "");
+
+    return `
+        <svg class="hotel-mapa-svg" viewBox="0 0 340 230" role="img" aria-label="${escaparAtributo(mapa.nota || "")}">
+
+            <defs>
+                <pattern id="mapa-papel" width="8" height="8" patternUnits="userSpaceOnUse">
+                    <circle cx="1" cy="1" r="0.6" class="mapa-grano" />
+                </pattern>
+            </defs>
+
+            <rect width="340" height="230" class="mapa-tierra" />
+            <rect width="340" height="230" fill="url(#mapa-papel)" />
+
+            <!-- Manzanas -->
+            <g class="mapa-manzanas">
+                <rect x="18" y="14" width="70" height="40" rx="4" />
+                <rect x="100" y="10" width="54" height="52" rx="4" />
+                <rect x="190" y="12" width="60" height="44" rx="4" />
+                <rect x="262" y="18" width="62" height="40" rx="4" />
+                <rect x="14" y="150" width="58" height="34" rx="4" />
+                <rect x="196" y="148" width="64" height="30" rx="4" />
+                <rect x="272" y="146" width="54" height="40" rx="4" />
+                <rect x="212" y="190" width="70" height="30" rx="4" />
+            </g>
+
+            <!-- Río -->
+            <path class="mapa-rio" d="M -10 92 C 60 80, 120 104, 180 96 S 290 84, 350 98 L 350 128 C 290 114, 230 128, 180 126 S 60 112, -10 122 Z" />
+            <text class="mapa-rio-texto" x="62" y="111">${t(mapa.rio)}</text>
+
+            <!-- Puente -->
+            <g class="mapa-puente">
+                <rect x="160" y="86" width="26" height="46" rx="3" />
+                <path d="M163 102 h20 M163 110 h20 M163 118 h20" />
+            </g>
+            <text class="mapa-etiqueta" x="196" y="82">${t(mapa.puente)}</text>
+
+            <!-- Calle del hotel hacia el sur -->
+            <path class="mapa-calle" d="M 173 132 L 150 168 L 128 196" />
+
+            <!-- Paseo a pie del hotel al puente -->
+            <path class="mapa-paseo" d="M 152 165 L 173 133" />
+
+            <!-- Lo que queda al norte y al sur -->
+            <g class="mapa-zona">
+                <circle cx="170" cy="40" r="3.5" />
+                <text x="170" y="30" text-anchor="middle">${t(mapa.norte)}</text>
+            </g>
+
+            <g class="mapa-zona mapa-zona-sur">
+                <rect x="78" y="196" width="72" height="22" rx="4" />
+                <text x="114" y="211" text-anchor="middle">${t(mapa.sur)}</text>
+            </g>
+
+            <!-- Pin del hotel -->
+            <g class="mapa-pin" transform="translate(150 166)">
+                <circle class="mapa-pin-pulso" r="9" />
+                <path class="mapa-pin-cuerpo" d="M0 0 C -9 -10, -9 -24, 0 -24 C 9 -24, 9 -10, 0 0 Z" />
+                <circle class="mapa-pin-punto" cy="-16" r="3.4" />
+            </g>
+
+            <g class="mapa-bocadillo" transform="translate(48 140)">
+                <rect width="88" height="22" rx="11" />
+                <text x="44" y="15" text-anchor="middle">${t(mapa.hotel)}</text>
+            </g>
+
+            <!-- Brújula -->
+            <g class="mapa-norte" transform="translate(316 210)">
+                <path d="M0 -12 L 5 4 L 0 1 L -5 4 Z" />
+                <text y="-15" text-anchor="middle">N</text>
+            </g>
+
+        </svg>
+        <p class="hotel-mapa-nota">${t(mapa.nota)}</p>
+    `;
+}
+
+
+function renderizarHotel() {
+
+    const contenedor =
+        document.getElementById("hotel-info");
+
+    const hotel =
+        datosViaje?.hotel_detalle;
+
+    if (!contenedor || !hotel) {
+        return;
+    }
+
+    const textos =
+        hotel.textos || {};
+
+    const enlaces =
+        hotel.enlaces || {};
+
+    const fotos =
+        (hotel.fotos || []).filter(foto => foto?.src);
+
+    const galeria =
+        fotos.length
+            ? `
+                <div class="hotel-galeria" tabindex="0" aria-label="Fotos">
+                    ${fotos.map(foto => `
+                        <figure class="hotel-foto">
+                            <img src="${escaparAtributo(foto.src)}" alt="${escaparAtributo(foto.alt || "")}" loading="lazy">
+                            ${foto.credito ? `<figcaption>${escaparHTML(foto.credito)}</figcaption>` : ""}
+                        </figure>
+                    `).join("")}
+                </div>
+                ${fotos.length > 1 ? `<div class="hotel-puntos" aria-hidden="true">${fotos.map((_, i) => `<span${i === 0 ? ' class="activo"' : ""}></span>`).join("")}</div>` : ""}
+            `
+            : "";
+
+    const boton = (url, texto, clase) =>
+        url
+            ? `<a class="${clase}" href="${escaparAtributo(url)}" target="_blank" rel="noopener noreferrer">${escaparHTML(texto || "")}</a>`
+            : "";
+
+    contenedor.innerHTML = `
+
+        <div class="section-header hotel-header">
+            <span class="section-eyebrow">${escaparHTML(hotel.eyebrow || "")}</span>
+            <h2>${escaparHTML(hotel.nombre || "")}</h2>
+            <p>${escaparHTML(hotel.descripcion || "")}</p>
+        </div>
+
+        ${galeria}
+
+        <div class="hotel-tarjeta">
+
+            <div class="hotel-mapa">
+                ${crearMapaHotelSVG(hotel.mapa || {})}
+            </div>
+
+            <div class="hotel-datos">
+
+                <p class="hotel-direccion">📍 ${escaparHTML(hotel.direccion || "")}</p>
+
+                <h3 class="hotel-subtitulo">${escaparHTML(textos.a_pie || "")}</h3>
+
+                <ul class="hotel-a-pie">
+                    ${(hotel.a_pie || []).map(lugar => `
+                        <li>
+                            <span aria-hidden="true">${escaparHTML(lugar.icono || "")}</span>
+                            <strong>${escaparHTML(lugar.lugar || "")}</strong>
+                            <em>${escaparHTML(String(lugar.minutos ?? ""))} min</em>
+                        </li>
+                    `).join("")}
+                </ul>
+
+                <div class="hotel-horarios">
+                    ${(hotel.horarios || []).map(h => `
+                        <div>
+                            <span aria-hidden="true">${escaparHTML(h.icono || "")}</span>
+                            <small>${escaparHTML(h.etiqueta || "")}</small>
+                            <strong>${escaparHTML(h.valor || "")}</strong>
+                        </div>
+                    `).join("")}
+                </div>
+
+                <div class="hotel-botones">
+                    ${boton(enlaces.como_llegar, textos.como_llegar, "hotel-boton principal")}
+                    ${boton(enlaces.maps, textos.maps, "hotel-boton")}
+                    ${boton(enlaces.web, textos.web, "hotel-boton")}
+                </div>
+
+                ${
+                    enlaces.mapa_embed
+                        ? `<button type="button" class="hotel-ver-mapa" data-ver-mapa>🗺️ ${escaparHTML(textos.ver_mapa || "")}</button>
+                           <div class="hotel-mapa-real" hidden></div>`
+                        : ""
+                }
+
+            </div>
+
+        </div>
+    `;
+
+    contenedor.hidden = false;
+
+
+    /*
+     * El mapa real (Google) solo se carga si lo pide:
+     * así no gasta datos ni tarda en abrir.
+     */
+    const botonMapa =
+        contenedor.querySelector("[data-ver-mapa]");
+
+    botonMapa?.addEventListener("click", () => {
+
+        const caja =
+            contenedor.querySelector(".hotel-mapa-real");
+
+        if (!caja.firstChild) {
+            caja.innerHTML = `
+                <iframe
+                    src="${escaparAtributo(enlaces.mapa_embed)}"
+                    title="${escaparAtributo(hotel.nombre || "")}"
+                    loading="lazy"
+                    referrerpolicy="no-referrer-when-downgrade"
+                    allowfullscreen
+                ></iframe>
+            `;
+        }
+
+        caja.hidden = !caja.hidden;
+        botonMapa.setAttribute("aria-expanded", String(!caja.hidden));
+    });
+
+
+    /*
+     * Puntitos de la galería al deslizar
+     */
+    const galeriaEl =
+        contenedor.querySelector(".hotel-galeria");
+
+    const puntos =
+        contenedor.querySelectorAll(".hotel-puntos span");
+
+    if (galeriaEl && puntos.length) {
+
+        galeriaEl.addEventListener("scroll", () => {
+
+            const indice =
+                Math.round(galeriaEl.scrollLeft / galeriaEl.clientWidth);
+
+            puntos.forEach((punto, i) => punto.classList.toggle("activo", i === indice));
+
+        }, { passive: true });
+    }
+
+
+    /*
+     * La tarjeta del hotel de arriba lleva hasta aquí
+     */
+    const tarjeta =
+        document.querySelector("[data-viaje-hotel]")?.closest(".trip-card");
+
+    if (tarjeta && !tarjeta.dataset.enlazada) {
+
+        tarjeta.dataset.enlazada = "true";
+        tarjeta.classList.add("trip-card-enlace");
+        tarjeta.setAttribute("role", "button");
+        tarjeta.setAttribute("tabindex", "0");
+
+        const irAlHotel = () =>
+            contenedor.scrollIntoView({ behavior: "smooth", block: "start" });
+
+        tarjeta.addEventListener("click", irAlHotel);
+        tarjeta.addEventListener("keydown", event => {
+            if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                irAlHotel();
+            }
+        });
+    }
+}
+
+
 function renderizarAplicacion() {
 
     if (!datosViaje) {
@@ -2357,6 +2625,8 @@ function renderizarAplicacion() {
     }
 
     renderizarDatosGenerales();
+
+    renderizarHotel();
 
     renderizarRestaurantes();
 
