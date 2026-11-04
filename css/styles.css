@@ -8811,3 +8811,84 @@ body {
 
 
 
+
+
+
+/* =========================================================
+   APP EN LA PANTALLA DE INICIO (iPhone sin barra de Safari)
+   La web ocupa también la zona de la hora y la batería:
+   el cielo y la ilustración llegan hasta arriba del todo y
+   el contenido se aparta lo justo para no quedar debajo.
+   ========================================================= */
+
+:root {
+    --zona-segura-arriba: env(safe-area-inset-top, 0px);
+    --zona-segura-abajo: env(safe-area-inset-bottom, 0px);
+}
+
+/* Antes de abrir el regalo */
+body:not(.viaje-desbloqueado) .hero {
+    padding-top: calc(60px + var(--zona-segura-arriba));
+}
+
+/* Con el plan abierto */
+.hero.hero-trip-revealed {
+    padding-top: calc(38px + var(--zona-segura-arriba));
+}
+
+@media (max-width: 700px) {
+    .hero.hero-trip-revealed {
+        padding-top: calc(28px + var(--zona-segura-arriba));
+    }
+}
+
+/* El menú, al quedarse pegado arriba, se coloca bajo la hora… */
+.main-nav {
+    top: var(--zona-segura-arriba);
+}
+
+/* …y una franja de su mismo tono tapa lo que pasa por detrás
+   de la hora (solo cuando se ha bajado por la página) */
+body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    right: 0;
+    left: 0;
+    z-index: 150;
+    height: var(--zona-segura-arriba);
+    background: linear-gradient(180deg, #5c2f22, var(--primary-dark));
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+}
+
+body.viaje-desbloqueado.bajado::before {
+    opacity: 1;
+}
+
+/* Durante la espera, la franja es noche (por si se desplaza) */
+body:not(.viaje-desbloqueado).bajado::before {
+    opacity: 1;
+    background: #15122a;
+}
+
+/* Regalo: ni la hora ni la barra de abajo tapan el cuadro */
+.gift-modal {
+    padding-top: calc(20px + var(--zona-segura-arriba));
+    padding-bottom: calc(20px + var(--zona-segura-abajo));
+}
+
+.gift-modal-content,
+#gift-modal .gift-modal-content {
+    max-height: calc(100svh - 32px - var(--zona-segura-arriba) - var(--zona-segura-abajo));
+}
+
+#gift-modal .gift-modal-content {
+    min-height: min(600px, calc(100svh - 32px - var(--zona-segura-arriba) - var(--zona-segura-abajo)));
+}
+
+/* Pie de página por encima de la barra de inicio */
+footer {
+    padding-bottom: calc(24px + var(--zona-segura-abajo));
+}

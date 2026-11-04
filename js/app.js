@@ -103,6 +103,18 @@ let intervaloCuentaAtras = null;
 
 document.addEventListener("DOMContentLoaded", iniciarApp);
 
+
+/*
+ * En la app de la pantalla de inicio, la zona de la hora es
+ * transparente: cuando se baja por la página, le ponemos fondo
+ * para que el contenido no pase por debajo de la hora.
+ */
+function marcarBajado() {
+    document.body?.classList.toggle("bajado", window.scrollY > 40);
+}
+
+window.addEventListener("scroll", marcarBajado, { passive: true });
+
 async function iniciarApp() {
 
     configurarEventosGlobales();
