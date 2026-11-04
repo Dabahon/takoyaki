@@ -966,11 +966,103 @@ main {
 
 .trip-card-icon {
 
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    height:
+        52px;
+
     margin-bottom:
         15px;
 
     font-size:
         2rem;
+}
+
+
+/*
+ * Mini calendario propio (sustituye al emoji 📅,
+ * que en iOS siempre muestra "July 17").
+ */
+.mini-calendar {
+
+    display:
+        inline-flex;
+
+    flex-direction:
+        column;
+
+    width:
+        44px;
+
+    overflow:
+        hidden;
+
+    border:
+        1px solid var(--border);
+
+    border-radius:
+        10px;
+
+    background:
+        var(--surface);
+
+    box-shadow:
+        0 2px 6px rgba(50, 40, 30, 0.10);
+
+    text-align:
+        center;
+
+    line-height:
+        1;
+}
+
+
+.mini-calendar-month {
+
+    padding:
+        4px 0 3px;
+
+    background:
+        var(--primary);
+
+    color:
+        white;
+
+    font-size:
+        0.58rem;
+
+    font-weight:
+        700;
+
+    letter-spacing:
+        0.12em;
+
+    text-transform:
+        uppercase;
+}
+
+
+.mini-calendar-day {
+
+    padding:
+        5px 0 6px;
+
+    color:
+        var(--text);
+
+    font-family:
+        "Cormorant Garamond",
+        serif;
+
+    font-size:
+        1.35rem;
+
+    font-weight:
+        700;
 }
 
 

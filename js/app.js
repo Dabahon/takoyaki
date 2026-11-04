@@ -1468,28 +1468,75 @@ function renderizarDatosGenerales() {
             "[data-viaje-fechas]"
         );
 
-    if (fechasElemento) {
+    const inicioObj =
+        crearFechaLocal(fechas.inicio);
 
-        const inicio =
-            formatearFecha(
-                fechas.inicio
+    const finObj =
+        crearFechaLocal(fechas.fin);
+
+    if (fechasElemento && inicioObj && finObj) {
+
+        fechasElemento.textContent =
+            formatearRangoFechas(
+                inicioObj,
+                finObj
+            );
+    }
+
+
+    /*
+     * Detalle: "3 noches · de viernes a lunes"
+     */
+    const detalleFechas =
+        document.querySelector(
+            "[data-viaje-fechas-detalle]"
+        );
+
+    if (detalleFechas && inicioObj && finObj) {
+
+        const noches =
+            fechas.noches ||
+            Math.round(
+                (finObj - inicioObj) / 86400000
             );
 
-        const fin =
-            formatearFecha(
-                fechas.fin
+        const diaSemana = fecha =>
+            fecha.toLocaleDateString(
+                "es-ES",
+                { weekday: "long" }
             );
 
-        if (inicio && fin) {
+        detalleFechas.textContent =
+            `${noches} ${noches === 1 ? "noche" : "noches"} · ` +
+            `de ${diaSemana(inicioObj)} a ${diaSemana(finObj)}`;
+    }
 
-            fechasElemento.textContent =
-                `${inicio} — ${fin}`;
 
-        } else {
+    /*
+     * Mini calendario del icono
+     */
+    const mesElemento =
+        document.querySelector(
+            "[data-viaje-mes]"
+        );
 
-            fechasElemento.textContent =
-                "18 — 21 diciembre 2026";
-        }
+    const diaElemento =
+        document.querySelector(
+            "[data-viaje-dia]"
+        );
+
+    if (inicioObj && mesElemento && diaElemento) {
+
+        mesElemento.textContent =
+            inicioObj
+                .toLocaleDateString(
+                    "es-ES",
+                    { month: "short" }
+                )
+                .replace(".", "");
+
+        diaElemento.textContent =
+            inicioObj.getDate();
     }
 
 
@@ -1512,6 +1559,49 @@ function renderizarDatosGenerales() {
             hotelNombre ||
             "La Scaletta al Ponte Vecchio";
     }
+}
+
+
+/*
+ * "2026-12-18" -> Date a mediodía local
+ * (evita saltos de día por la zona horaria).
+ */
+function crearFechaLocal(fecha) {
+
+    if (!fecha) {
+        return null;
+    }
+
+    const fechaObj =
+        new Date(`${fecha}T12:00:00`);
+
+    return Number.isNaN(fechaObj.getTime())
+        ? null
+        : fechaObj;
+}
+
+
+/*
+ * Mismo mes:      "18 – 21 de diciembre"
+ * Distinto mes:   "30 de diciembre – 2 de enero"
+ */
+function formatearRangoFechas(inicio, fin) {
+
+    const mes = fecha =>
+        fecha.toLocaleDateString(
+            "es-ES",
+            { month: "long" }
+        );
+
+    if (
+        inicio.getMonth() === fin.getMonth() &&
+        inicio.getFullYear() === fin.getFullYear()
+    ) {
+        return `${inicio.getDate()} – ${fin.getDate()} de ${mes(fin)}`;
+    }
+
+    return `${inicio.getDate()} de ${mes(inicio)} – ` +
+        `${fin.getDate()} de ${mes(fin)}`;
 }
 
 
