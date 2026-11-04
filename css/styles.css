@@ -4165,3 +4165,451 @@ body.viaje-desbloqueado .hero.hero-trip-revealed {
             18px;
     }
 }
+
+
+/* =========================================================
+   RESTAURANTES · TARJETA COMPACTA
+   Lo esencial siempre visible; "qué pedir" y la dirección
+   quedan plegados para que la lista no sea interminable.
+   ========================================================= */
+
+#restaurant-list {
+
+    align-items:
+        start;
+
+    gap:
+        14px;
+}
+
+
+.restaurant-card-content {
+
+    padding:
+        18px 20px 16px;
+}
+
+
+.restaurant-header {
+
+    align-items:
+        baseline;
+
+    gap:
+        12px;
+
+    margin-bottom:
+        4px;
+}
+
+
+.restaurant-header h3 {
+
+    margin:
+        0;
+
+    font-size:
+        1.45rem;
+
+    line-height:
+        1.1;
+}
+
+
+.restaurant-price {
+
+    padding:
+        3px 8px;
+
+    font-size:
+        0.72rem;
+}
+
+
+/* Zona · tipo, en una sola línea */
+.restaurant-subtitle {
+
+    display:
+        flex;
+
+    flex-wrap:
+        wrap;
+
+    align-items:
+        center;
+
+    gap:
+        4px 8px;
+
+    margin-bottom:
+        10px;
+
+    color:
+        var(--text-light);
+
+    font-size:
+        0.78rem;
+}
+
+
+.restaurant-subtitle .restaurant-zone {
+
+    padding:
+        0;
+
+    border:
+        0;
+
+    background:
+        none;
+
+    color:
+        var(--primary);
+
+    font-size:
+        inherit;
+
+    font-weight:
+        600;
+}
+
+
+.restaurant-subtitle .restaurant-zone + .restaurant-description::before {
+
+    content:
+        "·";
+
+    margin-right:
+        8px;
+
+    color:
+        var(--border);
+}
+
+
+.restaurant-subtitle .restaurant-description {
+
+    font-size:
+        inherit;
+}
+
+
+.restaurant-meta {
+
+    gap:
+        6px;
+
+    margin-bottom:
+        12px;
+}
+
+
+.restaurant-score {
+
+    display:
+        inline-flex;
+
+    align-items:
+        center;
+
+    gap:
+        4px;
+
+    padding:
+        3px 9px;
+}
+
+
+.restaurant-score-label {
+
+    color:
+        var(--text-light);
+
+    font-weight:
+        500;
+}
+
+
+/* Fila inferior: "Qué pedir" plegable + botón Maps */
+.restaurant-footer {
+
+    position:
+        relative;
+
+    padding-top:
+        10px;
+
+    border-top:
+        1px solid var(--border);
+}
+
+
+.restaurant-details {
+
+    min-width:
+        0;
+}
+
+
+.restaurant-details summary {
+
+    display:
+        inline-flex;
+
+    align-items:
+        center;
+
+    gap:
+        6px;
+
+    min-height:
+        34px;
+
+    color:
+        var(--primary);
+
+    font-size:
+        0.72rem;
+
+    font-weight:
+        700;
+
+    letter-spacing:
+        0.08em;
+
+    text-transform:
+        uppercase;
+
+    cursor:
+        pointer;
+
+    list-style:
+        none;
+
+    user-select:
+        none;
+}
+
+
+.restaurant-details summary::-webkit-details-marker {
+
+    display:
+        none;
+}
+
+
+/* Flecha que gira al abrir */
+.restaurant-details summary::after {
+
+    content:
+        "";
+
+    width:
+        6px;
+
+    height:
+        6px;
+
+    margin-left:
+        2px;
+
+    border-right:
+        1.5px solid currentColor;
+
+    border-bottom:
+        1.5px solid currentColor;
+
+    transform:
+        rotate(45deg) translateY(-2px);
+
+    transition:
+        transform 0.2s ease;
+}
+
+
+.restaurant-details[open] summary::after {
+
+    transform:
+        rotate(-135deg) translateY(-1px);
+}
+
+
+.restaurant-details-count {
+
+    min-width:
+        18px;
+
+    padding:
+        1px 6px;
+
+    border-radius:
+        999px;
+
+    background:
+        rgba(143, 79, 58, 0.10);
+
+    font-size:
+        0.64rem;
+
+    letter-spacing:
+        0;
+
+    text-align:
+        center;
+}
+
+
+.restaurant-details-body {
+
+    padding:
+        6px 0 4px;
+
+    animation:
+        detallesAparecen 0.25s ease;
+}
+
+
+@keyframes detallesAparecen {
+
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+
+/* Platos como chips en lugar de lista con viñetas */
+.restaurant-details .restaurant-dishes {
+
+    display:
+        flex;
+
+    flex-wrap:
+        wrap;
+
+    gap:
+        6px;
+
+    margin:
+        0 0 10px;
+
+    padding:
+        0;
+
+    border:
+        0;
+
+    list-style:
+        none;
+}
+
+
+.restaurant-details .restaurant-dishes li {
+
+    padding:
+        4px 10px;
+
+    border:
+        1px solid var(--border);
+
+    border-radius:
+        999px;
+
+    background:
+        var(--surface-soft);
+
+    color:
+        var(--text);
+
+    font-size:
+        0.76rem;
+}
+
+
+.restaurant-details .restaurant-address {
+
+    margin:
+        0;
+
+    font-size:
+        0.76rem;
+}
+
+
+/*
+ * El botón de Maps flota a la derecha de la fila, así
+ * "Qué pedir" usa todo el ancho de la tarjeta al abrirse.
+ */
+.restaurant-maps {
+
+    position:
+        absolute;
+
+    top:
+        10px;
+
+    right:
+        0;
+
+    display:
+        inline-flex;
+
+    align-items:
+        center;
+
+    gap:
+        4px;
+
+    min-height:
+        34px;
+
+    padding:
+        0 12px;
+
+    border:
+        1px solid var(--border);
+
+    border-radius:
+        999px;
+
+    color:
+        var(--primary);
+
+    font-size:
+        0.74rem;
+
+    font-weight:
+        600;
+
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease;
+}
+
+
+.restaurant-maps:hover,
+.restaurant-maps:focus-visible {
+
+    border-color:
+        var(--primary-light);
+
+    background:
+        rgba(143, 79, 58, 0.06);
+}
+
+
+@media (prefers-reduced-motion: reduce) {
+
+    .restaurant-details-body {
+        animation: none;
+    }
+
+    .restaurant-details summary::after {
+        transition: none;
+    }
+}

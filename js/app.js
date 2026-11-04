@@ -2129,57 +2129,15 @@ function crearTarjetaRestaurante(
         [];
 
 
-    let platosHTML = "";
-
-
-    if (
-        Array.isArray(platos) &&
-        platos.length
-    ) {
-
-        platosHTML = `
-
-            <div class="restaurant-dishes">
-
-                <h4>
-                    Qué pedir
-                </h4>
-
-                <ul>
-
-                    ${platos
-                        .slice(0, 5)
-                        .map(
-                            plato =>
-                                `<li>${escaparHTML(plato)}</li>`
-                        )
-                        .join("")}
-
-                </ul>
-
-            </div>
-        `;
-
-    } else if (
-        typeof platos === "string" &&
-        platos.trim()
-    ) {
-
-        platosHTML = `
-
-            <div class="restaurant-dishes">
-
-                <h4>
-                    Qué pedir
-                </h4>
-
-                <p>
-                    ${escaparHTML(platos)}
-                </p>
-
-            </div>
-        `;
-    }
+    const listaPlatos =
+        Array.isArray(platos)
+            ? platos.filter(Boolean)
+            : (
+                typeof platos === "string" &&
+                platos.trim()
+                    ? [platos.trim()]
+                    : []
+            );
 
 
     const mapsUrl =
@@ -2188,32 +2146,91 @@ function crearTarjetaRestaurante(
         );
 
 
+    /*
+     * Diseño compacto:
+     * - Siempre visible: nombre, precio, zona, tipo y notas.
+     * - Plegado: qué pedir + dirección (con <details>,
+     *   accesible y sin JavaScript extra).
+     * - Botón pequeño de Maps en la misma fila.
+     */
+    const notasHTML = [
+        calidad
+            ? `<span class="restaurant-score" title="Calidad de la comida (sobre 10)">
+                   <span aria-hidden="true">⭐</span>
+                   ${escaparHTML(String(calidad))}
+                   <span class="restaurant-score-label">calidad</span>
+               </span>`
+            : "",
+        romanticismo
+            ? `<span class="restaurant-score" title="Lo romántico que es el sitio (sobre 10)">
+                   <span aria-hidden="true">❤️</span>
+                   ${escaparHTML(String(romanticismo))}
+                   <span class="restaurant-score-label">romántico</span>
+               </span>`
+            : ""
+    ].join("");
+
+
+    const detallesHTML =
+        listaPlatos.length || direccion
+            ? `
+                <details class="restaurant-details">
+
+                    <summary>
+                        Qué pedir
+                        ${
+                            listaPlatos.length
+                                ? `<span class="restaurant-details-count">${listaPlatos.length}</span>`
+                                : ""
+                        }
+                    </summary>
+
+                    <div class="restaurant-details-body">
+
+                        ${
+                            listaPlatos.length
+                                ? `
+                                    <ul class="restaurant-dishes">
+                                        ${listaPlatos
+                                            .map(
+                                                plato =>
+                                                    `<li>${escaparHTML(plato)}</li>`
+                                            )
+                                            .join("")}
+                                    </ul>
+                                `
+                                : ""
+                        }
+
+                        ${
+                            direccion
+                                ? `
+                                    <p class="restaurant-address">
+                                        📍 ${escaparHTML(direccion)}
+                                    </p>
+                                `
+                                : ""
+                        }
+
+                    </div>
+
+                </details>
+            `
+            : "";
+
+
     contenido.innerHTML = `
 
         <div class="restaurant-header">
 
-            <div>
-
-                <h3>
-                    ${escaparHTML(nombre)}
-                </h3>
-
-                ${
-                    zona
-                        ? `
-                            <span class="restaurant-zone">
-                                ${escaparHTML(zona)}
-                            </span>
-                        `
-                        : ""
-                }
-
-            </div>
+            <h3>
+                ${escaparHTML(nombre)}
+            </h3>
 
             ${
                 precio
                     ? `
-                        <span class="restaurant-price">
+                        <span class="restaurant-price" title="Precio orientativo">
                             ${escaparHTML(precio)}
                         </span>
                     `
@@ -2223,95 +2240,51 @@ function crearTarjetaRestaurante(
         </div>
 
 
+        <p class="restaurant-subtitle">
+            ${
+                zona
+                    ? `<span class="restaurant-zone">${escaparHTML(zona)}</span>`
+                    : ""
+            }
+            ${
+                descripcion
+                    ? `<span class="restaurant-description">${escaparHTML(descripcion)}</span>`
+                    : ""
+            }
+        </p>
+
+
         ${
-            descripcion
-                ? `
-                    <p class="restaurant-description">
-                        ${escaparHTML(
-                            descripcion
-                        )}
-                    </p>
-                `
+            notasHTML
+                ? `<div class="restaurant-meta">${notasHTML}</div>`
                 : ""
         }
 
 
         ${
-            calidad || romanticismo
+            detallesHTML || mapsUrl
                 ? `
+                    <div class="restaurant-footer">
 
-                    <div class="restaurant-meta">
-
-                        ${
-                            calidad
-                                ? `
-                                    <span class="restaurant-score">
-                                        ⭐ ${escaparHTML(
-                                            String(
-                                                calidad
-                                            )
-                                        )}
-                                    </span>
-                                `
-                                : ""
-                        }
+                        ${detallesHTML}
 
                         ${
-                            romanticismo
+                            mapsUrl
                                 ? `
-                                    <span class="restaurant-score">
-                                        ❤️ ${escaparHTML(
-                                            String(
-                                                romanticismo
-                                            )
-                                        )}
-                                    </span>
+                                    <a
+                                        class="restaurant-maps"
+                                        href="${escaparAtributo(mapsUrl)}"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        aria-label="Abrir ${escaparAtributo(nombre)} en Google Maps"
+                                    >
+                                        📍 Maps
+                                    </a>
                                 `
                                 : ""
                         }
 
                     </div>
-
-                `
-                : ""
-        }
-
-
-        ${
-            direccion
-                ? `
-                    <p class="restaurant-address">
-                        📍 ${escaparHTML(
-                            direccion
-                        )}
-                    </p>
-                `
-                : ""
-        }
-
-
-        ${platosHTML}
-
-
-        ${
-            mapsUrl
-                ? `
-
-                    <div class="restaurant-actions">
-
-                        <a
-                            class="maps-button"
-                            href="${escaparAtributo(
-                                mapsUrl
-                            )}"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                        >
-                            Ver en Google Maps →
-                        </a>
-
-                    </div>
-
                 `
                 : ""
         }
