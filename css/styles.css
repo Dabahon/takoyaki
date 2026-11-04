@@ -8934,3 +8934,64 @@ footer {
         font-size: 0.56rem;
     }
 }
+
+
+/* =========================================================
+   SOBRES: PUNTA DE LA SOLAPA ALINEADA CON EL SELLO
+   --pico es la altura de la punta (en % del sobre). Solapa,
+   sombra, bolsillo y sello se colocan a partir de él.
+   ========================================================= */
+
+.sobre {
+    --pico: 54;
+    --lados: calc(var(--pico) * 0.58);
+}
+
+.sobre.bloqueado {
+    --pico: 48;
+}
+
+.sobre .sobre-solapa,
+.sobre .sobre-sombra {
+    height: calc(var(--pico) * 1%);
+    clip-path: polygon(
+        0 0,
+        100% 0,
+        100% calc(var(--lados) / var(--pico) * 100%),
+        50% 100%,
+        0 calc(var(--lados) / var(--pico) * 100%)
+    );
+}
+
+/* La "V" del bolsillo, justo por debajo de la punta */
+.sobre .sobre-bolsillo {
+    clip-path: polygon(
+        0 calc(var(--lados) * 1%),
+        50% calc((var(--pico) - 3) * 1%),
+        100% calc(var(--lados) * 1%),
+        100% 100%,
+        0 100%
+    );
+}
+
+/* El sello, centrado sobre la punta */
+.sobre .sobre-sello,
+.sobre.bloqueado .sobre-sello {
+    top: calc(var(--pico) * 1% - 30px);
+}
+
+@container (max-width: 150px) {
+
+    .sobre {
+        --pico: 50;
+    }
+
+    .sobre.bloqueado {
+        --pico: 42;
+    }
+
+    .sobre .sobre-sello,
+    .sobre.bloqueado .sobre-sello {
+        top: calc(var(--pico) * 1% - 24px);
+    }
+}
