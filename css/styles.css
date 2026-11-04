@@ -7678,11 +7678,11 @@ button.sobre:focus-visible {
 }
 
 /* Puntos de progreso claros sobre la cabecera oscura */
-.gift-modal-content:not([data-paso="5"]) .gift-progress span {
+.gift-modal-content:not([data-paso="5"]):not([data-paso="2"]) .gift-progress span {
     background: rgba(255, 246, 232, 0.28);
 }
 
-.gift-modal-content:not([data-paso="5"]) .gift-progress span.activo {
+.gift-modal-content:not([data-paso="5"]):not([data-paso="2"]) .gift-progress span.activo {
     background: #ffe9c7;
 }
 
@@ -7999,5 +7999,305 @@ body {
     /* La fila recorta lo que sobresale: sin sombra que se corte */
     .restaurant-filter.active {
         box-shadow: none;
+    }
+}
+
+
+/* =========================================================
+   ÁLBUM DE RECUERDOS (POLAROIDS VINTAGE)
+   ========================================================= */
+
+.recuerdos {
+    --polaroid: clamp(150px, min(240px, 64vw, calc((100svh - 372px) * 0.8)), 240px);
+}
+
+.recuerdos-contador {
+    margin-left: 4px;
+    color: var(--text-light);
+    letter-spacing: 0.08em;
+}
+
+/* La mesa donde caen las fotos */
+.album {
+    position: relative;
+    width: 100%;
+    height: calc(var(--polaroid) * 1.25 + var(--polaroid) * 0.042 + 72px);
+    margin: 10px 0 14px;
+    perspective: 900px;
+}
+
+.polaroid {
+    --giro: -3deg;
+    --fondo: 0;
+
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: var(--polaroid);
+    margin: 0;
+    padding: calc(var(--polaroid) * 0.042) calc(var(--polaroid) * 0.042) 0;
+    background:
+        radial-gradient(circle at 20% 10%, rgba(255, 255, 255, 0.6), transparent 60%),
+        #f8f2e6;
+    box-shadow:
+        0 1px 1px rgba(0, 0, 0, 0.08),
+        0 14px 28px rgba(40, 25, 15, 0.28);
+    transform: translateX(-50%) rotate(var(--giro));
+    transform-origin: 50% 60%;
+    transition:
+        transform 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+        filter 0.55s ease,
+        opacity 0.4s ease;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+}
+
+/* Foto con aire de carrete: tonos cálidos, grano y viñeteado */
+.polaroid-foto {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 4 / 5;
+    background: #2a2018;
+}
+
+.polaroid-foto img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: sepia(0.28) saturate(0.88) contrast(1.06) brightness(1.03) hue-rotate(-6deg);
+}
+
+.polaroid-foto::before,
+.polaroid-foto::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
+/* Luz cálida y viñeteado */
+.polaroid-foto::before {
+    background:
+        radial-gradient(ellipse at 50% 45%, transparent 55%, rgba(40, 20, 5, 0.42) 100%),
+        linear-gradient(160deg, rgba(255, 190, 110, 0.18), transparent 45%, rgba(120, 60, 30, 0.12));
+    mix-blend-mode: multiply;
+}
+
+/* Grano de película */
+.polaroid-foto::after {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .4 0 0 0 0 .3 0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23g)'/%3E%3C/svg%3E");
+    opacity: 0.38;
+    mix-blend-mode: overlay;
+}
+
+.polaroid figcaption {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 66px;
+    padding: 0 6px;
+    line-height: 1;
+}
+
+.polaroid-lugar {
+    color: #2f2622;
+    font-family: "Caveat", "Segoe Print", "Bradley Hand", cursive;
+    font-size: calc(var(--polaroid) * 0.125);   /* app.js lo reduce si no cabe */
+    font-weight: 700;
+    white-space: nowrap;
+    transform: rotate(-1.5deg);
+}
+
+.polaroid-zona,
+.polaroid-nota {
+    margin-top: 5px;
+    color: #8a7f74;
+    font-size: 0.58rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+}
+
+.polaroid-nota {
+    font-family: "Caveat", cursive;
+    font-size: 1rem;
+    letter-spacing: 0;
+    text-transform: none;
+}
+
+/* Cinta adhesiva */
+.cinta {
+    position: absolute;
+    top: -11px;
+    left: 50%;
+    z-index: 2;
+    width: 34%;
+    height: 22px;
+    background: rgba(236, 222, 190, 0.78);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+    transform: translateX(-50%) rotate(-4deg);
+    clip-path: polygon(3% 0, 97% 4%, 100% 50%, 97% 100%, 2% 96%, 0 50%);
+}
+
+/* Matasellos */
+.matasellos {
+    position: absolute;
+    right: calc(var(--polaroid) * -0.12);
+    bottom: 40px;
+    z-index: 3;
+    width: calc(var(--polaroid) * 0.4);
+    height: calc(var(--polaroid) * 0.4);
+    color: rgba(143, 79, 58, 0.9);
+    transform: rotate(-14deg);
+    pointer-events: none;
+}
+
+.matasellos svg {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+}
+
+.matasellos circle,
+.matasellos .matasellos-ondas {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.4;
+}
+
+.matasellos circle + circle {
+    stroke-width: 1.2;
+    stroke-dasharray: 3 2.5;
+}
+
+.matasellos text {
+    fill: currentColor;
+    font-family: Inter, sans-serif;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+}
+
+.matasellos .matasellos-anio {
+    font-family: "Cormorant Garamond", serif;
+    font-size: 17px;
+    letter-spacing: 0.06em;
+}
+
+.matasellos .matasellos-ondas {
+    stroke-width: 2;
+    opacity: 0.7;
+}
+
+/* ---------- Animaciones ---------- */
+
+.polaroid.entrando {
+    animation: caerFoto 0.75s cubic-bezier(0.22, 1.2, 0.36, 1) both;
+}
+
+@keyframes caerFoto {
+    0% {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-46px) rotate(calc(var(--giro) * -3)) scale(1.12);
+        box-shadow: 0 40px 60px rgba(40, 25, 15, 0.18);
+    }
+    60% { opacity: 1; }
+    100% {
+        opacity: 1;
+        transform: translateX(-50%) rotate(var(--giro));
+    }
+}
+
+.polaroid.entrando .matasellos {
+    animation: sellar 0.42s cubic-bezier(0.3, 1.6, 0.5, 1) 0.7s both;
+}
+
+@keyframes sellar {
+    from { opacity: 0; transform: rotate(-14deg) scale(1.9); }
+    to { opacity: 1; transform: rotate(-14deg) scale(1); }
+}
+
+/* Fotos anteriores: a la pila, cada una un poco más al fondo */
+.polaroid.en-pila {
+    cursor: default;
+    filter: brightness(calc(1 - var(--fondo) * 0.06)) saturate(0.9);
+    transform:
+        translateX(calc(-50% + var(--fondo) * 7px * (var(--fondo) - 2)))
+        translateY(calc(var(--fondo) * 5px))
+        rotate(calc(var(--giro) * -1.4))
+        scale(calc(1 - var(--fondo) * 0.035));
+}
+
+.polaroid.oculta {
+    opacity: 0;
+}
+
+/* Sellos de abajo: se van completando */
+.sellos {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.sello {
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border: 1.5px dashed rgba(143, 79, 58, 0.35);
+    border-radius: 50%;
+    color: rgba(143, 79, 58, 0.45);
+    font-family: "Cormorant Garamond", serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+.sello.puesto {
+    border-style: solid;
+    border-color: var(--primary);
+    background: var(--primary);
+    color: #ffe9c7;
+    animation: ponerSello 0.45s cubic-bezier(0.3, 1.6, 0.5, 1) 0.5s both;
+}
+
+@keyframes ponerSello {
+    from { transform: scale(1.7); opacity: 0.2; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+.sello-misterio.late {
+    border-color: #d9a441;
+    color: #b8862f;
+    animation: latido 1.4s ease-in-out infinite;
+}
+
+.sello-misterio.encendido {
+    border-style: solid;
+    background: linear-gradient(135deg, #f6dc8e, #e6b955);
+    color: #6f3828;
+}
+
+.recuerdos .gift-main-button {
+    margin-top: 0;
+}
+
+.recuerdos .gift-main-button:disabled {
+    opacity: 1;
+    cursor: default;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .polaroid,
+    .polaroid.entrando,
+    .polaroid.entrando .matasellos,
+    .sello.puesto,
+    .sello-misterio.late {
+        animation: none !important;
+        transition: none !important;
     }
 }

@@ -35,6 +35,20 @@ const CONFIG = {
 
 
 /*
+ * Nuestro año en viajes: se repasan en el regalo antes de la
+ * palabra secreta. "nota" es opcional (frase a mano debajo).
+ */
+const RECUERDOS = [
+    { foto: "assets/recuerdos/1-oropesa.jpg", lugar: "Oropesa del Mar", zona: "Castellón", sello: "OROPESA", nota: "" },
+    { foto: "assets/recuerdos/2-denia.jpg", lugar: "Dénia", zona: "Alicante", sello: "DÉNIA", nota: "" },
+    { foto: "assets/recuerdos/3-ourense.jpg", lugar: "Ourense", zona: "Galicia", sello: "OURENSE", nota: "" },
+    { foto: "assets/recuerdos/4-santander.jpg", lugar: "Santander", zona: "Cantabria", sello: "SANTANDER", nota: "" }
+];
+
+const ANIO_RECUERDOS = 2026;
+
+
+/*
  * Diferencia entre la hora del servidor y la del móvil.
  * Así adelantar el reloj del móvil no abre el regalo.
  */
@@ -999,6 +1013,183 @@ function crearEscena(nombre, extra = "") {
 }
 
 
+/* =========================================================
+   ÁLBUM DE RECUERDOS
+   Polaroids que caen una sobre otra, con su matasellos.
+   ========================================================= */
+
+let indiceRecuerdo = -1;
+
+
+function crearPolaroid(recuerdo, indice) {
+
+    const figura =
+        document.createElement("figure");
+
+    // Cada foto, un poco torcida a su manera
+    const giros = [-4, 3, -2, 4, -3];
+
+    figura.className = "polaroid";
+    figura.style.setProperty("--giro", `${giros[indice % giros.length]}deg`);
+
+    figura.innerHTML = `
+        <span class="cinta" aria-hidden="true"></span>
+
+        <div class="polaroid-foto">
+            <img src="${escaparAtributo(recuerdo.foto)}" alt="${escaparAtributo(recuerdo.lugar)}" draggable="false">
+        </div>
+
+        <figcaption>
+            <span class="polaroid-lugar">${escaparHTML(recuerdo.lugar)}</span>
+            ${
+                recuerdo.nota
+                    ? `<span class="polaroid-nota">${escaparHTML(recuerdo.nota)}</span>`
+                    : `<span class="polaroid-zona">${escaparHTML(recuerdo.zona || "")}</span>`
+            }
+        </figcaption>
+
+        <span class="matasellos" aria-hidden="true">
+            <svg viewBox="0 0 100 100">
+                <defs>
+                    <path id="arco-${indice}" d="M 18 50 A 32 32 0 0 1 82 50" />
+                </defs>
+                <circle cx="50" cy="50" r="44" />
+                <circle cx="50" cy="50" r="38" />
+                <text><textPath href="#arco-${indice}" startOffset="50%" text-anchor="middle">${escaparHTML(recuerdo.sello || recuerdo.lugar)}</textPath></text>
+                <text class="matasellos-anio" x="50" y="64" text-anchor="middle">${ANIO_RECUERDOS}</text>
+                <path class="matasellos-ondas" d="M 96 40 q 8 -4 16 0 t 16 0 t 16 0 M 96 52 q 8 -4 16 0 t 16 0 t 16 0 M 96 64 q 8 -4 16 0 t 16 0 t 16 0" />
+            </svg>
+        </span>
+    `;
+
+    // Tocar la foto también pasa a la siguiente
+    figura.addEventListener("click", () => {
+        if (figura.classList.contains("actual")) {
+            siguienteRecuerdo();
+        }
+    });
+
+    return figura;
+}
+
+
+function iniciarRecuerdos() {
+
+    const album =
+        document.querySelector("#gift-modal [data-album]");
+
+    if (!album || album.childElementCount) {
+        return;
+    }
+
+    indiceRecuerdo = -1;
+
+    // Esperamos a que el paso haya entrado
+    setTimeout(siguienteRecuerdo, 260);
+}
+
+
+function siguienteRecuerdo() {
+
+    const album =
+        document.querySelector("#gift-modal [data-album]");
+
+    const boton =
+        document.querySelector("#gift-modal [data-recuerdo-siguiente]");
+
+    if (!album || !boton || boton.disabled) {
+        return;
+    }
+
+    // Después de la última foto: a la palabra secreta
+    if (indiceRecuerdo >= RECUERDOS.length - 1) {
+
+        document
+            .querySelector("#gift-modal .sello-misterio")
+            ?.classList.add("encendido");
+
+        mostrarPasoRegalo(3).then(() =>
+            setTimeout(
+                () => document.getElementById("gift-password-input")?.focus(),
+                120
+            )
+        );
+
+        return;
+    }
+
+    indiceRecuerdo++;
+
+    const recuerdo =
+        RECUERDOS[indiceRecuerdo];
+
+    // Las anteriores pasan a la pila, cada vez un poco más al fondo
+    [...album.children].forEach((foto, i) => {
+        foto.classList.remove("actual", "entrando");
+        foto.classList.add("en-pila");
+        foto.style.setProperty("--fondo", String(indiceRecuerdo - i));
+    });
+
+    const polaroid =
+        crearPolaroid(recuerdo, indiceRecuerdo);
+
+    polaroid.classList.add("actual", "entrando");
+    album.appendChild(polaroid);
+
+    // El nombre del sitio, siempre en una línea
+    const nombre =
+        polaroid.querySelector(".polaroid-lugar");
+
+    const caption =
+        polaroid.querySelector("figcaption");
+
+    if (nombre && caption) {
+
+        let tamano =
+            parseFloat(getComputedStyle(nombre).fontSize);
+
+        while (nombre.scrollWidth > caption.clientWidth - 8 && tamano > 14) {
+            tamano -= 1;
+            nombre.style.fontSize = `${tamano}px`;
+        }
+    }
+
+    // Solo dejamos visibles las tres últimas de la pila
+    [...album.children]
+        .slice(0, -3)
+        .forEach(foto => foto.classList.add("oculta"));
+
+    // Sello de abajo
+    document
+        .querySelector(`#gift-modal [data-sello="${indiceRecuerdo}"]`)
+        ?.classList.add("puesto");
+
+    const contador =
+        document.querySelector("#gift-modal [data-recuerdo-contador]");
+
+    if (contador) {
+        contador.textContent = `· ${indiceRecuerdo + 1} de ${RECUERDOS.length}`;
+    }
+
+    const ultimo =
+        indiceRecuerdo === RECUERDOS.length - 1;
+
+    boton.innerHTML = ultimo
+        ? `¿Y el siguiente? <span aria-hidden="true">→</span>`
+        : `Siguiente <span aria-hidden="true">→</span>`;
+
+    if (ultimo) {
+        document
+            .querySelector("#gift-modal .sello-misterio")
+            ?.classList.add("late");
+    }
+
+    // Un respiro para que no se salten fotos con dobles toques
+    boton.disabled = true;
+    setTimeout(() => { boton.disabled = false; }, 650);
+}
+
+
 function abrirRegalo() {
 
     console.log(
@@ -1097,32 +1288,34 @@ function crearModalRegalo() {
                 <h2 id="gift-title">30 años, justiciera</h2>
 
                 <p>
-                    Y como no se cumplen todos los días,
-                    he preparado algo solo para nosotros.
+                    Antes de tu regalo, un pequeño viaje
+                    por nuestro año. Cuatro escapadas,
+                    cuatro recuerdos…
                 </p>
 
                 <button type="button" class="gift-main-button" data-gift-next="2">
-                    Sigue <span aria-hidden="true">→</span>
+                    Empezar <span aria-hidden="true">→</span>
                 </button>
 
             </div>
 
 
-            <div class="gift-step con-escena" data-step="2" hidden>
+            <div class="gift-step recuerdos" data-step="2" hidden>
 
-                ${crearEscena("maleta")}
-
-                <p class="gift-small">Una pista más</p>
-
-                <h2>Nos vamos unos días</h2>
-
-                <p>
-                    Del 18 al 21 de diciembre, tú y yo.
-                    Solo falta saber adónde…
+                <p class="gift-small">
+                    Nuestro ${ANIO_RECUERDOS}
+                    <span class="recuerdos-contador" data-recuerdo-contador></span>
                 </p>
 
-                <button type="button" class="gift-main-button" data-gift-next="3">
-                    ¿Adónde? <span aria-hidden="true">→</span>
+                <div class="album" data-album aria-live="polite"></div>
+
+                <div class="sellos" aria-hidden="true">
+                    ${RECUERDOS.map((_, i) => `<span class="sello" data-sello="${i}">${i + 1}</span>`).join("")}
+                    <span class="sello sello-misterio">?</span>
+                </div>
+
+                <button type="button" class="gift-main-button" data-recuerdo-siguiente>
+                    Siguiente <span aria-hidden="true">→</span>
                 </button>
 
             </div>
@@ -1132,7 +1325,7 @@ function crearModalRegalo() {
 
                 ${crearEscena("candado")}
 
-                <p class="gift-small">La última puerta</p>
+                <p class="gift-small">Viaje nº ${RECUERDOS.length + 1} · 18 – 21 dic</p>
 
                 <h2>Dime la palabra secreta</h2>
 
@@ -1172,6 +1365,16 @@ function crearModalRegalo() {
 
     document.body.appendChild(modal);
 
+    // Las fotos se descargan ya, para que aparezcan sin esperas
+    RECUERDOS.forEach(recuerdo => {
+        const imagen = new Image();
+        imagen.src = recuerdo.foto;
+    });
+
+    modal
+        .querySelector("[data-recuerdo-siguiente]")
+        .addEventListener("click", siguienteRecuerdo);
+
 
     modal
         .querySelectorAll("[data-gift-next]")
@@ -1183,6 +1386,10 @@ function crearModalRegalo() {
                     Number(boton.dataset.giftNext);
 
                 mostrarPasoRegalo(paso);
+
+                if (paso === 2) {
+                    iniciarRecuerdos();
+                }
 
                 if (paso === 3) {
                     setTimeout(
