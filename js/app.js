@@ -154,7 +154,7 @@ document.addEventListener("DOMContentLoaded", iniciarApp);
    La versión la pone tools/nueva-version.mjs.
    ========================================================= */
 
-const VERSION_WEB = "20261104160001";
+const VERSION_WEB = "20261104162559";
 
 async function comprobarVersionNueva() {
 
@@ -1383,6 +1383,7 @@ function siguienteRecuerdo() {
         foto.classList.remove("actual", "entrando");
         foto.classList.add("en-pila");
         foto.style.setProperty("--fondo", String(indiceRecuerdo - i));
+        foto.style.setProperty("--lado", i % 2 ? "1" : "-1");
     });
 
     const polaroid =
@@ -1414,10 +1415,14 @@ function siguienteRecuerdo() {
         .slice(0, -3)
         .forEach(foto => foto.classList.add("oculta"));
 
-    // Sello de abajo
-    document
-        .querySelector(`#gift-modal [data-sello="${indiceRecuerdo}"]`)
-        ?.classList.add("puesto");
+    // Sello de abajo: cuando la foto ya se ha posado
+    const selloAbajo =
+        document.querySelector(`#gift-modal [data-sello="${indiceRecuerdo}"]`);
+
+    setTimeout(
+        () => selloAbajo?.classList.add("puesto"),
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 1700
+    );
 
     const contador =
         document.querySelector("#gift-modal [data-recuerdo-contador]");
@@ -1441,7 +1446,8 @@ function siguienteRecuerdo() {
 
     // Un respiro para que no se salten fotos con dobles toques
     boton.disabled = true;
-    setTimeout(() => { boton.disabled = false; }, 950);
+    // y para que cada foto termine de posarse antes de pasar a la siguiente
+    setTimeout(() => { boton.disabled = false; }, 1900);
 }
 
 

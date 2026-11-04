@@ -9219,3 +9219,71 @@ body:not(.viaje-desbloqueado) .countdown-item span {
 .page-enter .checklist-item {
     animation-duration: 0.7s;
 }
+
+
+/* =========================================================
+   ÁLBUM: CAMBIO DE FOTO MÁS SUAVE Y PAUSADO
+   Primero la foto anterior se aparta a la pila; después la
+   nueva se posa encima, ya opaca (sin doble exposición).
+   ========================================================= */
+
+.polaroid {
+    will-change: transform, opacity;
+    transition:
+        transform 1s cubic-bezier(0.33, 1, 0.68, 1),
+        opacity 0.7s ease;
+}
+
+/* Sombra que oscurece las de la pila (más barata que filter en iPhone) */
+.polaroid::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 4;
+    background: rgba(40, 25, 15, 0.16);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 1s ease;
+}
+
+.polaroid.en-pila {
+    filter: none;
+    transform:
+        translateX(calc(-50% + var(--lado, 1) * var(--fondo) * 12px))
+        translateY(calc(var(--fondo) * 5px))
+        rotate(calc(var(--giro) + var(--lado, 1) * var(--fondo) * 2.5deg))
+        scale(calc(1 - var(--fondo) * 0.03));
+}
+
+.polaroid.en-pila::after {
+    opacity: min(1, calc(var(--fondo) * 0.45));
+}
+
+.polaroid.entrando {
+    animation: posarFoto 1.4s cubic-bezier(0.22, 1, 0.36, 1) 0.45s both;
+}
+
+@keyframes posarFoto {
+    0% {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-30px) rotate(calc(var(--giro) * -1.5)) scale(1.06);
+    }
+    7% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(-50%) rotate(var(--giro));
+    }
+}
+
+/* El matasellos, cuando la foto ya está quieta */
+.polaroid.entrando .matasellos {
+    animation-duration: 0.6s;
+    animation-delay: 1.75s;
+}
+
+/* El sello de abajo entra (desde app.js) a la vez que el matasellos */
+.sello.puesto {
+    animation-delay: 0s;
+}
