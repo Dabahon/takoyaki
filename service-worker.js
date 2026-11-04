@@ -12,7 +12,7 @@
    siguiente visita, sin tener que borrar nada.
    ========================================================= */
 
-const CACHE_NAME = "un-plan-v13";
+const CACHE_NAME = "un-plan-v14";
 
 const FILES_TO_CACHE = [
     "./",
@@ -68,7 +68,8 @@ self.addEventListener("fetch", event => {
     }
 
     event.respondWith(
-        fetch(peticion)
+        // no-cache: pregunta siempre al servidor si hay versión nueva
+        fetch(peticion, { cache: "no-cache" })
             .then(respuesta => {
 
                 if (respuesta.ok) {

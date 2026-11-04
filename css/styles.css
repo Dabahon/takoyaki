@@ -8901,23 +8901,74 @@ footer {
     top: calc(46% - 27px);
 }
 
-/* Sobres estrechos (móviles pequeños): sello y textos más compactos */
-.sobre {
-    container-type: inline-size;
+/* =========================================================
+   SOBRES: PUNTA DE LA SOLAPA ALINEADA CON EL SELLO
+   Valores fijos (sin cálculos con variables) para que Safari
+   los aplique siempre. La punta de la solapa está a la altura
+   del centro del sello; los lados bajan hasta el 58 % de la
+   solapa y la "V" del bolsillo queda justo debajo de la punta.
+   ========================================================= */
+
+/* --- Por abrir: punta al 54 % --- */
+.sobre .sobre-solapa,
+.sobre .sobre-sombra {
+    height: 54%;
+    clip-path: polygon(0 0, 100% 0, 100% 58%, 50% 100%, 0 58%);
 }
 
-@container (max-width: 150px) {
+.sobre .sobre-bolsillo {
+    clip-path: polygon(0 31.3%, 50% 51%, 100% 31.3%, 100% 100%, 0 100%);
+}
+
+.sobre .sobre-sello {
+    top: calc(54% - 30px);
+}
+
+/* --- Bloqueados: punta al 48 % --- */
+.sobre.bloqueado .sobre-solapa,
+.sobre.bloqueado .sobre-sombra {
+    height: 48%;
+}
+
+.sobre.bloqueado .sobre-bolsillo {
+    clip-path: polygon(0 27.8%, 50% 45%, 100% 27.8%, 100% 100%, 0 100%);
+}
+
+.sobre.bloqueado .sobre-sello {
+    top: calc(48% - 30px);
+}
+
+/* --- Sobres estrechos (móviles pequeños) --- */
+@media (max-width: 360px) {
+
+    .sobre .sobre-solapa,
+    .sobre .sobre-sombra {
+        height: 50%;
+    }
+
+    .sobre .sobre-bolsillo {
+        clip-path: polygon(0 29%, 50% 47%, 100% 29%, 100% 100%, 0 100%);
+    }
 
     .sobre .sobre-sello {
-        top: calc(44% - 21px);
+        top: calc(50% - 24px);
         left: calc(50% - 21px);
         width: 42px;
         height: 42px;
         font-size: 1rem;
     }
 
+    .sobre.bloqueado .sobre-solapa,
+    .sobre.bloqueado .sobre-sombra {
+        height: 42%;
+    }
+
+    .sobre.bloqueado .sobre-bolsillo {
+        clip-path: polygon(0 24.4%, 50% 39%, 100% 24.4%, 100% 100%, 0 100%);
+    }
+
     .sobre.bloqueado .sobre-sello {
-        top: calc(36% - 21px);
+        top: calc(42% - 24px);
     }
 
     .sobre .sobre-numero {
@@ -8932,66 +8983,5 @@ footer {
     .sobre .sobre-instruccion,
     .sobre .sobre-fecha {
         font-size: 0.56rem;
-    }
-}
-
-
-/* =========================================================
-   SOBRES: PUNTA DE LA SOLAPA ALINEADA CON EL SELLO
-   --pico es la altura de la punta (en % del sobre). Solapa,
-   sombra, bolsillo y sello se colocan a partir de él.
-   ========================================================= */
-
-.sobre {
-    --pico: 54;
-    --lados: calc(var(--pico) * 0.58);
-}
-
-.sobre.bloqueado {
-    --pico: 48;
-}
-
-.sobre .sobre-solapa,
-.sobre .sobre-sombra {
-    height: calc(var(--pico) * 1%);
-    clip-path: polygon(
-        0 0,
-        100% 0,
-        100% calc(var(--lados) / var(--pico) * 100%),
-        50% 100%,
-        0 calc(var(--lados) / var(--pico) * 100%)
-    );
-}
-
-/* La "V" del bolsillo, justo por debajo de la punta */
-.sobre .sobre-bolsillo {
-    clip-path: polygon(
-        0 calc(var(--lados) * 1%),
-        50% calc((var(--pico) - 3) * 1%),
-        100% calc(var(--lados) * 1%),
-        100% 100%,
-        0 100%
-    );
-}
-
-/* El sello, centrado sobre la punta */
-.sobre .sobre-sello,
-.sobre.bloqueado .sobre-sello {
-    top: calc(var(--pico) * 1% - 30px);
-}
-
-@container (max-width: 150px) {
-
-    .sobre {
-        --pico: 50;
-    }
-
-    .sobre.bloqueado {
-        --pico: 42;
-    }
-
-    .sobre .sobre-sello,
-    .sobre.bloqueado .sobre-sello {
-        top: calc(var(--pico) * 1% - 24px);
     }
 }
