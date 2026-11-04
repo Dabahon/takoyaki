@@ -1,11 +1,11 @@
 {
-    "name": "Florence Trip",
-    "short_name": "Florence Trip",
-    "description": "Guía personal de nuestro viaje a Florencia y Pisa",
+    "name": "Hay un plan esperándote",
+    "short_name": "Un plan ❤️",
+    "description": "Un regalo que se abre el 10 de diciembre",
     "start_url": "./index.html",
     "display": "standalone",
-    "background_color": "#f6f1e8",
-    "theme_color": "#8f4f3a",
+    "background_color": "#1b1530",
+    "theme_color": "#1b1530",
     "lang": "es",
     "icons": []
 }

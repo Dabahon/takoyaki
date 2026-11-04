@@ -1,0 +1,3 @@
+# Datos del viaje sin cifrar: NUNCA se suben a GitHub.
+# Se regeneran con: node tools/cifrar.mjs descifrar
+privado/

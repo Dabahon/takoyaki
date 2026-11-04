@@ -1,16 +1,71 @@
 /* =========================================================
-   FLORENCE TRIP
+   UN PLAN
    app.js
    ========================================================= */
 
 const CONFIG = {
-    fechaCumpleanos: "2026-12-10T00:00:00",
+
+    // Momento en que se puede abrir el regalo (hora de España).
+    fechaApertura: "2026-12-10T19:00:00+01:00",
+
+    // Datos del plan, cifrados con la palabra secreta.
+    archivoSorpresa: "./data/sorpresa.json",
 
     storage: {
-        viajeDesbloqueado: "florenceTrip_viajeDesbloqueado",
-        checklist: "florenceTrip_checklist"
-    }
+        llave: "plan_llave",
+        checklist: "plan_checklist",
+        pistasVistas: "plan_pistasVistas",
+        simular: "plan_simularApertura"
+    },
+
+    /*
+     * Una pista cada miércoles a las 19:00.
+     * El texto va en base64 para que no se lea de un
+     * vistazo en el código fuente antes de tiempo.
+     */
+    pistas: [
+        { fecha: "2026-11-04T19:00:00+01:00", icono: "🪪", texto: "UHJpbWVyYSBwaXN0YSwganVzdGljaWVyYTogZWwgcGFzYXBvcnRlIHNlIHF1ZWRhIGVuIGNhc2EuIEVsIEROSSwgbm8u" },
+        { fecha: "2026-11-11T19:00:00+01:00", icono: "🧳", texto: "Q29uIHVuYSBtYWxldGEgcGVxdWXDsWEgdGUgc29icmEuIExvIGltcG9ydGFudGUgbm8gc2UgbWV0ZSBlbiBsYSBtYWxldGEu" },
+        { fecha: "2026-11-18T19:00:00+01:00", icono: "🧣", texto: "SGFyw6EgZnLDrW8uIEJ1ZmFuZGEsIHPDrS4gQmlraW5pLCBuby4=" },
+        { fecha: "2026-11-25T19:00:00+01:00", icono: "👟", texto: "Q2FsemFkbyBjw7Ntb2RvLCBwb3IgZmF2b3I6IHZhcyBhIHN1YmlyIG3DoXMgZXNjYWxvbmVzIGRlIGxvcyBxdWUgdGUgaW1hZ2luYXMu" },
+        { fecha: "2026-12-02T19:00:00+01:00", icono: "🎨", texto: "SGFicsOhIGFydGUuIERlbCBxdWUgc2FsZSBlbiBsb3MgbGlicm9zIGRlbCBjb2xlLg==" },
+        { fecha: "2026-12-09T19:00:00+01:00", icono: "🕖", texto: "TWHDsWFuYSBhIGxhcyAxOTowMCwgY29ubWlnby4gTG8gZGVtw6FzLCB5YSBsbyB2ZXLDoXMu" }
+    ]
 };
+
+
+/*
+ * Diferencia entre la hora del servidor y la del móvil.
+ * Así adelantar el reloj del móvil no abre el regalo.
+ */
+let desfaseReloj = 0;
+
+function ahora() {
+    return new Date(Date.now() + desfaseReloj);
+}
+
+async function sincronizarHora() {
+
+    try {
+
+        const respuesta =
+            await fetch(window.location.pathname, {
+                method: "HEAD",
+                cache: "no-store"
+            });
+
+        const fechaServidor =
+            new Date(respuesta.headers.get("Date") || "");
+
+        if (!Number.isNaN(fechaServidor.getTime())) {
+            desfaseReloj = fechaServidor.getTime() - Date.now();
+        }
+
+    } catch (error) {
+        // Sin conexión: usamos la hora del dispositivo.
+    }
+}
+
 
 let datosViaje = null;
 let restaurantesCompletos = [];
@@ -45,37 +100,45 @@ async function iniciarApp() {
         );
 
         sessionStorage.setItem(
-            "florenceTrip_simularCumpleanos",
+            CONFIG.storage.simular,
             "true"
         );
 
-        // Borramos el viaje desbloqueado
-        // para poder probar la sorpresa desde cero.
+        // Olvidamos la llave para probar la sorpresa desde cero.
         localStorage.removeItem(
-            CONFIG.storage.viajeDesbloqueado
+            CONFIG.storage.llave
         );
     }
 
-    const viajeDesbloqueado =
-        comprobarViajeDesbloqueado();
+    /*
+     * Si ya abrió el regalo en este móvil, la llave está
+     * guardada y entramos directamente al plan.
+     */
+    const abierto =
+        await abrirConLlaveGuardada();
 
-    if (viajeDesbloqueado) {
-
-        await desbloquearYcargarViaje();
-
-    } else {
-
-        mostrarPantallaSorpresa();
-
-        // La cuenta atrás solo tiene sentido mientras
-        // el regalo sigue cerrado.
-        iniciarCuentaAtras();
+    if (abierto) {
+        return;
     }
 
-    if (modoDev) {
+    // El avión de papel es animación SVG: la paramos a mano
+    // si el móvil pide menos movimiento.
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
 
-        activarModoCumpleanos();
+        const vuelo =
+            document.querySelector(".sky-flight");
+
+        vuelo?.pauseAnimations?.();
+        vuelo?.setCurrentTime?.(9);
     }
+
+    await sincronizarHora();
+
+    mostrarPantallaSorpresa();
+
+    renderizarPistas();
+
+    iniciarCuentaAtras();
 }
 
 
@@ -139,7 +202,7 @@ function manejarTeclasDesarrollo(event) {
         );
 
         sessionStorage.setItem(
-            "florenceTrip_simularCumpleanos",
+            CONFIG.storage.simular,
             "true"
         );
 
@@ -164,15 +227,19 @@ function manejarTeclasDesarrollo(event) {
         );
 
         localStorage.removeItem(
-            CONFIG.storage.viajeDesbloqueado
+            CONFIG.storage.llave
         );
 
         localStorage.removeItem(
             CONFIG.storage.checklist
         );
 
+        localStorage.removeItem(
+            CONFIG.storage.pistasVistas
+        );
+
         sessionStorage.removeItem(
-            "florenceTrip_simularCumpleanos"
+            CONFIG.storage.simular
         );
 
         window.location.reload();
@@ -186,19 +253,10 @@ function manejarTeclasDesarrollo(event) {
 
 function comprobarViajeDesbloqueado() {
 
-    return (
+    return Boolean(
         localStorage.getItem(
-            CONFIG.storage.viajeDesbloqueado
-        ) === "true"
-    );
-}
-
-
-function guardarViajeDesbloqueado() {
-
-    localStorage.setItem(
-        CONFIG.storage.viajeDesbloqueado,
-        "true"
+            CONFIG.storage.llave
+        )
     );
 }
 
@@ -272,7 +330,7 @@ function actualizarHeroEspera() {
 
     if (eyebrow) {
         eyebrow.textContent =
-            "🎁 Tic tac...";
+            "🎁 Tic tac, justiciera";
     }
 
     if (titulo) {
@@ -282,7 +340,7 @@ function actualizarHeroEspera() {
 
     if (subtitulo) {
         subtitulo.textContent =
-            "Solo falta un poquito";
+            "Se abre el 10 de diciembre a las 19:00";
     }
 
     const boton =
@@ -320,76 +378,42 @@ function iniciarCuentaAtras() {
 
 function actualizarCuentaAtras() {
 
-    const simulandoCumpleanos =
+    const simulandoApertura =
         sessionStorage.getItem(
-            "florenceTrip_simularCumpleanos"
+            CONFIG.storage.simular
         ) === "true";
 
-    if (simulandoCumpleanos) {
+    if (simulandoApertura) {
+
         activarModoCumpleanos();
         return;
     }
 
-    const ahora =
-        new Date();
-
-    const fechaObjetivo =
-        new Date(
-            CONFIG.fechaCumpleanos
-        );
-
     const diferencia =
-        fechaObjetivo - ahora;
+        new Date(CONFIG.fechaApertura) - ahora();
 
     if (diferencia <= 0) {
 
         activarModoCumpleanos();
-
         return;
     }
 
     const dias =
-        Math.floor(
-            diferencia /
-            (1000 * 60 * 60 * 24)
-        );
+        Math.floor(diferencia / 86400000);
 
     const horas =
-        Math.floor(
-            (diferencia /
-                (1000 * 60 * 60)) % 24
-        );
+        Math.floor((diferencia / 3600000) % 24);
 
     const minutos =
-        Math.floor(
-            (diferencia /
-                (1000 * 60)) % 60
-        );
+        Math.floor((diferencia / 60000) % 60);
 
     const segundos =
-        Math.floor(
-            (diferencia / 1000) % 60
-        );
+        Math.floor((diferencia / 1000) % 60);
 
-    actualizarElemento(
-        "countdown-days",
-        formatearNumero(dias)
-    );
-
-    actualizarElemento(
-        "countdown-hours",
-        formatearNumero(horas)
-    );
-
-    actualizarElemento(
-        "countdown-minutes",
-        formatearNumero(minutos)
-    );
-
-    actualizarElemento(
-        "countdown-seconds",
-        formatearNumero(segundos)
-    );
+    actualizarElemento("countdown-days", formatearNumero(dias));
+    actualizarElemento("countdown-hours", formatearNumero(horas));
+    actualizarElemento("countdown-minutes", formatearNumero(minutos));
+    actualizarElemento("countdown-seconds", formatearNumero(segundos));
 }
 
 
@@ -401,10 +425,17 @@ function actualizarElemento(
     const elemento =
         document.getElementById(id);
 
-    if (elemento) {
-        elemento.textContent =
-            valor;
+    if (!elemento || elemento.textContent.trim() === String(valor)) {
+        return;
     }
+
+    elemento.textContent =
+        valor;
+
+    // Pequeño "tic" visual cada vez que cambia el número.
+    elemento.classList.remove("tick");
+    void elemento.offsetWidth;
+    elemento.classList.add("tick");
 }
 
 
@@ -421,15 +452,7 @@ function formatearNumero(numero) {
 
 function comprobarFechaReal() {
 
-    const ahora =
-        new Date();
-
-    const fechaCumpleanos =
-        new Date(
-            CONFIG.fechaCumpleanos
-        );
-
-    if (ahora >= fechaCumpleanos) {
+    if (ahora() >= new Date(CONFIG.fechaApertura)) {
         activarModoCumpleanos();
     }
 }
@@ -439,7 +462,7 @@ function activarModoCumpleanos() {
 
     /*
      * Si el viaje ya está desbloqueado, el hero muestra
-     * "Florencia": no volvemos a la pantalla del regalo.
+     * el destino: no volvemos a la pantalla del regalo.
      */
     if (
         document.body.classList.contains(
@@ -481,17 +504,17 @@ function activarModoCumpleanos() {
 
     if (eyebrow) {
         eyebrow.textContent =
-            "🎂 LLEGÓ EL DÍA";
+            "🎂 Ya es la hora";
     }
 
     if (titulo) {
         titulo.textContent =
-            "FELICES 30";
+            "Felices 30";
     }
 
     if (subtitulo) {
         subtitulo.textContent =
-            "Una escapada para celebrarlo como merece.";
+            "Tu regalo te está esperando, justiciera";
     }
 
     const boton =
@@ -503,6 +526,9 @@ function activarModoCumpleanos() {
 
         boton.hidden = false;
 
+        boton.textContent =
+            "🎁 Abrir mi regalo";
+
         /*
          * Añadimos una pequeña animación
          * si existe en CSS.
@@ -513,6 +539,11 @@ function activarModoCumpleanos() {
     }
 
     actualizarCuentaAtrasCumpleanos();
+
+    document.body.classList.add("modo-apertura");
+
+    // A esta hora ya se ven todas las pistas.
+    renderizarPistas();
 
     if (intervaloCuentaAtras) {
 
@@ -560,6 +591,224 @@ function actualizarCuentaAtrasCumpleanos() {
         "countdown-seconds",
         "00"
     );
+}
+
+
+/* =========================================================
+   PISTAS SEMANALES
+   ========================================================= */
+
+function obtenerPistasVistas() {
+
+    try {
+        return JSON.parse(
+            localStorage.getItem(CONFIG.storage.pistasVistas) || "[]"
+        );
+    } catch (error) {
+        return [];
+    }
+}
+
+
+function guardarPistaVista(indice) {
+
+    const vistas =
+        new Set(obtenerPistasVistas());
+
+    vistas.add(indice);
+
+    try {
+        localStorage.setItem(
+            CONFIG.storage.pistasVistas,
+            JSON.stringify([...vistas])
+        );
+    } catch (error) {
+        // Sin almacenamiento: la carta se vuelve a tapar al recargar.
+    }
+}
+
+
+function textoCuandoAbre(fecha) {
+
+    const opciones = {
+        timeZone: "Europe/Madrid"
+    };
+
+    const dia = fecha.toLocaleDateString("es-ES", {
+        ...opciones,
+        weekday: "long",
+        day: "numeric",
+        month: "short"
+    }).replace(".", "");
+
+    return `${dia} · 19:00`;
+}
+
+
+function textoCuantoFalta(fecha) {
+
+    /*
+     * Contamos días de calendario en hora de España:
+     * "hoy", "mañana" o "en N días".
+     */
+    const diaEnEspana = momento => {
+
+        const [anio, mes, dia] =
+            momento
+                .toLocaleDateString("sv-SE", { timeZone: "Europe/Madrid" })
+                .split("-")
+                .map(Number);
+
+        return Date.UTC(anio, mes - 1, dia);
+    };
+
+    const dias =
+        Math.round((diaEnEspana(fecha) - diaEnEspana(ahora())) / 86400000);
+
+    if (dias <= 0) {
+        return "hoy a las 19:00";
+    }
+
+    if (dias === 1) {
+        return "mañana";
+    }
+
+    return `en ${dias} días`;
+}
+
+
+function renderizarPistas() {
+
+    const seccion =
+        document.getElementById("pistas");
+
+    const lista =
+        document.getElementById("pistas-lista");
+
+    if (!seccion || !lista || comprobarViajeDesbloqueado()) {
+        return;
+    }
+
+    const momento =
+        ahora();
+
+    const simulando =
+        sessionStorage.getItem(CONFIG.storage.simular) === "true";
+
+    const vistas =
+        obtenerPistasVistas();
+
+    let siguienteMarcada =
+        false;
+
+    let abiertas =
+        0;
+
+    lista.innerHTML =
+        CONFIG.pistas
+            .map((pista, indice) => {
+
+                const fecha =
+                    new Date(pista.fecha);
+
+                const numero =
+                    indice + 1;
+
+                const abierta =
+                    simulando || momento >= fecha;
+
+                if (!abierta) {
+
+                    const esSiguiente =
+                        !siguienteMarcada;
+
+                    siguienteMarcada = true;
+
+                    return `
+                        <li class="pista">
+                            <div class="pista-card bloqueada${esSiguiente ? " siguiente" : ""}">
+                                <span class="pista-numero">${numero}</span>
+                                <span class="pista-candado" aria-hidden="true">🔒</span>
+                                <span class="pista-fecha">${escaparHTML(textoCuandoAbre(fecha))}</span>
+                                ${
+                                    esSiguiente
+                                        ? `<span class="pista-falta">${escaparHTML(textoCuantoFalta(fecha))}</span>`
+                                        : ""
+                                }
+                            </div>
+                        </li>
+                    `;
+                }
+
+                abiertas++;
+
+                const vista =
+                    vistas.includes(indice);
+
+                return `
+                    <li class="pista">
+                        <button
+                            type="button"
+                            class="pista-card${vista ? " girada" : " nueva"}"
+                            data-pista="${indice}"
+                            aria-pressed="${vista}"
+                            aria-label="Pista ${numero}"
+                        >
+                            <span class="pista-cara pista-frente">
+                                <span class="pista-numero">${numero}</span>
+                                ${vista ? "" : `<span class="pista-badge">Nueva</span>`}
+                                <span class="pista-sello" aria-hidden="true">✦</span>
+                                <span class="pista-instruccion">Toca para verla</span>
+                            </span>
+                            <span class="pista-cara pista-dorso">
+                                <span class="pista-icono" aria-hidden="true">${pista.icono}</span>
+                                <span class="pista-texto">${escaparHTML(textoDeBase64(pista.texto))}</span>
+                            </span>
+                        </button>
+                    </li>
+                `;
+            })
+            .join("");
+
+
+    const contador =
+        document.getElementById("pistas-contador");
+
+    if (contador) {
+        contador.textContent =
+            `${abiertas} de ${CONFIG.pistas.length}`;
+    }
+
+    seccion.hidden = false;
+
+    const enlaceBajar =
+        document.querySelector("[data-hero-scroll]");
+
+    if (enlaceBajar) {
+        enlaceBajar.hidden = false;
+    }
+
+
+    lista
+        .querySelectorAll("[data-pista]")
+        .forEach(carta => {
+
+            carta.addEventListener("click", () => {
+
+                const girada =
+                    carta.classList.toggle("girada");
+
+                carta.classList.remove("nueva");
+
+                carta.setAttribute("aria-pressed", String(girada));
+
+                carta.querySelector(".pista-badge")?.remove();
+
+                if (girada) {
+                    guardarPistaVista(Number(carta.dataset.pista));
+                }
+            });
+        });
 }
 
 
@@ -623,33 +872,26 @@ function abrirRegalo() {
 function crearModalRegalo() {
 
     const modalExistente =
-        document.getElementById(
-            "gift-modal"
-        );
+        document.getElementById("gift-modal");
 
     if (modalExistente) {
         modalExistente.remove();
     }
 
     const modal =
-        document.createElement(
-            "div"
-        );
+        document.createElement("div");
 
-    modal.id =
-        "gift-modal";
+    modal.id = "gift-modal";
+    modal.className = "gift-modal";
 
-    modal.className =
-        "gift-modal";
-
-
+    /*
+     * Los pasos 1 a 3 no dicen nada del destino.
+     * El paso 4 se rellena después de descifrar el plan
+     * con la palabra secreta.
+     */
     modal.innerHTML = `
 
-        <div
-            class="gift-modal-overlay"
-            data-gift-close
-        ></div>
-
+        <div class="gift-modal-overlay" data-gift-close></div>
 
         <div
             class="gift-modal-content"
@@ -658,202 +900,127 @@ function crearModalRegalo() {
             aria-labelledby="gift-title"
         >
 
+            <div class="gift-progress" aria-hidden="true">
+                <span></span><span></span><span></span><span></span>
+            </div>
 
-            <!-- =========================================
-                 PASO 1
-                 ========================================= -->
 
-            <div
-                class="gift-step"
-                data-step="1"
-            >
+            <div class="gift-step" data-step="1">
 
-                <div class="gift-big-icon">
-                    🎁
-                </div>
+                <div class="gift-big-icon">🎁</div>
 
-                <p class="gift-small">
-                    HOY TOCA CELEBRAR
-                </p>
+                <p class="gift-small">Hoy toca celebrar</p>
 
-                <h2 id="gift-title">
-                    Tus 30 empiezan así
-                </h2>
+                <h2 id="gift-title">30 años, justiciera</h2>
 
                 <p>
-                    He preparado un plan para que los estrenes bien.
+                    Y como no se cumplen todos los días,
+                    he preparado algo solo para nosotros.
                 </p>
 
-                <button
-                    type="button"
-                    class="gift-main-button"
-                    data-gift-next="2"
-                >
-                    Ver el plan
+                <button type="button" class="gift-main-button" data-gift-next="2">
+                    Sigue
                 </button>
 
             </div>
 
 
-            <!-- =========================================
-                 PASO 2
-                 ========================================= -->
+            <div class="gift-step" data-step="2" hidden>
 
-            <div
-                class="gift-step"
-                data-step="2"
-                hidden
-            >
+                <div class="gift-big-icon">✈️</div>
 
-                <div class="gift-big-icon">
-                    ✨
-                </div>
+                <p class="gift-small">Una pista más</p>
 
-                <p class="gift-small">
-                    UNA PISTA
-                </p>
-
-                <h2>
-                    Nos escapamos unos días
-                </h2>
+                <h2>Nos vamos unos días</h2>
 
                 <p>
-                    Ahora solo queda saber dónde.
+                    Del 18 al 21 de diciembre, tú y yo.
+                    Solo falta saber adónde…
                 </p>
 
-                <button
-                    type="button"
-                    class="gift-main-button"
-                    data-gift-next="3"
-                >
-                    Dime dónde
+                <button type="button" class="gift-main-button" data-gift-next="3">
+                    ¿Adónde?
                 </button>
 
             </div>
 
 
-            <!-- =========================================
-                 PASO 3
-                 ========================================= -->
+            <form class="gift-step gift-password" data-step="3" hidden novalidate>
 
-            <div
-                class="gift-step"
-                data-step="3"
-                hidden
-            >
+                <div class="gift-big-icon">🔐</div>
 
-                <div class="gift-big-icon">
-                    🏛️
-                </div>
+                <p class="gift-small">La última puerta</p>
 
-                <p class="gift-small">
-                    DESTINO
-                </p>
+                <h2>Dime la palabra secreta</h2>
 
-                <h1>
-                    FLORENCIA
-                </h1>
+                <p>Te la susurro yo. 😉</p>
 
-                <p class="gift-dates">
-                    18 — 21 DICIEMBRE 2026
-                </p>
+                <label class="visually-hidden" for="gift-password-input">
+                    Palabra secreta
+                </label>
 
-                <p>
-                    Tres noches, arte, paseos y toda la comida italiana posible.
-                </p>
-
-                <button
-                    type="button"
-                    class="gift-main-button"
-                    data-gift-reveal
+                <input
+                    id="gift-password-input"
+                    class="gift-password-input"
+                    type="text"
+                    autocomplete="off"
+                    autocapitalize="none"
+                    spellcheck="false"
+                    placeholder="Escríbela aquí"
+                    required
                 >
-                    Ver la escapada
+
+                <p class="gift-password-error" role="alert" aria-live="assertive"></p>
+
+                <button type="submit" class="gift-main-button">
+                    Abrir
                 </button>
 
-            </div>
+            </form>
+
+
+            <div class="gift-step gift-reveal" data-step="4" hidden></div>
 
         </div>
     `;
 
-
-    document.body.appendChild(
-        modal
-    );
+    document.body.appendChild(modal);
 
 
-    /*
-     * Botones siguiente paso
-     */
-    const botonesPaso =
-        modal.querySelectorAll(
-            "[data-gift-next]"
-        );
+    modal
+        .querySelectorAll("[data-gift-next]")
+        .forEach(boton => {
 
-    botonesPaso.forEach(
-        boton => {
+            boton.addEventListener("click", () => {
 
-            boton.addEventListener(
-                "click",
-                () => {
+                const paso =
+                    Number(boton.dataset.giftNext);
 
-                    const paso =
-                        Number(
-                            boton.dataset
-                                .giftNext
-                        );
+                mostrarPasoRegalo(paso);
 
-                    mostrarPasoRegalo(
-                        paso
+                if (paso === 3) {
+                    setTimeout(
+                        () => document.getElementById("gift-password-input")?.focus(),
+                        350
                     );
                 }
-            );
-        }
-    );
+            });
+        });
+
+
+    modal
+        .querySelector(".gift-password")
+        .addEventListener("submit", comprobarPalabraSecreta);
 
 
     /*
-     * Botón final
+     * Cerrar tocando fuera o con Escape (salvo al final).
      */
-    const botonRevelar =
-        modal.querySelector(
-            "[data-gift-reveal]"
-        );
+    modal
+        .querySelector("[data-gift-close]")
+        .addEventListener("click", cerrarModalRegalo);
 
-    if (botonRevelar) {
-
-        botonRevelar.addEventListener(
-            "click",
-            revelarViaje
-        );
-    }
-
-
-    /*
-     * Cerrar haciendo click fuera.
-     * No mostramos ningún botón de cerrar
-     * para mantener la experiencia.
-     */
-    const overlay =
-        modal.querySelector(
-            "[data-gift-close]"
-        );
-
-    if (overlay) {
-
-        overlay.addEventListener(
-            "click",
-            cerrarModalRegalo
-        );
-    }
-
-
-    /*
-     * ESC para cerrar.
-     */
-    document.addEventListener(
-        "keydown",
-        manejarEscapeModal
-    );
+    document.addEventListener("keydown", manejarEscapeModal);
 }
 
 
@@ -866,22 +1033,29 @@ function mostrarPasoRegalo(
 ) {
 
     const pasos =
-        document.querySelectorAll(
-            "#gift-modal .gift-step"
-        );
+        document.querySelectorAll("#gift-modal .gift-step");
 
-    pasos.forEach(
-        paso => {
+    pasos.forEach(paso => {
 
-            const numero =
-                Number(
-                    paso.dataset.step
-                );
+        const activo =
+            Number(paso.dataset.step) === numeroPaso;
 
-            paso.hidden =
-                numero !== numeroPaso;
+        paso.hidden = !activo;
+
+        if (activo) {
+
+            // Reiniciamos la animación de entrada del paso.
+            paso.classList.remove("entrando");
+            void paso.offsetWidth;
+            paso.classList.add("entrando");
         }
-    );
+    });
+
+    document
+        .querySelectorAll("#gift-modal .gift-progress span")
+        .forEach((punto, indice) => {
+            punto.classList.toggle("activo", indice < numeroPaso);
+        });
 }
 
 
@@ -895,12 +1069,8 @@ function manejarEscapeModal(event) {
         return;
     }
 
-    const modal =
-        document.getElementById(
-            "gift-modal"
-        );
-
-    if (!modal) {
+    // En la revelación no dejamos cerrar sin querer.
+    if (datosViaje) {
         return;
     }
 
@@ -963,48 +1133,135 @@ function cerrarModalRegalo() {
    REVELAR VIAJE
    ========================================================= */
 
-async function revelarViaje() {
+async function comprobarPalabraSecreta(event) {
 
-    console.log(
-        "❤️ Revelando nuestro viaje..."
-    );
+    event.preventDefault();
 
-    lanzarConfeti();
+    const formulario =
+        event.currentTarget;
 
-    const cargado =
-        await desbloquearYcargarViaje();
+    const entrada =
+        formulario.querySelector("input");
 
-    if (!cargado) {
+    const error =
+        formulario.querySelector(".gift-password-error");
+
+    const boton =
+        formulario.querySelector("button");
+
+    const palabra =
+        entrada.value;
+
+    if (!palabra.trim()) {
+        entrada.focus();
         return;
     }
 
+    boton.disabled = true;
+    boton.textContent = "Abriendo…";
+    error.textContent = "";
+
+    try {
+
+        const { datos, llave } =
+            await descifrarSorpresa({ palabra });
+
+        localStorage.setItem(CONFIG.storage.llave, llave);
+
+        prepararDatosViaje(datos);
+
+        mostrarRevelacion();
+
+    } catch (fallo) {
+
+        boton.disabled = false;
+        boton.textContent = "Abrir";
+
+        error.textContent =
+            fallo?.name === "OperationError"
+                ? "Esa no es… pídemela otra vez 😘"
+                : "No he podido abrirlo. ¿Tienes conexión?";
+
+        formulario.classList.remove("error");
+        void formulario.offsetWidth;
+        formulario.classList.add("error");
+
+        entrada.select();
+    }
+}
+
+
+/*
+ * Paso 4: el destino, letra a letra.
+ */
+function mostrarRevelacion() {
+
+    const revelacion =
+        datosViaje?.revelacion || {};
+
+    const paso =
+        document.querySelector('#gift-modal [data-step="4"]');
+
+    if (!paso) {
+        abrirViaje();
+        return;
+    }
+
+    const letras =
+        [...(revelacion.destino || "")]
+            .map((letra, indice) =>
+                `<span style="--i:${indice}">${letra === " " ? "&nbsp;" : escaparHTML(letra)}</span>`
+            )
+            .join("");
+
+    paso.innerHTML = `
+
+        <div class="gift-big-icon">${escaparHTML(revelacion.icono || "✨")}</div>
+
+        <p class="gift-small">Nos vamos a…</p>
+
+        <h1 class="gift-destination" aria-label="${escaparAtributo(revelacion.destino || "")}">
+            ${letras}
+        </h1>
+
+        <p class="gift-dates">${escaparHTML(revelacion.fechas || "")}</p>
+
+        <p>${escaparHTML(revelacion.frase || "")}</p>
+
+        <button type="button" class="gift-main-button" data-gift-reveal>
+            Ver nuestra escapada
+        </button>
+    `;
+
+    paso
+        .querySelector("[data-gift-reveal]")
+        .addEventListener("click", revelarViaje);
+
+    mostrarPasoRegalo(4);
+
+    lanzarConfeti();
+}
+
+
+async function revelarViaje() {
+
+    abrirViaje();
+
     const modal =
-        document.getElementById(
-            "gift-modal"
-        );
+        document.getElementById("gift-modal");
 
     if (modal) {
 
-        modal.classList.remove(
-            "visible"
-        );
-
-        modal.classList.add(
-            "closing"
-        );
+        modal.classList.remove("visible");
+        modal.classList.add("closing");
 
         setTimeout(() => {
 
             modal.remove();
 
-            document.body.classList.remove(
-                "gift-open"
-            );
+            document.body.classList.remove("gift-open");
 
-            document.removeEventListener(
-                "keydown",
-                manejarEscapeModal
-            );
+            document.removeEventListener("keydown", manejarEscapeModal);
 
         }, 500);
     }
@@ -1015,57 +1272,200 @@ async function revelarViaje() {
    CARGA DE DATOS
    ========================================================= */
 
-async function desbloquearYcargarViaje() {
+/*
+ * Base64 <-> bytes
+ */
+function aBase64(bytes) {
 
-    mostrarLoading();
+    let binario = "";
+
+    bytes.forEach(byte => {
+        binario += String.fromCharCode(byte);
+    });
+
+    return btoa(binario);
+}
+
+function deBase64(texto) {
+    return Uint8Array.from(atob(texto), caracter => caracter.charCodeAt(0));
+}
+
+function textoDeBase64(texto) {
+    return new TextDecoder().decode(deBase64(texto));
+}
+
+
+/*
+ * Igual que en tools/cifrar.mjs: sin mayúsculas, tildes
+ * ni espacios de sobra.
+ */
+function normalizarPalabra(palabra) {
+
+    return String(palabra || "")
+        .normalize("NFD")
+        .replace(/[̀-ͯ]/g, "")
+        .toLowerCase()
+        .replace(/\s+/g, " ")
+        .trim();
+}
+
+
+/*
+ * Descarga el plan cifrado y lo abre con la palabra
+ * secreta (o con la llave ya guardada en este móvil).
+ * Devuelve los datos y la llave para guardarla.
+ */
+async function descifrarSorpresa({ palabra, llaveGuardada }) {
+
+    if (!window.crypto?.subtle) {
+        throw new Error("Este navegador no permite abrir el regalo (hace falta https).");
+    }
+
+    const respuesta =
+        await fetch(CONFIG.archivoSorpresa, { cache: "no-cache" });
+
+    if (!respuesta.ok) {
+        throw new Error(`Error HTTP ${respuesta.status}`);
+    }
+
+    const paquete =
+        await respuesta.json();
+
+    let clave;
+
+    if (llaveGuardada) {
+
+        clave = await crypto.subtle.importKey(
+            "raw",
+            deBase64(llaveGuardada),
+            "AES-GCM",
+            true,
+            ["decrypt"]
+        );
+
+    } else {
+
+        const base = await crypto.subtle.importKey(
+            "raw",
+            new TextEncoder().encode(normalizarPalabra(palabra)),
+            "PBKDF2",
+            false,
+            ["deriveKey"]
+        );
+
+        clave = await crypto.subtle.deriveKey(
+            {
+                name: "PBKDF2",
+                hash: "SHA-256",
+                salt: deBase64(paquete.sal),
+                iterations: paquete.iteraciones
+            },
+            base,
+            { name: "AES-GCM", length: 256 },
+            true,
+            ["decrypt"]
+        );
+    }
+
+    // Si la palabra no es la buena, esto lanza OperationError.
+    const descifrado = await crypto.subtle.decrypt(
+        { name: "AES-GCM", iv: deBase64(paquete.iv) },
+        clave,
+        deBase64(paquete.datos)
+    );
+
+    const llave =
+        aBase64(new Uint8Array(await crypto.subtle.exportKey("raw", clave)));
+
+    return {
+        datos: JSON.parse(new TextDecoder().decode(descifrado)),
+        llave
+    };
+}
+
+
+async function abrirConLlaveGuardada() {
+
+    const llave =
+        localStorage.getItem(CONFIG.storage.llave);
+
+    if (!llave) {
+        return false;
+    }
 
     try {
 
-        console.log(
-            "📂 Cargando florencia.json..."
-        );
+        const { datos } =
+            await descifrarSorpresa({ llaveGuardada: llave });
 
-        const respuesta =
-            await fetch(
-                "./data/florencia.json",
-                {
-                    cache: "no-store"
-                }
-            );
+        prepararDatosViaje(datos);
 
-        if (!respuesta.ok) {
-
-            throw new Error(
-                `Error HTTP ${respuesta.status}`
-            );
-        }
-
-        datosViaje =
-            await respuesta.json();
-
-        console.log(
-            "✅ Datos del viaje cargados"
-        );
-
-        renderizarAplicacion();
-
-        guardarViajeDesbloqueado();
-
-        activarViajeDesbloqueado();
+        abrirViaje();
 
         return true;
 
     } catch (error) {
 
-        console.error(
-            "❌ No se ha podido cargar florencia.json:",
-            error
-        );
+        console.warn("No se ha podido abrir con la llave guardada:", error);
 
-        mostrarErrorCarga();
+        // Si es un fallo de red no borramos la llave.
+        if (error?.name === "OperationError") {
+            localStorage.removeItem(CONFIG.storage.llave);
+        }
 
         return false;
     }
+}
+
+
+function prepararDatosViaje(datos) {
+
+    const imagen =
+        datos.imagen_hero;
+
+    delete datos.imagen_hero;
+
+    datosViaje = datos;
+
+    if (imagen) {
+        document.documentElement.style.setProperty(
+            "--imagen-viaje",
+            `url("${imagen}")`
+        );
+    }
+
+    if (datos.revelacion?.titulo_pagina) {
+        document.title = datos.revelacion.titulo_pagina;
+    }
+}
+
+
+function abrirViaje() {
+
+    if (intervaloCuentaAtras) {
+        clearInterval(intervaloCuentaAtras);
+        intervaloCuentaAtras = null;
+    }
+
+    document.body.classList.remove("modo-apertura");
+
+    const pistas =
+        document.getElementById("pistas");
+
+    if (pistas) {
+        pistas.hidden = true;
+    }
+
+    const enlaceBajar =
+        document.querySelector("[data-hero-scroll]");
+
+    if (enlaceBajar) {
+        enlaceBajar.hidden = true;
+    }
+
+    renderizarAplicacion();
+
+    activarViajeDesbloqueado();
 }
 
 
@@ -1149,16 +1549,19 @@ function actualizarHeroViaje() {
             "ESCAPADA DE CUMPLEAÑOS";
     }
 
+    const revelacion =
+        datosViaje?.revelacion || {};
+
     if (titulo) {
 
         titulo.textContent =
-            "Florencia";
+            revelacion.destino || "";
     }
 
     if (subtitulo) {
 
         subtitulo.textContent =
-            "18 — 21 diciembre 2026";
+            revelacion.fechas || "";
     }
 
     if (hero) {
@@ -1247,11 +1650,7 @@ function mostrarErrorCarga() {
             </p>
 
             <p>
-                Comprueba que
-                <strong>
-                    data/florencia.json
-                </strong>
-                existe.
+                Comprueba la conexión e inténtalo de nuevo.
             </p>
 
             <button
@@ -1276,7 +1675,7 @@ function mostrarErrorCarga() {
             "click",
             () => {
 
-                desbloquearYcargarViaje();
+                window.location.reload();
             }
         );
     }
@@ -1468,7 +1867,7 @@ function renderizarDatosGenerales() {
 
     const destino =
         viaje.destino ||
-        "Florencia";
+        "";
 
     const fechas =
         viaje.fechas ||
@@ -1591,7 +1990,25 @@ function renderizarDatosGenerales() {
 
         hotelElemento.textContent =
             hotelNombre ||
-            "La Scaletta al Ponte Vecchio";
+            "";
+    }
+
+
+    const destinoTexto =
+        document.querySelector("[data-viaje-destino-texto]");
+
+    if (destinoTexto && datosViaje.revelacion?.destino_texto) {
+        destinoTexto.textContent =
+            datosViaje.revelacion.destino_texto;
+    }
+
+
+    const hotelTexto =
+        document.querySelector("[data-viaje-hotel-texto]");
+
+    if (hotelTexto && datosViaje.revelacion?.hotel_texto) {
+        hotelTexto.textContent =
+            datosViaje.revelacion.hotel_texto;
     }
 }
 
@@ -1788,29 +2205,6 @@ function prepararRestaurantes() {
 
 
     /*
-     * GELATO
-     */
-    if (
-        Array.isArray(
-            gastronomia.gelato
-        )
-    ) {
-
-        gastronomia.gelato
-            .forEach(restaurante => {
-
-                restaurantes.push({
-
-                    ...restaurante,
-
-                    categoriaFiltro:
-                        "gelato"
-                });
-            });
-    }
-
-
-    /*
      * ELIMINAR DUPLICADOS
      */
     const vistos =
@@ -1859,9 +2253,6 @@ function obtenerCategoriaRestaurante(
             "street_food"
         ) ||
         categoria.includes(
-            "schiacciata"
-        ) ||
-        categoria.includes(
             "sandwich"
         ) ||
         categoria.includes(
@@ -1904,16 +2295,10 @@ function obtenerCategoriaRestaurante(
 
     if (
         categoria.includes(
-            "gelato"
-        ) ||
-        categoria.includes(
-            "gelateria"
-        ) ||
-        categoria.includes(
-            "helado"
+            "helad"
         )
     ) {
-        return "gelato";
+        return "helado";
     }
 
 
@@ -2702,7 +3087,7 @@ function obtenerGoogleMapsUrl(
 
     const query =
         encodeURIComponent(
-            `${nombre} ${direccion} Florence Italy`
+            `${nombre} ${direccion} ${datosViaje?.revelacion?.maps_sufijo || ""}`.trim()
         );
 
 
@@ -3308,7 +3693,7 @@ function obtenerIconoActividad(
 
         tour: "🗺️",
 
-        gelato: "🍦",
+        helado: "🍦",
 
         mirador: "🌅",
 
@@ -3355,7 +3740,7 @@ function traducirTipoActividad(
 
         tour: "Tour",
 
-        gelato: "Gelato",
+        helado: "Helado",
 
         mirador: "Mirador",
 
@@ -3794,7 +4179,7 @@ function comprobarModoDesarrolloURL() {
         );
 
         sessionStorage.setItem(
-            "florenceTrip_simularCumpleanos",
+            CONFIG.storage.simular,
             "true"
         );
 

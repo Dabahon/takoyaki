@@ -7,7 +7,7 @@
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <meta name="description" content="¿Estás preparada?">
+    <meta name="description" content="¿Estás preparada, justiciera?">
 
     <meta name="theme-color" content="#8f4f3a">
 
@@ -34,10 +34,46 @@
 
         <div class="hero-overlay"></div>
 
+        <!-- Cielo nocturno (solo antes de abrir el regalo) -->
+        <div class="hero-sky" aria-hidden="true">
+
+            <div class="sky-stars sky-stars-1"></div>
+            <div class="sky-stars sky-stars-2"></div>
+            <div class="sky-stars sky-stars-3"></div>
+
+            <span class="sky-shooting"></span>
+
+            <svg class="sky-flight" viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice">
+                <path
+                    class="sky-flight-trail"
+                    d="M -20 250 C 80 230, 140 120, 230 140 S 360 90, 430 40"
+                />
+                <g class="sky-plane">
+                    <g transform="translate(-11 -8)">
+                        <path d="M0 0 L 22 8 L 0 16 L 5 8 Z" />
+                        <path class="sky-plane-fold" d="M5 8 L 22 8 L 9 12 Z" />
+                    </g>
+                    <animateMotion
+                        dur="16s"
+                        repeatCount="indefinite"
+                        rotate="auto"
+                        keyPoints="0;1"
+                        keyTimes="0;1"
+                        calcMode="spline"
+                        keySplines="0.45 0 0.55 1"
+                        path="M -20 250 C 80 230, 140 120, 230 140 S 360 90, 430 40"
+                    />
+                </g>
+            </svg>
+
+            <div class="sky-horizon"></div>
+
+        </div>
+
         <div class="hero-content">
 
             <span class="hero-eyebrow" id="hero-eyebrow">
-                🎁 Tic tac...
+                🎁 Tic tac, justiciera
             </span>
 
             <h1 class="hero-title" id="hero-title">
@@ -45,7 +81,7 @@
             </h1>
 
             <p class="hero-subtitle" id="hero-subtitle">
-                Solo falta un poquito
+                Se abre el 10 de diciembre a las 19:00
             </p>
 
 
@@ -114,12 +150,49 @@
                  ============================================= -->
 
             <button id="open-gift" class="gift-button" hidden>
-                🎁 Descubrir la sorpresa
+                🎁 Abrir mi regalo
             </button>
+
 
         </div>
 
+
+        <a class="hero-scroll" href="#pistas" data-hero-scroll hidden>
+            Pistas
+            <span aria-hidden="true">↓</span>
+        </a>
+
     </header>
+
+
+    <!-- =====================================================
+         PISTAS (antes de abrir el regalo)
+         ===================================================== -->
+
+    <section class="pistas" id="pistas" hidden aria-labelledby="pistas-titulo">
+
+        <div class="pistas-header">
+
+            <span class="section-eyebrow">
+                ✦ Cada miércoles, a las 19:00
+            </span>
+
+            <h2 id="pistas-titulo">
+                Pistas para impacientes
+            </h2>
+
+            <p>
+                Una nueva cada semana. A ver si lo adivinas…
+                (spoiler: no 😌)
+            </p>
+
+            <span class="pistas-contador" id="pistas-contador"></span>
+
+        </div>
+
+        <ol class="pistas-lista" id="pistas-lista"></ol>
+
+    </section>
 
 
     <!-- =====================================================
@@ -200,8 +273,8 @@
                             Destino
                         </h3>
 
-                        <p>
-                            Una ciudad para recorrer sin prisa.
+                        <p data-viaje-destino-texto>
+                            Para recorrer sin prisa.
                         </p>
 
                     </article>
@@ -237,8 +310,8 @@
                             Hotel
                         </h3>
 
-                        <p>
-                            Nuestro punto de partida en Florencia.
+                        <p data-viaje-hotel-texto>
+                            Nuestro punto de partida.
                         </p>
 
                     </article>
@@ -306,7 +379,7 @@
 
                 <!-- =========================================
                      PLAN DE COMIDAS POR DÍA
-                     (se rellena desde florencia.json)
+                     (se rellena con los datos del viaje)
                      ========================================= -->
 
                 <div class="meal-plan" id="meal-plan" hidden></div>
@@ -338,8 +411,8 @@
                         ☕ Desayuno
                     </button>
 
-                    <button type="button" class="restaurant-filter" data-restaurant-filter="gelato">
-                        🍦 Gelato
+                    <button type="button" class="restaurant-filter" data-restaurant-filter="helado">
+                        🍦 Helado
                     </button>
 
                 </div>

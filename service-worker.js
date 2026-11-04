@@ -1,28 +1,27 @@
 /* =========================================================
-   FLORENCE TRIP
+   UN PLAN
    service-worker.js
 
    Estrategia "network first":
    - Con conexión, siempre se descarga la última versión
      (y se guarda una copia en caché).
-   - Sin conexión (p. ej. en Florencia sin datos), se usa
+   - Sin conexión (p. ej. de viaje sin datos), se usa
      la última copia guardada.
 
    Así cualquier cambio que se suba a GitHub llega en la
    siguiente visita, sin tener que borrar nada.
    ========================================================= */
 
-const CACHE_NAME = "florence-trip-v2";
+const CACHE_NAME = "un-plan-v4";
 
 const FILES_TO_CACHE = [
     "./",
     "./index.html",
     "./css/styles.css",
     "./js/app.js",
-    "./data/florencia.json",
     "./manifest.json",
-    "./assets/images/inicio.jpg",
-    "./assets/images/florence.jpg"
+    // Va cifrado: guardarlo no revela nada sin la palabra.
+    "./data/sorpresa.json"
 ];
 
 
