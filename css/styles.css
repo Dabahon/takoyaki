@@ -6873,10 +6873,19 @@ button.pista-card:focus-visible {
    RASCA Y DESCUBRE
    ========================================================= */
 
+.gift-reveal .gift-big-icon {
+    margin-bottom: 12px;
+    font-size: 3.6rem;
+}
+
+/* Postal con proporción fija, como una tarjeta real */
 .rasca {
     position: relative;
-    width: min(330px, 100%);
-    margin: 6px auto 0;
+    display: grid;
+    width: min(320px, 100%);
+    aspect-ratio: 2 / 1;
+    min-height: 136px;
+    margin: 8px auto 0;
     overflow: hidden;
     border-radius: 18px;
     background:
@@ -6888,15 +6897,26 @@ button.pista-card:focus-visible {
 }
 
 .rasca-premio {
-    padding: 34px 12px 30px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-width: 0;
+    padding: 14px 16px;
 }
 
 .rasca-premio .gift-destination {
-    margin: 0 0 6px;
+    flex-wrap: nowrap;
+    margin: 0;
+    font-size: 3.4rem;   /* app.js lo ajusta al ancho */
+    line-height: 1;
+    white-space: nowrap;
 }
 
 .rasca-premio .gift-dates {
     margin: 0;
+    font-size: 0.78rem;
 }
 
 /* Hasta que la postal está pintada, el premio no se ve */
@@ -6945,10 +6965,47 @@ button.pista-card:focus-visible {
     100% { transform: none; }
 }
 
+
+/* Antes y después en el mismo hueco (rejilla apilada) */
+.rasca-pie {
+    display: grid;
+    margin-top: 18px;
+}
+
+.rasca-pie > * {
+    grid-area: 1 / 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    transition: opacity 0.35s ease, visibility 0.35s;
+}
+
+/* Antes de rascar, el aviso centrado en el hueco reservado */
+.rasca-antes {
+    justify-content: center;
+}
+
+.rasca-despues {
+    visibility: hidden;
+    opacity: 0;
+}
+
+.rasca-pie.descubierta .rasca-antes {
+    visibility: hidden;
+    opacity: 0;
+}
+
+.rasca-pie.descubierta .rasca-despues {
+    visibility: visible;
+    opacity: 1;
+    animation: aparecer 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.45s both;
+}
+
 .rasca-ayuda {
-    margin: 12px 0 0;
+    margin: 0;
     color: var(--text-light);
-    font-size: 0.8rem;
+    font-size: 0.82rem;
     font-weight: 600;
     transition: opacity 0.3s ease;
 }
@@ -6963,15 +7020,12 @@ button.pista-card:focus-visible {
     50% { transform: translateX(4px) rotate(8deg); }
 }
 
-/* La animación de entrada del paso fija opacity:1; hay que anularla */
-.gift-step.entrando > .rasca-ayuda.oculta,
 .rasca-ayuda.oculta {
-    animation: none;
     opacity: 0;
 }
 
 .rasca-saltar {
-    margin-top: 4px;
+    margin-top: 6px;
     padding: 6px 8px;
     border: 0;
     background: none;
@@ -6983,30 +7037,34 @@ button.pista-card:focus-visible {
     opacity: 0.7;
 }
 
-.rasca-despues {
-    margin-top: 16px;
-    animation: aparecer 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.5s both;
-}
-
-.rasca-despues[hidden] {
-    display: none;
-}
-
 .rasca-despues p {
-    max-width: 340px;
+    max-width: 320px;
     margin: 0 auto;
     color: var(--text-light);
+    line-height: 1.5;
 }
 
 .rasca-despues .gift-main-button {
-    margin-top: 18px;
+    margin-top: 16px;
+}
+
+@media (max-width: 360px) {
+
+    .gift-reveal .gift-big-icon {
+        margin-bottom: 6px;
+        font-size: 2.8rem;
+    }
+
+    .rasca-despues p {
+        font-size: 0.9rem;
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {
     .rasca:not(.descubierta),
     .rasca-ayuda span,
     .rasca.descubierta .gift-destination span,
-    .rasca-despues {
+    .rasca-pie.descubierta .rasca-despues {
         animation: none !important;
     }
 }

@@ -1227,21 +1227,30 @@ function mostrarRevelacion() {
 
         </div>
 
-        <p class="rasca-ayuda">
-            <span aria-hidden="true">👆</span> Rasca con el dedo
-        </p>
+        <!-- Antes y después ocupan el mismo hueco: el cuadro no salta -->
+        <div class="rasca-pie">
 
-        <button type="button" class="rasca-saltar" data-rasca-saltar>
-            Descubrir sin rascar
-        </button>
+            <div class="rasca-antes">
 
-        <div class="rasca-despues" hidden>
+                <p class="rasca-ayuda">
+                    <span aria-hidden="true">👆</span> Rasca con el dedo
+                </p>
 
-            <p>${escaparHTML(revelacion.frase || "")}</p>
+                <button type="button" class="rasca-saltar" data-rasca-saltar>
+                    Descubrir sin rascar
+                </button>
 
-            <button type="button" class="gift-main-button" data-gift-reveal>
-                ${escaparHTML(datosViaje?.billete?.boton_mas || "Ver nuestra escapada")}
-            </button>
+            </div>
+
+            <div class="rasca-despues" aria-hidden="true">
+
+                <p>${escaparHTML(revelacion.frase || "")}</p>
+
+                <button type="button" class="gift-main-button" data-gift-reveal tabindex="-1">
+                    ${escaparHTML(datosViaje?.billete?.boton_mas || "Ver nuestra escapada")}
+                </button>
+
+            </div>
 
         </div>
     `;
@@ -1255,10 +1264,43 @@ function mostrarRevelacion() {
 
     mostrarPasoRegalo(4);
 
-    // Esperamos a que el paso tenga tamaño para pintar la postal
+    // Esperamos a que el paso tenga tamaño para ajustar el texto y pintar la postal
     requestAnimationFrame(() =>
-        requestAnimationFrame(() => prepararRasca(paso, revelacion))
+        requestAnimationFrame(() => {
+            ajustarDestinoAlAncho(paso);
+            prepararRasca(paso, revelacion);
+        })
     );
+}
+
+
+/*
+ * El nombre del destino, siempre en una línea y tan grande
+ * como quepa en la postal (sirve para cualquier nombre).
+ */
+function ajustarDestinoAlAncho(paso) {
+
+    const caja =
+        paso.querySelector(".rasca-premio");
+
+    const titulo =
+        caja?.querySelector(".gift-destination");
+
+    if (!caja || !titulo) {
+        return;
+    }
+
+    const disponible =
+        caja.clientWidth - 32;
+
+    let tamano = 60;
+
+    titulo.style.fontSize = `${tamano}px`;
+
+    while (titulo.scrollWidth > disponible && tamano > 24) {
+        tamano -= 2;
+        titulo.style.fontSize = `${tamano}px`;
+    }
 }
 
 
@@ -1474,8 +1516,9 @@ function descubrirDestino(paso, revelacion) {
         icono.textContent = revelacion.icono || "✨";
     }
 
-    paso.querySelector(".rasca-ayuda")?.remove();
-    paso.querySelector("[data-rasca-saltar]")?.remove();
+    paso.querySelector(".rasca-pie")?.classList.add("descubierta");
+    paso.querySelector(".rasca-antes")?.setAttribute("aria-hidden", "true");
+    paso.querySelector("[data-rasca-saltar]")?.setAttribute("tabindex", "-1");
 
     // La capa dorada se desvanece y luego desaparece
     const capa =
@@ -1486,9 +1529,8 @@ function descubrirDestino(paso, revelacion) {
     const despues =
         paso.querySelector(".rasca-despues");
 
-    if (despues) {
-        despues.hidden = false;
-    }
+    despues?.removeAttribute("aria-hidden");
+    despues?.querySelector("[data-gift-reveal]")?.removeAttribute("tabindex");
 
     lanzarConfeti();
 
