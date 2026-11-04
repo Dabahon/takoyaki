@@ -12,7 +12,7 @@
    siguiente visita, sin tener que borrar nada.
    ========================================================= */
 
-const CACHE_NAME = "un-plan-v16";
+const CACHE_NAME = "un-plan-20261104151222";
 
 const FILES_TO_CACHE = [
     "./",
@@ -60,10 +60,18 @@ self.addEventListener("fetch", event => {
 
     // Solo gestionamos GET de nuestra propia web.
     // Fuentes de Google, mapas, etc. van directas a la red.
+    const url =
+        new URL(peticion.url);
+
     if (
         peticion.method !== "GET" ||
-        new URL(peticion.url).origin !== self.location.origin
+        url.origin !== self.location.origin
     ) {
+        return;
+    }
+
+    // La versión publicada se consulta siempre en la red, sin caché
+    if (url.pathname.endsWith("/version.json")) {
         return;
     }
 

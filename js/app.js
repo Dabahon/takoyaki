@@ -104,6 +104,78 @@ let intervaloCuentaAtras = null;
 document.addEventListener("DOMContentLoaded", iniciarApp);
 
 
+/* =========================================================
+   ACTUALIZACIÓN AUTOMÁTICA
+   Al abrir la web (o volver a ella desde segundo plano) se
+   mira si hay una versión más nueva publicada; si la hay, se
+   recarga una sola vez. Nunca con el regalo abierto.
+   La versión la pone tools/nueva-version.mjs.
+   ========================================================= */
+
+const VERSION_WEB = "20261104151222";
+
+async function comprobarVersionNueva() {
+
+    // Con el regalo abierto no tocamos nada
+    if (document.getElementById("gift-modal") || !navigator.onLine) {
+        return;
+    }
+
+    try {
+
+        const respuesta =
+            await fetch(`./version.json?t=${Date.now()}`, { cache: "no-store" });
+
+        if (!respuesta.ok) {
+            return;
+        }
+
+        const { v } =
+            await respuesta.json();
+
+        if (!v || v === VERSION_WEB) {
+            return;
+        }
+
+        // Una sola recarga por versión, para no entrar en bucle
+        const marca =
+            `plan_recargado_${v}`;
+
+        if (sessionStorage.getItem(marca)) {
+            return;
+        }
+
+        sessionStorage.setItem(marca, "1");
+
+        // Que el service worker también se ponga al día
+        try {
+            const registro = await navigator.serviceWorker?.getRegistration();
+            await registro?.update();
+        } catch (error) {
+            // No pasa nada
+        }
+
+        window.location.reload();
+
+    } catch (error) {
+        // Sin conexión o error de red: seguimos con lo que hay
+    }
+}
+
+document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") {
+        comprobarVersionNueva();
+    }
+});
+
+window.addEventListener("pageshow", event => {
+    // Volver a la app anclada desde segundo plano
+    if (event.persisted) {
+        comprobarVersionNueva();
+    }
+});
+
+
 /*
  * En la app de la pantalla de inicio, la zona de la hora es
  * transparente: cuando se baja por la página, le ponemos fondo
@@ -116,6 +188,8 @@ function marcarBajado() {
 window.addEventListener("scroll", marcarBajado, { passive: true });
 
 async function iniciarApp() {
+
+    comprobarVersionNueva();
 
     configurarEventosGlobales();
 
