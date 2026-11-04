@@ -8892,3 +8892,13 @@ body:not(.viaje-desbloqueado).bajado::before {
 footer {
     padding-bottom: calc(24px + var(--zona-segura-abajo));
 }
+
+
+/* La sombra de la solapa no debe asomar por las esquinas de arriba:
+   mismas esquinas redondeadas que el sobre y sin salirse por arriba */
+.sobre-sombra {
+    border-radius: 14px 14px 0 0;
+    transform: none;
+    top: 5px;
+    height: calc(72% - 5px);
+}
