@@ -5907,3 +5907,296 @@ button.pista-card:focus-visible {
         transition: none;
     }
 }
+
+
+/* =========================================================
+   BILLETE · SEGUNDA SORPRESA
+   ========================================================= */
+
+/* El modal puede crecer más que la pantalla en móviles pequeños */
+.gift-modal-content {
+    max-height: calc(100svh - 32px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+.gift-ticket h2 {
+    margin-bottom: 18px;
+}
+
+/* La "impresora": el billete sale de una ranura */
+.billete-impresora {
+    position: relative;
+    margin: 0 auto;
+    padding-top: 6px;
+    perspective: 900px;
+}
+
+.billete-impresora::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 8%;
+    right: 8%;
+    z-index: 2;
+    height: 6px;
+    border-radius: 999px;
+    background: linear-gradient(#15122a, #3a2c52);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+}
+
+.billete {
+    position: relative;
+    max-width: 360px;
+    margin: 0 auto;
+    overflow: hidden;
+    border-radius: 20px;
+    background: #fffdf8;
+    box-shadow: 0 18px 40px rgba(21, 18, 42, 0.22);
+    text-align: left;
+}
+
+.gift-ticket.entrando .billete {
+    animation: imprimir 1.4s cubic-bezier(0.22, 1, 0.36, 1) 0.35s both;
+}
+
+@keyframes imprimir {
+    0% { clip-path: inset(0 0 100% 0); transform: translateY(-30px) rotateX(18deg); }
+    70% { clip-path: inset(0 0 0 0); transform: translateY(4px) rotateX(-3deg); }
+    100% { clip-path: inset(0 0 0 0); transform: none; }
+}
+
+.billete-cabecera {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 18px;
+    background: var(--primary);
+    color: #ffe9c7;
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+}
+
+.billete-cabecera span:last-child {
+    font-size: 1.1rem;
+    letter-spacing: 0;
+}
+
+.billete-ruta {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 6px;
+    padding: 18px 18px 6px;
+}
+
+.billete-ciudad {
+    display: flex;
+    flex-direction: column;
+}
+
+.billete-ciudad:last-child {
+    text-align: right;
+}
+
+.billete-ciudad strong {
+    font-family: "Cormorant Garamond", serif;
+    font-size: 2.6rem;
+    line-height: 0.9;
+}
+
+.billete-ciudad span {
+    color: var(--text-light);
+    font-size: 0.72rem;
+}
+
+.billete-trayecto {
+    position: relative;
+    height: 40px;
+}
+
+.billete-trayecto svg {
+    position: absolute;
+    inset: 4px 0 0;
+    width: 100%;
+    height: 30px;
+}
+
+.billete-trayecto path {
+    fill: none;
+    stroke: var(--primary-light);
+    stroke-width: 1.4;
+    stroke-dasharray: 2 5;
+    stroke-linecap: round;
+    vector-effect: non-scaling-stroke;
+}
+
+/* El icono cruza de una ciudad a otra */
+.billete-icono-ruta {
+    position: absolute;
+    top: 0;
+    left: 0;
+    color: var(--primary);
+    font-size: 1.15rem;
+    line-height: 1;
+}
+
+.gift-ticket.entrando .billete-icono-ruta,
+.billete-suelto .billete-icono-ruta {
+    animation: cruzar 2.4s cubic-bezier(0.45, 0, 0.55, 1) 1.5s both;
+}
+
+@keyframes cruzar {
+    0% { left: 0; top: 22px; transform: rotate(-25deg); opacity: 0; }
+    10% { opacity: 1; }
+    50% { top: -2px; transform: rotate(0deg); }
+    100% { left: calc(100% - 1.15rem); top: 22px; transform: rotate(25deg); }
+}
+
+.billete-campos {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px 14px;
+    padding: 10px 18px 16px;
+}
+
+.billete-campo {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.billete-campo.ancho {
+    grid-column: 1 / -1;
+}
+
+.billete-campo span {
+    color: var(--text-light);
+    font-size: 0.58rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.billete-campo strong {
+    font-family: "Cormorant Garamond", serif;
+    font-size: 1.2rem;
+    line-height: 1.15;
+}
+
+/* Línea de corte con muescas a los lados */
+.billete-corte {
+    position: relative;
+    height: 0;
+    margin: 0 16px;
+    border-top: 2px dashed var(--border);
+}
+
+.billete-corte::before,
+.billete-corte::after {
+    content: "";
+    position: absolute;
+    top: -12px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--surface);
+}
+
+.billete-corte::before { left: -28px; }
+.billete-corte::after { right: -28px; }
+
+.billete-pie {
+    padding: 14px 18px 16px;
+    text-align: center;
+}
+
+.billete-barras {
+    width: 100%;
+    height: 44px;
+    fill: var(--text);
+}
+
+.billete-pie p {
+    margin-top: 8px;
+    color: var(--text-light);
+    font-family: "Cormorant Garamond", serif;
+    font-size: 1.05rem;
+    font-style: italic;
+    font-weight: 600;
+}
+
+.billete-acciones {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 22px;
+}
+
+.billete-acciones .gift-main-button {
+    margin-top: 0;
+}
+
+.gift-secondary-button {
+    padding: 13px 22px;
+    border: 1.5px solid var(--border);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--primary);
+    font-size: 0.74rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.gift-secondary-button:hover,
+.gift-secondary-button:focus-visible {
+    border-color: var(--primary-light);
+    background: rgba(143, 79, 58, 0.06);
+}
+
+/* Modal suelto desde Inicio */
+.billete-suelto {
+    flex-direction: column;
+    min-height: 0;
+    padding: 30px 20px 26px;
+}
+
+/* Botón en Inicio para volver a verlo */
+.billete-abrir {
+    display: block;
+    margin: 20px auto 0;
+    padding: 13px 22px;
+    border: 1.5px dashed rgba(143, 79, 58, 0.4);
+    border-radius: 999px;
+    background: var(--surface);
+    color: var(--primary);
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.billete-abrir:hover,
+.billete-abrir:focus-visible {
+    border-style: solid;
+    transform: translateY(-2px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    .gift-ticket.entrando .billete,
+    .gift-ticket.entrando .billete-icono-ruta,
+    .billete-suelto .billete-icono-ruta {
+        animation: none !important;
+    }
+
+    .billete-icono-ruta {
+        left: calc(50% - 0.6rem);
+    }
+}

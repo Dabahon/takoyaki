@@ -890,7 +890,7 @@ function crearModalRegalo() {
         >
 
             <div class="gift-progress" aria-hidden="true">
-                <span></span><span></span><span></span><span></span>
+                <span></span><span></span><span></span><span></span><span></span>
             </div>
 
 
@@ -969,6 +969,9 @@ function crearModalRegalo() {
 
 
             <div class="gift-step gift-reveal" data-step="4" hidden></div>
+
+
+            <div class="gift-step gift-ticket" data-step="5" hidden></div>
 
         </div>
     `;
@@ -1218,17 +1221,487 @@ function mostrarRevelacion() {
         <p>${escaparHTML(revelacion.frase || "")}</p>
 
         <button type="button" class="gift-main-button" data-gift-reveal>
-            Ver nuestra escapada
+            ${escaparHTML(datosViaje?.billete?.boton_mas || "Ver nuestra escapada")}
         </button>
     `;
 
     paso
         .querySelector("[data-gift-reveal]")
-        .addEventListener("click", revelarViaje);
+        .addEventListener(
+            "click",
+            datosViaje?.billete ? mostrarPasoBillete : revelarViaje
+        );
 
     mostrarPasoRegalo(4);
 
     lanzarConfeti();
+}
+
+
+/* =========================================================
+   BILLETE (segunda sorpresa)
+   Todos los textos vienen de los datos cifrados.
+   ========================================================= */
+
+/*
+ * Código de barras decorativo: anchos de barra a partir
+ * del texto, siempre iguales para el mismo texto.
+ */
+function barrasDesdeTexto(texto) {
+
+    const barras = [];
+
+    [...String(texto || "plan")].forEach(caracter => {
+
+        let codigo =
+            caracter.charCodeAt(0);
+
+        for (let i = 0; i < 4; i++) {
+            barras.push({ ancho: 1 + (codigo % 3), hueco: 1 + ((codigo >> 2) % 2) });
+            codigo = Math.floor(codigo / 3) + 7;
+        }
+    });
+
+    return barras;
+}
+
+
+function crearBilleteHTML(billete) {
+
+    let x = 0;
+
+    const barras =
+        barrasDesdeTexto(billete.codigo_barras)
+            .map(barra => {
+                const rect = `<rect x="${x}" width="${barra.ancho}" height="40" />`;
+                x += barra.ancho + barra.hueco;
+                return rect;
+            })
+            .join("");
+
+    const campos =
+        (billete.campos || [])
+            .map(campo => `
+                <div class="billete-campo${campo.ancho ? " ancho" : ""}">
+                    <span>${escaparHTML(campo.etiqueta)}</span>
+                    <strong>${escaparHTML(campo.valor)}</strong>
+                </div>
+            `)
+            .join("");
+
+    return `
+        <article class="billete" aria-label="${escaparAtributo(billete.titulo || "")}">
+
+            <header class="billete-cabecera">
+                <span>${escaparHTML(billete.titulo || "")}</span>
+                <span aria-hidden="true">${escaparHTML(billete.icono || "")}</span>
+            </header>
+
+            <div class="billete-ruta">
+
+                <div class="billete-ciudad">
+                    <strong>${escaparHTML(billete.origen?.codigo || "")}</strong>
+                    <span>${escaparHTML(billete.origen?.ciudad || "")}</span>
+                </div>
+
+                <div class="billete-trayecto" aria-hidden="true">
+                    <svg viewBox="0 0 100 30" preserveAspectRatio="none">
+                        <path d="M 4 26 Q 50 -6 96 26" />
+                    </svg>
+                    <span class="billete-icono-ruta">${escaparHTML(billete.icono || "")}</span>
+                </div>
+
+                <div class="billete-ciudad">
+                    <strong>${escaparHTML(billete.destino?.codigo || "")}</strong>
+                    <span>${escaparHTML(billete.destino?.ciudad || "")}</span>
+                </div>
+
+            </div>
+
+            <div class="billete-campos">${campos}</div>
+
+            <div class="billete-corte" aria-hidden="true"></div>
+
+            <footer class="billete-pie">
+                <svg class="billete-barras" viewBox="0 0 ${x} 40" preserveAspectRatio="none" aria-hidden="true">
+                    ${barras}
+                </svg>
+                <p>${escaparHTML(billete.nota || "")}</p>
+            </footer>
+
+        </article>
+    `;
+}
+
+
+function mostrarPasoBillete() {
+
+    const billete =
+        datosViaje?.billete;
+
+    const paso =
+        document.querySelector('#gift-modal [data-step="5"]');
+
+    if (!billete || !paso) {
+        revelarViaje();
+        return;
+    }
+
+    paso.innerHTML = `
+
+        <p class="gift-small">${escaparHTML(billete.intro_pequena || "")}</p>
+
+        <h2>${escaparHTML(billete.intro_titulo || "")}</h2>
+
+        <div class="billete-impresora">
+            ${crearBilleteHTML(billete)}
+        </div>
+
+        <div class="billete-acciones">
+
+            <button type="button" class="gift-secondary-button" data-guardar-billete>
+                ${escaparHTML(billete.boton_guardar || "Guardar")}
+            </button>
+
+            <button type="button" class="gift-main-button" data-gift-reveal>
+                Ver nuestra escapada
+            </button>
+
+        </div>
+    `;
+
+    paso
+        .querySelector("[data-guardar-billete]")
+        .addEventListener("click", () => guardarBillete(billete));
+
+    paso
+        .querySelector("[data-gift-reveal]")
+        .addEventListener("click", revelarViaje);
+
+    mostrarPasoRegalo(5);
+
+    setTimeout(lanzarConfeti, 1600);
+}
+
+
+/*
+ * Ver el billete otra vez desde el plan (Inicio).
+ */
+function abrirBilleteSuelto() {
+
+    const billete =
+        datosViaje?.billete;
+
+    if (!billete) {
+        return;
+    }
+
+    document.getElementById("billete-modal")?.remove();
+
+    const modal =
+        document.createElement("div");
+
+    modal.id = "billete-modal";
+    modal.className = "gift-modal visible";
+
+    modal.innerHTML = `
+        <div class="gift-modal-overlay" data-cerrar-billete></div>
+
+        <div class="gift-modal-content billete-suelto" role="dialog" aria-modal="true"
+             aria-label="${escaparAtributo(billete.titulo || "")}">
+
+            <div class="billete-impresora">
+                ${crearBilleteHTML(billete)}
+            </div>
+
+            <div class="billete-acciones">
+                <button type="button" class="gift-secondary-button" data-guardar-billete>
+                    ${escaparHTML(billete.boton_guardar || "Guardar")}
+                </button>
+                <button type="button" class="gift-main-button" data-cerrar-billete>
+                    Cerrar
+                </button>
+            </div>
+
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+    document.body.classList.add("gift-open");
+
+    const cerrar = () => {
+        modal.remove();
+        document.body.classList.remove("gift-open");
+        document.removeEventListener("keydown", alPulsarTecla);
+    };
+
+    const alPulsarTecla = event => {
+        if (event.key === "Escape") {
+            cerrar();
+        }
+    };
+
+    modal
+        .querySelectorAll("[data-cerrar-billete]")
+        .forEach(elemento => elemento.addEventListener("click", cerrar));
+
+    modal
+        .querySelector("[data-guardar-billete]")
+        .addEventListener("click", () => guardarBillete(billete));
+
+    document.addEventListener("keydown", alPulsarTecla);
+
+    modal.querySelector("[data-cerrar-billete].gift-main-button")?.focus();
+}
+
+
+function colocarBotonBillete() {
+
+    const billete =
+        datosViaje?.billete;
+
+    const destino =
+        document.getElementById("trip-info");
+
+    if (!billete || !destino || document.getElementById("abrir-billete")) {
+        return;
+    }
+
+    const boton =
+        document.createElement("button");
+
+    boton.type = "button";
+    boton.id = "abrir-billete";
+    boton.className = "billete-abrir";
+    boton.textContent = billete.boton_abrir || "Ver billete";
+    boton.addEventListener("click", abrirBilleteSuelto);
+
+    destino.insertAdjacentElement("afterend", boton);
+}
+
+
+/*
+ * Guardar el billete como imagen: lo dibujamos en un canvas
+ * y lo compartimos (en el móvil sale "Guardar imagen") o,
+ * si no se puede, se descarga.
+ */
+async function guardarBillete(billete) {
+
+    try {
+        await document.fonts?.ready;
+    } catch (error) {
+        // Sin fuentes web: usamos las del sistema.
+    }
+
+    // Formato vertical de móvil (9:16)
+    const W = 1080;
+    const H = 1920;
+
+    const lienzo =
+        document.createElement("canvas");
+
+    lienzo.width = W;
+    lienzo.height = H;
+
+    const c =
+        lienzo.getContext("2d");
+
+    const serif = '"Cormorant Garamond", Georgia, serif';
+    const sans = 'Inter, "Helvetica Neue", Arial, sans-serif';
+
+    const colores = {
+        fondo1: "#231a3d",
+        fondo2: "#15122a",
+        papel: "#fffdf8",
+        primario: "#8f4f3a",
+        texto: "#292621",
+        suave: "#756f67",
+        borde: "#e5ded2"
+    };
+
+    const redondeado = (x, y, w, h, r) => {
+        c.beginPath();
+        c.moveTo(x + r, y);
+        c.arcTo(x + w, y, x + w, y + h, r);
+        c.arcTo(x + w, y + h, x, y + h, r);
+        c.arcTo(x, y + h, x, y, r);
+        c.arcTo(x, y, x + w, y, r);
+        c.closePath();
+    };
+
+    // Fondo de noche
+    const degradado = c.createLinearGradient(0, 0, 0, H);
+    degradado.addColorStop(0, colores.fondo1);
+    degradado.addColorStop(1, colores.fondo2);
+    c.fillStyle = degradado;
+    c.fillRect(0, 0, W, H);
+
+    // Estrellitas
+    c.fillStyle = "rgba(255, 246, 232, 0.7)";
+    for (let i = 0; i < 90; i++) {
+        const sx = (i * 137.5) % W;
+        const sy = (i * 89.3) % H;
+        c.fillRect(sx, sy, i % 4 === 0 ? 3 : 2, i % 4 === 0 ? 3 : 2);
+    }
+
+    // Papel del billete
+    const bx = 90, by = 200, bw = W - 180, bh = H - 400;
+    c.save();
+    c.shadowColor = "rgba(0, 0, 0, 0.35)";
+    c.shadowBlur = 50;
+    c.shadowOffsetY = 20;
+    redondeado(bx, by, bw, bh, 44);
+    c.fillStyle = colores.papel;
+    c.fill();
+    c.restore();
+
+    // Cabecera
+    c.save();
+    redondeado(bx, by, bw, bh, 44);
+    c.clip();
+    c.fillStyle = colores.primario;
+    c.fillRect(bx, by, bw, 130);
+    c.restore();
+
+    c.fillStyle = "#ffe9c7";
+    c.font = `700 34px ${sans}`;
+    c.textBaseline = "middle";
+    c.textAlign = "left";
+    c.fillText((billete.titulo || "").toUpperCase(), bx + 60, by + 65);
+    c.textAlign = "right";
+    c.font = `56px ${sans}`;
+    c.fillText(billete.icono || "", bx + bw - 60, by + 65);
+
+    // Ruta
+    const ry = by + 300;
+    c.fillStyle = colores.texto;
+    c.font = `700 130px ${serif}`;
+    c.textAlign = "left";
+    c.fillText(billete.origen?.codigo || "", bx + 60, ry);
+    c.textAlign = "right";
+    c.fillText(billete.destino?.codigo || "", bx + bw - 60, ry);
+
+    c.fillStyle = colores.suave;
+    c.font = `500 36px ${sans}`;
+    c.textAlign = "left";
+    c.fillText(billete.origen?.ciudad || "", bx + 64, ry + 100);
+    c.textAlign = "right";
+    c.fillText(billete.destino?.ciudad || "", bx + bw - 64, ry + 100);
+
+    // Arco punteado con el icono
+    c.save();
+    c.strokeStyle = colores.primario;
+    c.lineWidth = 4;
+    c.setLineDash([4, 14]);
+    c.lineCap = "round";
+    c.beginPath();
+    c.moveTo(bx + 380, ry + 10);
+    c.quadraticCurveTo(W / 2, ry - 110, bx + bw - 380, ry + 10);
+    c.stroke();
+    c.restore();
+    c.fillStyle = colores.primario;
+    c.font = `60px ${sans}`;
+    c.textAlign = "center";
+    c.fillText(billete.icono || "", W / 2, ry - 60);
+
+    // Campos en dos columnas
+    let fy = ry + 210;
+    let columna = 0;
+    const colX = [bx + 60, bx + bw / 2 + 20];
+
+    (billete.campos || []).forEach(campo => {
+
+        if (campo.ancho && columna === 1) {
+            columna = 0;
+            fy += 145;
+        }
+
+        const x = colX[columna];
+
+        c.textAlign = "left";
+        c.fillStyle = colores.suave;
+        c.font = `600 28px ${sans}`;
+        c.fillText((campo.etiqueta || "").toUpperCase(), x, fy);
+
+        c.fillStyle = colores.texto;
+        c.font = `700 ${campo.ancho ? 60 : 54}px ${serif}`;
+        c.fillText(campo.valor || "", x, fy + 62);
+
+        if (campo.ancho || columna === 1) {
+            columna = 0;
+            fy += 145;
+        } else {
+            columna = 1;
+        }
+    });
+
+    // Línea de corte con muescas
+    const cy = Math.max(fy + 20, by + bh - 330);
+    c.save();
+    c.strokeStyle = colores.borde;
+    c.lineWidth = 4;
+    c.setLineDash([16, 14]);
+    c.beginPath();
+    c.moveTo(bx + 50, cy);
+    c.lineTo(bx + bw - 50, cy);
+    c.stroke();
+    c.restore();
+    c.fillStyle = colores.fondo2;
+    c.beginPath(); c.arc(bx, cy, 34, 0, Math.PI * 2); c.fill();
+    c.beginPath(); c.arc(bx + bw, cy, 34, 0, Math.PI * 2); c.fill();
+
+    // Código de barras
+    const barras = barrasDesdeTexto(billete.codigo_barras);
+    const total = barras.reduce((suma, b) => suma + b.ancho + b.hueco, 0);
+    const escala = (bw - 160) / total;
+    let x = bx + 80;
+    c.fillStyle = colores.texto;
+    barras.forEach(barra => {
+        c.fillRect(x, cy + 60, barra.ancho * escala, 110);
+        x += (barra.ancho + barra.hueco) * escala;
+    });
+
+    c.fillStyle = colores.suave;
+    c.font = `italic 600 40px ${serif}`;
+    c.textAlign = "center";
+    c.fillText(billete.nota || "", W / 2, cy + 230);
+
+    const blob =
+        await new Promise(resolve => lienzo.toBlob(resolve, "image/png"));
+
+    if (!blob) {
+        return;
+    }
+
+    const nombre =
+        billete.archivo || "billete.png";
+
+    const archivo =
+        new File([blob], nombre, { type: "image/png" });
+
+    try {
+
+        if (navigator.canShare?.({ files: [archivo] })) {
+            await navigator.share({ files: [archivo], title: billete.titulo || "" });
+            return;
+        }
+
+    } catch (error) {
+        if (error?.name === "AbortError") {
+            return;
+        }
+    }
+
+    const enlace =
+        document.createElement("a");
+
+    enlace.href = URL.createObjectURL(blob);
+    enlace.download = nombre;
+    document.body.appendChild(enlace);
+    enlace.click();
+    enlace.remove();
+
+    setTimeout(() => URL.revokeObjectURL(enlace.href), 4000);
 }
 
 
@@ -1453,6 +1926,8 @@ function abrirViaje() {
     }
 
     renderizarAplicacion();
+
+    colocarBotonBillete();
 
     activarViajeDesbloqueado();
 }
