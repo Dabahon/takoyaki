@@ -12,7 +12,7 @@
    siguiente visita, sin tener que borrar nada.
    ========================================================= */
 
-const CACHE_NAME = "un-plan-v9";
+const CACHE_NAME = "un-plan-v10";
 
 const FILES_TO_CACHE = [
     "./",

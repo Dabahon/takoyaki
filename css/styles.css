@@ -8683,3 +8683,131 @@ body {
 #gift-modal .gift-modal-content {
     min-height: min(600px, calc(100svh - 32px));
 }
+
+
+/* =========================================================
+   REVELACIÓN: LA CIUDAD DE FONDO
+   Cubre todo el cuadro del regalo. Solo aparece al
+   descubrir el destino (antes, nada).
+   ========================================================= */
+
+.gift-modal-content > .gift-step {
+    position: relative;
+    z-index: 1;
+}
+
+.revelacion-fondo {
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: 0;
+    z-index: 0;
+    height: 100%;
+    min-height: 100%;
+    overflow: hidden;
+    border-radius: inherit;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 1.2s ease 0.1s;
+}
+
+/* La ilustración ocupa la parte de arriba… */
+.revelacion-fondo::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: 0;
+    height: 64%;
+    background: var(--imagen-viaje, none) center 42% / cover no-repeat;
+    transform: scale(1.14);
+    transform-origin: 50% 45%;
+}
+
+/* …y se funde con el papel hacia abajo */
+.revelacion-fondo::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        linear-gradient(
+            to bottom,
+            rgba(143, 79, 58, 0.22) 0%,
+            rgba(143, 79, 58, 0) 14%,
+            rgba(255, 253, 248, 0) 36%,
+            rgba(255, 253, 248, 0.85) 54%,
+            var(--surface) 64%
+        );
+}
+
+.gift-modal-content.ciudad[data-paso="4"] .revelacion-fondo {
+    opacity: 1;
+}
+
+/* Zoom lento, como una postal que se acerca */
+.gift-modal-content.ciudad .revelacion-fondo::before {
+    animation: acercarCiudad 10s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes acercarCiudad {
+    from { transform: scale(1.14); }
+    to { transform: scale(1.0); }
+}
+
+/* La noche y las estrellas se desvanecen para dejar ver la ciudad */
+.gift-reveal .paso-escena {
+    transition: opacity 0.9s ease;
+}
+
+.gift-reveal.descubierto .paso-escena {
+    opacity: 0;
+}
+
+/* "Nos vamos a…" legible sobre el dibujo */
+.gift-reveal .gift-small {
+    transition: background 0.6s ease, box-shadow 0.6s ease;
+}
+
+.gift-reveal.descubierto .gift-small {
+    display: inline-block;
+    align-self: center;
+    padding: 4px 12px;
+    border-radius: 999px;
+    background: rgba(255, 253, 248, 0.92);
+    box-shadow: 0 4px 12px rgba(30, 14, 8, 0.12);
+}
+
+/* La postal descubierta, con más presencia sobre la ilustración */
+.gift-reveal.descubierto .rasca {
+    box-shadow:
+        inset 0 0 0 1px rgba(143, 79, 58, 0.15),
+        0 18px 40px rgba(30, 14, 8, 0.28);
+    transition: box-shadow 0.8s ease;
+}
+
+/* Puntos de progreso: claros sobre la noche, oscuros sobre la ciudad */
+.gift-modal-content[data-paso="4"] .gift-progress span {
+    background: rgba(255, 246, 232, 0.35);
+}
+
+.gift-modal-content[data-paso="4"] .gift-progress span.activo {
+    background: #ffe9c7;
+}
+
+#gift-modal .gift-modal-content.ciudad[data-paso="4"] .gift-progress span {
+    background: rgba(143, 79, 58, 0.25);
+}
+
+#gift-modal .gift-modal-content.ciudad[data-paso="4"] .gift-progress span.activo {
+    background: var(--primary);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .gift-modal-content.ciudad .revelacion-fondo::before {
+        animation: none;
+        transform: none;
+    }
+}
+
+
+

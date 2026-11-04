@@ -1777,6 +1777,17 @@ function mostrarRevelacion() {
             )
             .join("");
 
+    // Fondo de la ciudad: a sangre en todo el cuadro, invisible hasta rascar
+    const contenidoModal =
+        paso.closest(".gift-modal-content");
+
+    if (contenidoModal && !contenidoModal.querySelector(".revelacion-fondo")) {
+        contenidoModal.insertAdjacentHTML(
+            "afterbegin",
+            `<div class="revelacion-fondo" aria-hidden="true"></div>`
+        );
+    }
+
     paso.innerHTML = `
 
         <div class="paso-escena escena-estrellas">
@@ -2084,6 +2095,10 @@ function pintarPostalDorada(c, w, h) {
 function descubrirDestino(paso, revelacion) {
 
     paso.classList.remove("por-rascar");
+
+    // Aparece la ciudad de fondo
+    paso.classList.add("descubierto");
+    paso.closest(".gift-modal-content")?.classList.add("ciudad");
 
     const caja =
         paso.querySelector(".rasca");
