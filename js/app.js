@@ -1021,6 +1021,65 @@ function crearEscena(nombre, extra = "") {
 let indiceRecuerdo = -1;
 
 
+/*
+ * Sellos del cuaderno: uno por viaje, cada uno con su tinta.
+ */
+const TINTAS = ["#8f4f3a", "#3d5a80", "#5f7f5a", "#7a4c78"];
+
+function crearSelloCuaderno(recuerdo, indice) {
+
+    const giros = [-12, 9, -5, 14];
+    const id = `arco-cuaderno-${indice}`;
+
+    return `
+        <span class="sello-cuaderno" style="--i:${indice}; --tinta:${TINTAS[indice % TINTAS.length]}; --giro:${giros[indice % giros.length]}deg">
+            <svg viewBox="0 0 100 100">
+                <defs>
+                    <path id="${id}" d="M 17 52 A 33 33 0 0 1 83 52" />
+                    <path id="${id}-b" d="M 21 56 A 30 30 0 0 0 79 56" />
+                </defs>
+                <circle cx="50" cy="50" r="45" />
+                <circle class="interior" cx="50" cy="50" r="38" />
+                <text><textPath href="#${id}" startOffset="50%" text-anchor="middle">${escaparHTML(recuerdo.sello || recuerdo.lugar)}</textPath></text>
+                <text class="pie"><textPath href="#${id}-b" startOffset="50%" text-anchor="middle">${ANIO_RECUERDOS}</textPath></text>
+                <text class="numero" x="50" y="60" text-anchor="middle">${indice + 1}</text>
+            </svg>
+        </span>
+    `;
+}
+
+
+/*
+ * El sello del viaje nº 5. Nada del destino: solo el número
+ * del viaje, las fechas y sus 30.
+ */
+function crearSelloDorado() {
+
+    return `
+        <span class="sello-dorado">
+            <svg viewBox="0 0 120 120">
+                <defs>
+                    <path id="arco-dorado" d="M 20 62 A 40 40 0 0 1 100 62" />
+                    <path id="arco-dorado-b" d="M 24 66 A 36 36 0 0 0 96 66" />
+                    <radialGradient id="tinta-dorada" cx=".35" cy=".3" r=".8">
+                        <stop offset="0" stop-color="#f6dc8e" />
+                        <stop offset=".6" stop-color="#d9a441" />
+                        <stop offset="1" stop-color="#a8762a" />
+                    </radialGradient>
+                </defs>
+                <circle class="fondo" cx="60" cy="60" r="56" />
+                <circle class="aro" cx="60" cy="60" r="50" />
+                <circle class="aro fino" cx="60" cy="60" r="43" />
+                <text class="arco"><textPath href="#arco-dorado" startOffset="50%" text-anchor="middle">VIAJE Nº ${RECUERDOS.length + 1}</textPath></text>
+                <text class="arco pie"><textPath href="#arco-dorado-b" startOffset="50%" text-anchor="middle">18 · 21 DIC · ${ANIO_RECUERDOS}</textPath></text>
+                <text class="treinta" x="60" y="72" text-anchor="middle">30</text>
+                <text class="estrella" x="60" y="40" text-anchor="middle">✦</text>
+            </svg>
+        </span>
+    `;
+}
+
+
 function crearPolaroid(recuerdo, indice) {
 
     const figura =
@@ -1101,19 +1160,34 @@ function siguienteRecuerdo() {
         return;
     }
 
-    // Después de la última foto: a la palabra secreta
+    // Después de la última foto: al cuaderno
     if (indiceRecuerdo >= RECUERDOS.length - 1) {
+
+        boton.disabled = true;
 
         document
             .querySelector("#gift-modal .sello-misterio")
             ?.classList.add("encendido");
 
-        mostrarPasoRegalo(3).then(() =>
-            setTimeout(
-                () => document.getElementById("gift-password-input")?.focus(),
-                120
-            )
-        );
+        // Las fotos se recogen y los sellos se elevan…
+        document
+            .querySelector("#gift-modal .recuerdos")
+            ?.classList.add("despedida");
+
+        const reducir =
+            window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+        setTimeout(() => {
+
+            mostrarPasoRegalo(3).then(() =>
+                // …y la palabra se puede escribir cuando acaban de sellarse
+                setTimeout(
+                    () => document.getElementById("gift-password-input")?.focus({ preventScroll: true }),
+                    reducir ? 0 : 1700
+                )
+            );
+
+        }, reducir ? 0 : 520);
 
         return;
     }
@@ -1321,11 +1395,26 @@ function crearModalRegalo() {
             </div>
 
 
-            <form class="gift-step gift-password con-escena" data-step="3" hidden novalidate>
+            <form class="gift-step gift-password cuaderno-paso" data-step="3" hidden novalidate>
 
-                ${crearEscena("candado")}
+                <p class="gift-small">Cuaderno de viajes · ${ANIO_RECUERDOS}</p>
 
-                <p class="gift-small">Viaje nº ${RECUERDOS.length + 1} · 18 – 21 dic</p>
+                <div class="cuaderno" aria-hidden="true">
+
+                    <div class="cuaderno-sellos">
+                        ${RECUERDOS.map(crearSelloCuaderno).join("")}
+                    </div>
+
+                    <div class="visado" data-visado>
+                        <svg class="visado-hueco" viewBox="0 0 120 120">
+                            <circle class="visado-circulo" cx="60" cy="60" r="54" pathLength="1" />
+                        </svg>
+                        <span class="visado-interrogacion">?</span>
+                        <span class="visado-texto">Viaje nº ${RECUERDOS.length + 1}</span>
+                        ${crearSelloDorado()}
+                    </div>
+
+                </div>
 
                 <h2>Dime la palabra secreta</h2>
 
@@ -1349,7 +1438,7 @@ function crearModalRegalo() {
                 <p class="gift-password-error" role="alert" aria-live="assertive"></p>
 
                 <button type="submit" class="gift-main-button">
-                    Abrir
+                    Sellar <span aria-hidden="true">✦</span>
                 </button>
 
             </form>
@@ -1619,7 +1708,7 @@ async function comprobarPalabraSecreta(event) {
     }
 
     boton.disabled = true;
-    boton.textContent = "Abriendo…";
+    boton.textContent = "Sellando…";
     error.textContent = "";
 
     try {
@@ -1633,19 +1722,19 @@ async function comprobarPalabraSecreta(event) {
 
         // El candado se abre antes de pasar a la postal
         formulario.classList.add("desbloqueado");
-        boton.textContent = "¡Abierto!";
+        boton.textContent = "¡Sellado!";
 
         const reducir =
             window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-        await new Promise(resolver => setTimeout(resolver, reducir ? 0 : 950));
+        await new Promise(resolver => setTimeout(resolver, reducir ? 0 : 1500));
 
         mostrarRevelacion();
 
     } catch (fallo) {
 
         boton.disabled = false;
-        boton.textContent = "Abrir";
+        boton.innerHTML = `Sellar <span aria-hidden="true">✦</span>`;
 
         error.textContent =
             fallo?.name === "OperationError"
