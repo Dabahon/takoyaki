@@ -154,7 +154,7 @@ document.addEventListener("DOMContentLoaded", iniciarApp);
    La versión la pone tools/nueva-version.mjs.
    ========================================================= */
 
-const VERSION_WEB = "20261105130305";
+const VERSION_WEB = "20261105130609";
 
 async function comprobarVersionNueva() {
 
@@ -1139,13 +1139,37 @@ function abrirSobre(sobre) {
 const JUEGO_MALETA = [
     { icono: "🦆", nombre: "Flotador de patito", va: false, mensaje: "¿Dónde crees que vamos?" },
     { icono: "👟", nombre: "Zapatillas cómodas", va: true, mensaje: "Imprescindibles." },
-    { icono: "🎮", nombre: "La Switch", va: false, mensaje: "Este viaje no va de eso." },
+    { icono: "gorro", nombre: "Tu gorro blanco", va: "puesto", mensaje: "🤍 Ese no se mete: irá puesto. ¿Por qué? La semana que viene 😉" },
     { icono: "👗", nombre: "Vestido bonito", va: true, mensaje: "Para una noche especial…" },
     { icono: "👠", nombre: "Tacones de 12 cm", va: false, mensaje: "Ni de broma, vas a necesitar los pies." },
     { icono: "🧸", nombre: "Peluche", va: false, mensaje: "Me tienes a mí." },
     { icono: "📸", nombre: "Cámara", va: true, mensaje: "Ya te lo dije en la pista 1 😉" },
     { icono: "🍳", nombre: "Sartén", va: false, mensaje: "Esta vez no cocinas tú." }
 ];
+
+
+// Su gorro blanco de pelo (no hay emoji de gorro de lana)
+const ICONO_GORRO = `
+    <svg class="icono-gorro" viewBox="0 0 48 48" aria-hidden="true">
+        <defs>
+            <filter id="pelo-gorro" x="-20%" y="-20%" width="140%" height="140%">
+                <feTurbulence type="fractalNoise" baseFrequency="1.4" numOctaves="2" result="ruido"/>
+                <feDisplacementMap in="SourceGraphic" in2="ruido" scale="2.6"/>
+            </filter>
+        </defs>
+        <g filter="url(#pelo-gorro)">
+            <path d="M9 33 C9 17 16 11 24 11 C32 11 39 17 39 33 Z" fill="#fbf8f3" stroke="#cfc6ba" stroke-width="1.4"/>
+            <rect x="7" y="31" width="34" height="9" rx="4.5" fill="#f3eee6" stroke="#cfc6ba" stroke-width="1.4"/>
+            <circle cx="24" cy="9" r="6.5" fill="#ffffff" stroke="#cfc6ba" stroke-width="1.4"/>
+        </g>
+        <path d="M15 26 q2 -6 6 -9" fill="none" stroke="#e6dfd4" stroke-width="1.6" stroke-linecap="round"/>
+    </svg>
+`;
+
+
+function iconoObjeto(objeto) {
+    return objeto.icono === "gorro" ? ICONO_GORRO : objeto.icono;
+}
 
 
 function abrirJuegoMaleta(sobre) {
@@ -1158,7 +1182,7 @@ function abrirJuegoMaleta(sobre) {
         window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     const necesarios =
-        JUEGO_MALETA.filter(objeto => objeto.va).length;
+        JUEGO_MALETA.filter(objeto => objeto.va === true).length;
 
     let metidos = 0;
     let terminado = false;
@@ -1209,7 +1233,7 @@ function abrirJuegoMaleta(sobre) {
             <div class="maleta-objetos">
                 ${JUEGO_MALETA.map((objeto, i) => `
                     <button type="button" class="maleta-objeto" data-objeto="${i}" aria-label="${escaparAtributo(objeto.nombre)}">
-                        <span class="maleta-objeto-icono" aria-hidden="true">${objeto.icono}</span>
+                        <span class="maleta-objeto-icono" aria-hidden="true">${iconoObjeto(objeto)}</span>
                         <span class="maleta-objeto-nombre">${escaparHTML(objeto.nombre)}</span>
                     </button>
                 `).join("")}
@@ -1354,6 +1378,16 @@ function abrirJuegoMaleta(sobre) {
                 }
 
                 const objeto = JUEGO_MALETA[Number(boton.dataset.objeto)];
+
+                // El gorro: ni dentro ni fuera, guiño a la pista siguiente
+                if (objeto.va === "puesto") {
+
+                    boton.classList.remove("puesto");
+                    void boton.offsetWidth;
+                    boton.classList.add("puesto");
+                    decir(objeto.mensaje, "bien");
+                    return;
+                }
 
                 if (!objeto.va) {
 

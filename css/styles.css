@@ -9737,3 +9737,41 @@ body.juego-abierto {
 .maleta-objeto:disabled:not(.dentro):not(.fuera) {
     opacity: 0.55;
 }
+
+/* El gorro blanco: dibujo propio y su guiño */
+.icono-gorro {
+    display: block;
+    width: 1.95rem;
+    height: 1.95rem;
+    margin: -0.1rem auto 0;
+    overflow: visible;
+    filter: drop-shadow(0 1px 1.5px rgba(80, 60, 40, 0.25));
+}
+
+.maleta-objeto.puesto {
+    border-color: rgba(102, 112, 90, 0.45);
+    background: rgba(102, 112, 90, 0.08);
+}
+
+.maleta-objeto.puesto .maleta-objeto-icono {
+    animation: gorroGuino 0.8s cubic-bezier(0.3, 1.5, 0.5, 1);
+}
+
+.maleta-objeto.puesto::after {
+    content: "😉";
+    position: absolute;
+    top: 3px;
+    right: 4px;
+    font-size: 0.7rem;
+}
+
+@keyframes gorroGuino {
+    0% { transform: none; }
+    30% { transform: translateY(-7px) rotate(-10deg) scale(1.12); }
+    60% { transform: translateY(0) rotate(7deg); }
+    100% { transform: none; }
+}
+
+.maleta-mensaje {
+    font-size: clamp(1.1rem, 5vw, 1.3rem);
+}
