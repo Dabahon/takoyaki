@@ -154,7 +154,7 @@ document.addEventListener("DOMContentLoaded", iniciarApp);
    La versión la pone tools/nueva-version.mjs.
    ========================================================= */
 
-const VERSION_WEB = "20261105133110";
+const VERSION_WEB = "20261105142643";
 
 async function comprobarVersionNueva() {
 
@@ -1789,30 +1789,74 @@ function montarExamen(zona, api) {
    --------------------------------------------------------- */
 
 const ESCALERA = {
-    escalones: 15,
-    animos: {
-        3: "Vamos bien…",
-        6: "¿Ya cansada? 😏",
-        9: "Respira, que queda poco… (mentira)",
-        12: "¡Casi, casi!",
-        14: "¡Uno más!"
-    },
+    // Cada rellano, una pregunta; cada acierto, dos letras de la palabra.
+    rellanos: [
+        {
+            pregunta: "¿Dónde fue nuestra primera cita?",
+            opciones: ["En un Burger King", "En Fatiga", "En un banco del parque"],
+            buena: 1,
+            bien: "¡Claro que sí! En Fatiga ❤️",
+            mal: "¿¡Cómo que no te acuerdas!? 😱"
+        },
+        {
+            pregunta: "¿Nuestra película preferida?",
+            opciones: ["Titanic", "El señor de los anillos", "Harry Potter"],
+            buena: 2,
+            bien: "¡Accio letras! 🪄",
+            mal: "Eso es de muggles. Prueba otra 🧹"
+        },
+        {
+            pregunta: "¿Quién roba la manta por la noche?",
+            opciones: ["Daniel", "María", "La manta se va sola"],
+            buena: 0,
+            bien: "Culpable. Lo confieso 🙈",
+            mal: "Buen intento, pero no cuela 😏"
+        },
+        {
+            pregunta: "¿Quién gana siempre las discusiones?",
+            opciones: ["Tú", "Tú", "Tú, justiciera"],
+            buena: "todas",
+            bien: "Exacto. Siempre tú. 😌"
+        }
+    ],
+    peldanosPorTramo: 4,
     palabra: "dGFrb3lha2k="     // en base64, como las pistas
 };
 
 
 function montarEscalera(zona, api) {
 
-    const total = ESCALERA.escalones;
-    let subidos = 0;
+    const palabra = textoDeBase64(ESCALERA.palabra).toUpperCase();
+    const rellanos = ESCALERA.rellanos;
+    const porTramo = ESCALERA.peldanosPorTramo;
+    const letrasPorRellano = Math.ceil(palabra.length / rellanos.length);
 
-    // Escalones de abajo a la izquierda hacia arriba a la derecha
-    const peldanos = Array.from({ length: total }, (_, i) => {
-        const x = 8 + i * (184 / total);
-        const y = 150 - (i + 1) * (128 / total);
-        return `<rect class="peldano" data-peldano="${i}" x="${x.toFixed(1)}" y="${y.toFixed(1)}"
-            width="${(184 / total + 0.6).toFixed(1)}" height="${(150 - y).toFixed(1)}" />`;
-    }).join("");
+    /*
+     * Dibujo: tramos de peldaños con un rellano al final de cada uno.
+     * "puntos" guarda dónde se pone ella en cada paso.
+     */
+    const ancho = 8, rellano = 12, alto = 7.5, suelo = 150;
+    let x = 8, nivel = 0;
+    const columnas = [];
+    const puntos = [{ x: 3, y: suelo }];
+
+    rellanos.forEach((_, tramo) => {
+        for (let p = 0; p < porTramo; p++) {
+            nivel++;
+            columnas.push({ x, w: ancho, nivel, tramo, tipo: "peldano" });
+            puntos.push({ x: x + ancho / 2, y: suelo - nivel * alto });
+            x += ancho;
+        }
+        columnas.push({ x, w: rellano, nivel, tramo, tipo: "rellano" });
+        puntos.push({ x: x + rellano / 2, y: suelo - nivel * alto });
+        x += rellano;
+    });
+
+    const dibujoColumnas = columnas.map(c => `
+        <rect class="${c.tipo}" data-tramo="${c.tramo}" x="${c.x.toFixed(1)}" y="${(suelo - c.nivel * alto).toFixed(1)}"
+            width="${(c.w + 0.6).toFixed(1)}" height="${(c.nivel * alto).toFixed(1)}" />
+        ${c.tipo === "rellano" ? `<text class="rellano-numero" x="${(c.x + c.w / 2).toFixed(1)}" y="${(suelo - c.nivel * alto + 9).toFixed(1)}" text-anchor="middle">${c.tramo + 1}</text>` : ""}
+    `).join("");
 
     zona.innerHTML = `
         <div class="escalera" data-escalera>
@@ -1827,24 +1871,27 @@ function montarEscalera(zona, api) {
                 <rect class="escalera-cielo" x="0" y="0" width="200" height="160" fill="url(#cielo-escalera)"/>
                 <circle class="escalera-sol" cx="150" cy="42" r="15" fill="#f7b267"/>
                 <path class="escalera-tejados" d="M0 62 l10 -8 10 8 v-6 h14 l8 -10 8 10 h10 l12 -9 12 9 v-4 h16 l9 -7 9 7 h12 l11 -9 11 9 h8 l10 -8 10 8 v98 h-200z" fill="#c98a6a"/>
-                ${peldanos}
+                ${dibujoColumnas}
             </svg>
             <span class="escalera-ella" data-escalera-ella aria-hidden="true">🚶‍♀️</span>
         </div>
 
-        <p class="juego-mensaje" data-juego-mensaje aria-live="polite">Toca para subir</p>
+        <div class="escalera-letras" data-escalera-letras aria-label="Letras conseguidas">
+            ${[...palabra].map(() => `<span class="letra-hueco"></span>`).join("")}
+        </div>
 
-        <button type="button" class="gift-main-button juego-boton escalera-boton" data-escalera-subir>
-            Sube <span aria-hidden="true">↑</span>
-        </button>
+        <div class="escalera-reto" data-escalera-reto>
+            <p class="reto-rellano" data-reto-rellano></p>
+            <p class="reto-pregunta" data-reto-pregunta></p>
+            <div class="reto-opciones" data-reto-opciones></div>
+        </div>
 
-        <p class="juego-progreso" data-escalera-contador>Escalón 0 de ${total}</p>
+        <p class="juego-mensaje" data-juego-mensaje aria-live="polite"></p>
 
         <div class="escalera-premio" data-escalera-premio hidden>
-            <p class="premio-titulo">Y aquí arriba había esto…</p>
             <div class="pergamino">
                 <span class="pergamino-antes">La palabra secreta es</span>
-                <strong class="pergamino-palabra">${escaparHTML(textoDeBase64(ESCALERA.palabra))}</strong>
+                <strong class="pergamino-palabra">${escaparHTML(palabra)}</strong>
                 <span class="pergamino-despues">Guárdala bien. Mañana la necesitarás. 🤫</span>
             </div>
             <button type="button" class="gift-main-button juego-boton" data-escalera-guardar>
@@ -1855,64 +1902,138 @@ function montarEscalera(zona, api) {
 
     const escalera = zona.querySelector("[data-escalera]");
     const ella = zona.querySelector("[data-escalera-ella]");
-    const subir = zona.querySelector("[data-escalera-subir]");
-    const contador = zona.querySelector("[data-escalera-contador]");
+    const huecos = [...zona.querySelectorAll(".letra-hueco")];
+    const reto = zona.querySelector("[data-escalera-reto]");
+    const numeroRellano = zona.querySelector("[data-reto-rellano]");
+    const pregunta = zona.querySelector("[data-reto-pregunta]");
+    const opciones = zona.querySelector("[data-reto-opciones]");
+    const mensaje = zona.querySelector("[data-juego-mensaje]");
     const premio = zona.querySelector("[data-escalera-premio]");
 
-    function colocarla() {
-        // Sobre el escalón actual (coordenadas del dibujo en %)
-        const x = subidos === 0 ? 2 : 8 + (subidos - 0.5) * (184 / total);
-        const y = 150 - subidos * (128 / total);
-        ella.style.left = `${(x / 200) * 100}%`;
-        ella.style.top = `${(y / 160) * 100}%`;
-    }
+    let paso = 0;
+    let actual = 0;
 
-    colocarla();
-
-    const darPaso = () => {
-
-        if (subidos >= total || subir.disabled) {
-            return;
-        }
-
-        subidos++;
-
-        zona.querySelector(`[data-peldano="${subidos - 1}"]`)?.classList.add("pisado");
-        colocarla();
-
+    function colocarla(indice) {
+        const punto = puntos[indice];
+        ella.style.left = `${(punto.x / 200) * 100}%`;
+        ella.style.top = `${(punto.y / 160) * 100}%`;
         ella.classList.remove("paso");
         void ella.offsetWidth;
         ella.classList.add("paso");
+    }
 
-        contador.textContent = `Escalón ${subidos} de ${total}`;
+    colocarla(0);
 
-        if (ESCALERA.animos[subidos]) {
-            api.decir(ESCALERA.animos[subidos]);
-        }
 
-        if (subidos < total) {
-            return;
-        }
+    // Sube un tramo entero, peldaño a peldaño, hasta su rellano
+    function subirTramo(tramo) {
+        return new Promise(resolver => {
+            const hasta = (tramo + 1) * (porTramo + 1);
+            const siguiente = () => {
+                if (paso >= hasta) {
+                    zona
+                        .querySelectorAll(`[data-tramo="${tramo}"]`)
+                        .forEach(el => el.classList.add("pisado"));
+                    resolver();
+                    return;
+                }
+                paso++;
+                colocarla(paso);
+                api.esperar(260, siguiente);
+            };
+            siguiente();
+        });
+    }
 
-        // ¡Arriba!
-        subir.disabled = true;
+
+    function darLetras(rellano) {
+        const desde = rellano * letrasPorRellano;
+        [...palabra].slice(desde, desde + letrasPorRellano).forEach((letra, i) => {
+            const hueco = huecos[desde + i];
+            api.esperar(i * 220, () => {
+                hueco.textContent = letra;
+                hueco.classList.add("puesta");
+            });
+        });
+    }
+
+
+    function mostrarReto(indice) {
+
+        const datos = rellanos[indice];
+
+        reto.classList.remove("entra");
+        void reto.offsetWidth;
+        reto.classList.add("entra");
+
+        numeroRellano.textContent = `Rellano ${indice + 1} de ${rellanos.length}`;
+        pregunta.textContent = datos.pregunta;
+        mensaje.textContent = "";
+
+        opciones.innerHTML = datos.opciones
+            .map((texto, i) => `<button type="button" class="reto-opcion" data-reto-opcion="${i}">${escaparHTML(texto)}</button>`)
+            .join("");
+
+        opciones.querySelectorAll(".reto-opcion").forEach(boton => {
+
+            boton.addEventListener("click", () => {
+
+                if (boton.disabled || boton.classList.contains("tachada")) {
+                    return;
+                }
+
+                const elegida = Number(boton.dataset.retoOpcion);
+                const acierta = datos.buena === "todas" || datos.buena === elegida;
+
+                if (!acierta) {
+                    boton.classList.add("tachada");
+                    boton.setAttribute("aria-disabled", "true");
+                    api.decir(datos.mal, "mal");
+                    return;
+                }
+
+                opciones.querySelectorAll(".reto-opcion").forEach(b => { b.disabled = true; });
+                boton.classList.add("correcta");
+                api.decir(datos.bien, "bien");
+                darLetras(indice);
+
+                api.esperar(1100, () => {
+
+                    reto.classList.add("sale");
+
+                    subirTramo(indice).then(() => {
+
+                        reto.classList.remove("sale");
+                        actual++;
+
+                        if (actual < rellanos.length) {
+                            mostrarReto(actual);
+                        } else {
+                            llegarArriba();
+                        }
+                    });
+                });
+            });
+        });
+    }
+
+
+    function llegarArriba() {
+
         api.bloquear();
+        reto.hidden = true;
         escalera.classList.add("arriba");
+        zona.querySelector("[data-escalera-letras]").classList.add("completa");
         api.decir("¡Arriba! Mira qué vistas… 🌅", "bien");
-        contador.textContent = "¡Lo conseguiste!";
 
-        api.esperar(1700, () => {
-            subir.hidden = true;
-            contador.hidden = true;
-            zona.querySelector("[data-juego-mensaje]").hidden = true;
+        api.esperar(2200, () => {
+            mensaje.hidden = true;
             zona.classList.add("con-premio");
             premio.hidden = false;
             api.ganar({ confeti: 300, espera: null });
         });
-    };
+    }
 
-    subir.addEventListener("click", darPaso);
-    escalera.addEventListener("click", darPaso);
 
     zona
         .querySelector("[data-escalera-guardar]")
@@ -1920,6 +2041,8 @@ function montarEscalera(zona, api) {
             event.currentTarget.disabled = true;
             api.abrirSobre();
         });
+
+    api.esperar(500, () => mostrarReto(0));
 }
 
 
@@ -1946,7 +2069,7 @@ const JUEGOS_PISTAS = {
     },
     escalera: {
         titulo: "¿Hasta arriba?",
-        sub: "Un toque, un escalón.",
+        sub: "Cuatro rellanos, cuatro preguntas… y una palabra.",
         montar: montarEscalera
     }
 };
