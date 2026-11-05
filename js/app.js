@@ -154,7 +154,7 @@ document.addEventListener("DOMContentLoaded", iniciarApp);
    La versión la pone tools/nueva-version.mjs.
    ========================================================= */
 
-const VERSION_WEB = "20261105142643";
+const VERSION_WEB = "20261105143544";
 
 async function comprobarVersionNueva() {
 
@@ -1719,7 +1719,7 @@ function montarTrileros(zona, api) {
 
 
 /* ---------------------------------------------------------
-   Pista 5 · Examen sorpresa de Plástica
+   Pista 5 · Examen sorpresa de Historia del Arte
    --------------------------------------------------------- */
 
 const EXAMEN_ARTE = {
@@ -1793,7 +1793,7 @@ const ESCALERA = {
     rellanos: [
         {
             pregunta: "¿Dónde fue nuestra primera cita?",
-            opciones: ["En un Burger King", "En Fatiga", "En un banco del parque"],
+            opciones: ["En Kippu", "En Fatiga", "En Malamente"],
             buena: 1,
             bien: "¡Claro que sí! En Fatiga ❤️",
             mal: "¿¡Cómo que no te acuerdas!? 😱"
@@ -2063,7 +2063,7 @@ const JUEGOS_PISTAS = {
         montar: montarTrileros
     },
     examen: {
-        titulo: "Examen sorpresa de Plástica",
+        titulo: "Examen sorpresa de Historia del Arte",
         sub: "Una sola pregunta. Sin chuleta.",
         montar: montarExamen
     },
