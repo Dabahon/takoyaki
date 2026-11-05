@@ -88,7 +88,25 @@ async function cifrar(palabra) {
         }
     }
 
-    const sal = crypto.getRandomValues(new Uint8Array(16));
+    /*
+     * La sal se conserva entre cifrados: así la llave que guarda
+     * el móvil al abrir el regalo sigue valiendo aunque se
+     * actualice el plan más tarde. (NUEVA_SAL=1 para cambiarla.)
+     */
+    let sal = null;
+
+    if (!process.env.NUEVA_SAL) {
+        try {
+            const anterior = JSON.parse(await readFile(RUTA_CIFRADO, "utf8"));
+            if (anterior.sal && anterior.iteraciones === ITERACIONES) {
+                sal = deBase64(anterior.sal);
+            }
+        } catch (error) {
+            // Primera vez: no hay cifrado anterior
+        }
+    }
+
+    sal = sal || crypto.getRandomValues(new Uint8Array(16));
     const iv = crypto.getRandomValues(new Uint8Array(12));
     const clave = await derivarClave(palabra, sal, ITERACIONES);
 

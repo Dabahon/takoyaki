@@ -154,7 +154,7 @@ document.addEventListener("DOMContentLoaded", iniciarApp);
    La versión la pone tools/nueva-version.mjs.
    ========================================================= */
 
-const VERSION_WEB = "20261105143544";
+const VERSION_WEB = "20261105145536";
 
 async function comprobarVersionNueva() {
 
@@ -4996,6 +4996,340 @@ function renderizarAplicacion() {
     renderizarItinerario();
 
     renderizarChecklist();
+
+    iniciarTiempo();
+}
+
+
+/* =========================================================
+   EL TIEMPO DURANTE EL VIAJE
+   Previsión real (Open-Meteo, sin claves). Los lugares van en
+   los datos cifrados, así que antes de la revelación no existe.
+   Se guarda la última previsión para verla sin conexión.
+   ========================================================= */
+
+const CLAVE_TIEMPO = "plan_tiempo";
+const TIEMPO_CADUCA = 60 * 60 * 1000;      // se refresca cada hora
+const TIEMPO_DIAS_PREVISION = 15;          // hasta dónde llega la previsión
+
+let tiempoViaje = null;
+let pidiendoTiempo = null;
+let tiempoIniciado = false;
+
+
+const TIEMPO_CODIGOS = [
+    [[0], "☀️", "Despejado"],
+    [[1], "🌤️", "Casi despejado"],
+    [[2], "⛅", "Intervalos de nubes"],
+    [[3], "☁️", "Nublado"],
+    [[45, 48], "🌫️", "Niebla"],
+    [[51, 53, 55, 56, 57], "🌦️", "Llovizna"],
+    [[61, 63, 66], "🌧️", "Lluvia"],
+    [[65, 67], "🌧️", "Lluvia fuerte"],
+    [[71, 73, 75, 77], "❄️", "Nieve"],
+    [[80, 81, 82], "🌦️", "Chubascos"],
+    [[85, 86], "🌨️", "Chubascos de nieve"],
+    [[95, 96, 99], "⛈️", "Tormenta"]
+];
+
+
+function describirTiempo(codigo) {
+    const fila = TIEMPO_CODIGOS.find(([codigos]) => codigos.includes(codigo));
+    return fila ? { icono: fila[1], texto: fila[2] } : { icono: "🌡️", texto: "Previsión" };
+}
+
+
+function diasDelViaje() {
+    return (datosViaje?.viaje?.itinerario || [])
+        .map(dia => dia.fecha)
+        .filter(Boolean);
+}
+
+
+function lugarDelDia(fecha) {
+    const config = datosViaje?.tiempo;
+    if (!config) {
+        return null;
+    }
+    const id = config.por_dia?.[fecha] || config.defecto;
+    return config.lugares?.[id] ? { id, ...config.lugares[id] } : null;
+}
+
+
+function fechaEnEspana(momento) {
+    return momento.toLocaleDateString("sv-SE", { timeZone: "Europe/Madrid" });
+}
+
+
+function iniciarTiempo() {
+
+    if (!datosViaje?.tiempo) {
+        return;
+    }
+
+    // La última previsión guardada, para que aparezca al instante
+    if (!tiempoViaje) {
+        try {
+            tiempoViaje = JSON.parse(leerDato("localStorage", CLAVE_TIEMPO) || "null");
+        } catch (error) {
+            tiempoViaje = null;
+        }
+    }
+
+    pintarTiempo();
+    actualizarTiempo();
+
+    if (!tiempoIniciado) {
+        tiempoIniciado = true;
+        document.addEventListener("visibilitychange", () => {
+            if (document.visibilityState === "visible") {
+                actualizarTiempo();
+            }
+        });
+        // Mientras la web esté abierta, también se refresca sola
+        setInterval(actualizarTiempo, TIEMPO_CADUCA);
+    }
+}
+
+
+async function actualizarTiempo() {
+
+    const config = datosViaje?.tiempo;
+    const fechas = diasDelViaje();
+
+    if (!config || !fechas.length || pidiendoTiempo) {
+        return;
+    }
+
+    const hoy = fechaEnEspana(ahora());
+
+    // Viaje terminado o todavía muy lejos: no hay nada que pedir
+    const diasHastaInicio = Math.round((Date.parse(fechas[0]) - Date.parse(hoy)) / 86400000);
+    if (hoy > fechas[fechas.length - 1] || diasHastaInicio > TIEMPO_DIAS_PREVISION) {
+        pintarTiempo();
+        return;
+    }
+
+    if (tiempoViaje?.guardado && Date.now() - tiempoViaje.guardado < TIEMPO_CADUCA) {
+        return;
+    }
+
+    const ids = Object.keys(config.lugares || {});
+    if (!ids.length) {
+        return;
+    }
+
+    const parametros = new URLSearchParams({
+        latitude: ids.map(id => config.lugares[id].lat).join(","),
+        longitude: ids.map(id => config.lugares[id].lon).join(","),
+        daily: "weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max",
+        timezone: config.zona || "auto",
+        forecast_days: "16"
+    });
+
+    pidiendoTiempo = fetch(`https://api.open-meteo.com/v1/forecast?${parametros}`, { cache: "no-store" })
+        .then(respuesta => {
+            if (!respuesta.ok) {
+                throw new Error(`HTTP ${respuesta.status}`);
+            }
+            return respuesta.json();
+        })
+        .then(json => {
+
+            // Con varios lugares, la respuesta es una lista en el mismo orden
+            const lista = Array.isArray(json) ? json : [json];
+            const porLugar = {};
+
+            lista.forEach((datos, i) => {
+                const diario = datos?.daily;
+                if (!diario?.time) {
+                    return;
+                }
+                porLugar[ids[i]] = {};
+                diario.time.forEach((fecha, j) => {
+                    porLugar[ids[i]][fecha] = {
+                        codigo: diario.weather_code?.[j],
+                        max: diario.temperature_2m_max?.[j],
+                        min: diario.temperature_2m_min?.[j],
+                        lluvia: diario.precipitation_probability_max?.[j]
+                    };
+                });
+            });
+
+            const dias = {};
+            fechas.forEach(fecha => {
+                const lugar = lugarDelDia(fecha);
+                const dato = lugar && porLugar[lugar.id]?.[fecha];
+                if (dato && Number.isFinite(dato.max)) {
+                    dias[fecha] = { ...dato, lugar: lugar.nombre };
+                }
+            });
+
+            // Si aún no hay ningún día del viaje en la previsión, no pisamos lo guardado
+            if (!Object.keys(dias).length) {
+                return;
+            }
+
+            tiempoViaje = { guardado: Date.now(), dias };
+            guardarDato("localStorage", CLAVE_TIEMPO, JSON.stringify(tiempoViaje));
+            pintarTiempo();
+        })
+        .catch(() => {
+            // Sin conexión o sin servicio: se queda la última previsión
+        })
+        .finally(() => {
+            pidiendoTiempo = null;
+        });
+}
+
+
+function textoHaceCuanto(marca) {
+    const minutos = Math.round((Date.now() - marca) / 60000);
+    if (minutos < 2) return "ahora mismo";
+    if (minutos < 60) return `hace ${minutos} min`;
+    const horas = Math.round(minutos / 60);
+    if (horas < 24) return `hace ${horas} h`;
+    const dias = Math.round(horas / 24);
+    return dias === 1 ? "hace 1 día" : `hace ${dias} días`;
+}
+
+
+function pintarTiempo() {
+    pintarTiraTiempo();
+    pintarTiempoItinerario();
+}
+
+
+function pintarTiraTiempo() {
+
+    const tira = document.getElementById("tiempo-viaje");
+    const fechas = diasDelViaje();
+
+    if (!tira || !datosViaje?.tiempo || !fechas.length) {
+        return;
+    }
+
+    const hoy = fechaEnEspana(ahora());
+
+    // Después del viaje ya no hace falta
+    if (hoy > fechas[fechas.length - 1]) {
+        tira.hidden = true;
+        return;
+    }
+
+    const lugarPrincipal =
+        datosViaje.tiempo.lugares?.[datosViaje.tiempo.defecto]?.nombre || "";
+
+    const dias = tiempoViaje?.dias || {};
+    const hayDatos = fechas.some(fecha => dias[fecha]);
+
+    let cuerpo;
+
+    if (!hayDatos) {
+
+        const desde = new Date(`${fechas[0]}T12:00:00`);
+        desde.setDate(desde.getDate() - TIEMPO_DIAS_PREVISION);
+
+        const cuando = desde.toLocaleDateString("es-ES", { day: "numeric", month: "long" });
+
+        cuerpo = `
+            <p class="tiempo-espera">
+                <span aria-hidden="true">🌤️</span>
+                La previsión aparecerá aquí a partir del ${escaparHTML(cuando)}.
+            </p>
+        `;
+
+    } else {
+
+        cuerpo = `
+            <ol class="tiempo-dias">
+                ${fechas.map(fecha => {
+
+                    const dato = dias[fecha];
+                    const fechaDia = new Date(`${fecha}T12:00:00`);
+                    const nombre = fechaDia.toLocaleDateString("es-ES", { weekday: "short" }).replace(".", "");
+                    const numero = fechaDia.getDate();
+
+                    if (!dato) {
+                        return `
+                            <li class="tiempo-dia sin-dato${fecha === hoy ? " hoy" : ""}">
+                                <span class="tiempo-nombre">${escaparHTML(nombre)} ${numero}</span>
+                                <span class="tiempo-icono" aria-hidden="true">·</span>
+                                <span class="tiempo-temp">Pronto</span>
+                            </li>
+                        `;
+                    }
+
+                    const { icono, texto } = describirTiempo(dato.codigo);
+                    const lluvia = Number.isFinite(dato.lluvia) ? Math.round(dato.lluvia) : null;
+
+                    return `
+                        <li class="tiempo-dia${fecha === hoy ? " hoy" : ""}"
+                            aria-label="${escaparAtributo(`${nombre} ${numero}: ${texto}, máxima ${Math.round(dato.max)} grados, mínima ${Math.round(dato.min)}`)}">
+                            <span class="tiempo-nombre">${fecha === hoy ? "Hoy" : `${escaparHTML(nombre)} ${numero}`}</span>
+                            <span class="tiempo-icono" aria-hidden="true">${icono}</span>
+                            <span class="tiempo-temp"><strong>${Math.round(dato.max)}º</strong> ${Math.round(dato.min)}º</span>
+                            ${lluvia !== null && lluvia >= 20 ? `<span class="tiempo-lluvia">💧 ${lluvia}%</span>` : `<span class="tiempo-lluvia vacia"></span>`}
+                            ${dato.lugar !== lugarPrincipal ? `<span class="tiempo-lugar">${escaparHTML(dato.lugar)}</span>` : ""}
+                        </li>
+                    `;
+                }).join("")}
+            </ol>
+            <p class="tiempo-pie">Actualizado ${escaparHTML(textoHaceCuanto(tiempoViaje.guardado))}</p>
+        `;
+    }
+
+    tira.innerHTML = `
+        <div class="tiempo-cabecera">
+            <span class="section-eyebrow">🌡️ El tiempo</span>
+            <h3>${escaparHTML(lugarPrincipal ? `Así estará ${lugarPrincipal}` : "Así estará el tiempo")}</h3>
+        </div>
+        ${cuerpo}
+    `;
+
+    tira.hidden = false;
+}
+
+
+function pintarTiempoItinerario() {
+
+    const dias = tiempoViaje?.dias || {};
+
+    document
+        .querySelectorAll("#itinerary-list .itinerary-day[data-fecha]")
+        .forEach(articulo => {
+
+            articulo.querySelector(".tiempo-chip")?.remove();
+            articulo.querySelector(".tiempo-aviso")?.remove();
+
+            const dato = dias[articulo.dataset.fecha];
+            const etiqueta = articulo.querySelector(".itinerary-day-label");
+
+            if (!dato || !etiqueta) {
+                return;
+            }
+
+            const { icono, texto } = describirTiempo(dato.codigo);
+            const lluvia = Number.isFinite(dato.lluvia) ? Math.round(dato.lluvia) : 0;
+
+            const chip = document.createElement("span");
+            chip.className = "tiempo-chip";
+            chip.title = texto;
+            chip.innerHTML = `
+                <span aria-hidden="true">${icono}</span>
+                <strong>${Math.round(dato.max)}º</strong>/${Math.round(dato.min)}º
+                ${lluvia >= 20 ? `<span class="tiempo-chip-lluvia">💧${lluvia}%</span>` : ""}
+            `;
+            etiqueta.insertAdjacentElement("afterend", chip);
+
+            if (lluvia >= 60) {
+                const aviso = document.createElement("p");
+                aviso.className = "tiempo-aviso";
+                aviso.textContent = "☔ Ese día pinta a lluvia: mejor llevar paraguas.";
+                const titulo = articulo.querySelector(".itinerary-day-header h3");
+                (titulo?.parentElement || articulo).appendChild(aviso);
+            }
+        });
 }
 
 
@@ -6306,6 +6640,8 @@ function renderizarItinerario() {
             }
         }
     );
+
+    pintarTiempo();
 }
 
 
@@ -6320,6 +6656,10 @@ function crearElementoItinerario(
 
     elemento.className =
         "itinerary-day";
+
+    if (dia.fecha) {
+        elemento.dataset.fecha = dia.fecha;
+    }
 
 
     const numero =
