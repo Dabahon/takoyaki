@@ -9297,7 +9297,7 @@ body.juego-abierto {
     overflow: hidden;
 }
 
-.maleta-modal {
+.juego-modal {
     position: fixed;
     inset: 0;
     z-index: 1500;
@@ -9310,11 +9310,11 @@ body.juego-abierto {
     transition: opacity 0.5s ease;
 }
 
-.maleta-modal.visible {
+.juego-modal.visible {
     opacity: 1;
 }
 
-.maleta-velo {
+.juego-velo {
     position: absolute;
     inset: 0;
     background: rgba(34, 27, 22, 0.8);
@@ -9322,7 +9322,7 @@ body.juego-abierto {
     -webkit-backdrop-filter: blur(9px);
 }
 
-.maleta-cuadro {
+.juego-cuadro {
     --mw: clamp(150px, 48vw, 196px);
     --mh: calc(var(--mw) * 0.5);
 
@@ -9344,15 +9344,15 @@ body.juego-abierto {
     transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.maleta-modal.visible .maleta-cuadro {
+.juego-modal.visible .juego-cuadro {
     transform: none;
 }
 
-.maleta-modal.saliendo .maleta-cuadro {
+.juego-modal.saliendo .juego-cuadro {
     transform: translateY(10px) scale(0.97);
 }
 
-.maleta-x {
+.juego-x {
     position: absolute;
     top: 8px;
     right: 10px;
@@ -9367,7 +9367,7 @@ body.juego-abierto {
     cursor: pointer;
 }
 
-.maleta-etiqueta {
+.juego-etiqueta {
     margin: 0;
     color: var(--primary);
     font-size: 0.62rem;
@@ -9376,7 +9376,7 @@ body.juego-abierto {
     text-transform: uppercase;
 }
 
-.maleta-titulo {
+.juego-titulo {
     margin: 6px 0 2px;
     color: var(--text);
     font-family: "Cormorant Garamond", serif;
@@ -9385,7 +9385,7 @@ body.juego-abierto {
     line-height: 1.1;
 }
 
-.maleta-sub {
+.juego-sub {
     margin: 0 0 14px;
     color: var(--text-light);
     font-size: 0.82rem;
@@ -9558,7 +9558,7 @@ body.juego-abierto {
 
 /* ---------- Mensaje y objetos ---------- */
 
-.maleta-mensaje {
+.juego-mensaje {
     display: grid;
     place-items: center;
     min-height: 2.8em;
@@ -9569,15 +9569,15 @@ body.juego-abierto {
     line-height: 1.1;
 }
 
-.maleta-mensaje.bien {
+.juego-mensaje.bien {
     color: var(--secondary);
 }
 
-.maleta-mensaje.mal {
+.juego-mensaje.mal {
     color: var(--primary);
 }
 
-.maleta-mensaje.cambia {
+.juego-mensaje.cambia {
     animation: mensajeEntra 0.45s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
@@ -9680,7 +9680,7 @@ body.juego-abierto {
     cursor: default;
 }
 
-.maleta-progreso {
+.juego-progreso {
     margin: 12px 0 0;
     color: var(--text-light);
     font-size: 0.66rem;
@@ -9701,12 +9701,12 @@ body.juego-abierto {
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .maleta-modal,
-    .maleta-cuadro,
+    .juego-modal,
+    .juego-cuadro,
     .maleta-tapa,
     .maleta,
     .maleta *,
-    .maleta-mensaje,
+    .juego-mensaje,
     .maleta-objeto {
         animation: none !important;
         transition: none !important;
@@ -9772,6 +9772,582 @@ body.juego-abierto {
     100% { transform: none; }
 }
 
-.maleta-mensaje {
+.juego-mensaje {
     font-size: clamp(1.1rem, 5vw, 1.3rem);
+}
+
+
+/* =========================================================
+   MINIJUEGOS DE LAS PISTAS 3–6
+   ========================================================= */
+
+.juego-boton {
+    margin-top: 6px;
+}
+
+.juego-boton:disabled {
+    opacity: 0.55;
+    transform: none;
+}
+
+.juego-zona {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.juego-zona > .juego-mensaje,
+.juego-zona > .juego-progreso,
+.juego-zona > .maleta-objetos {
+    align-self: stretch;
+}
+
+
+/* ---------- Pista 3 · Termómetro ---------- */
+
+.termo {
+    --nivel: 0.82;
+    --tono: 30;
+
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 26px;
+    margin: 2px 0 4px;
+}
+
+.termo-tubo {
+    position: relative;
+    width: 30px;
+    height: clamp(150px, 30svh, 190px);
+    padding: 6px 7px 30px;
+    border: 3px solid #d9cfc2;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #fffdf8, #f1ebe2);
+}
+
+.termo-tubo::before {
+    /* marcas de la escala */
+    content: "";
+    position: absolute;
+    top: 14px;
+    bottom: 40px;
+    left: -12px;
+    width: 8px;
+    background: repeating-linear-gradient(180deg, #cbbfb0 0 2px, transparent 2px 14px);
+}
+
+.termo-mercurio {
+    position: absolute;
+    left: 50%;
+    bottom: 24px;
+    width: 10px;
+    height: calc((100% - 44px) * var(--nivel) + 8px);
+    border-radius: 6px 6px 0 0;
+    background: hsl(var(--tono), 72%, 52%);
+    transform: translateX(-50%);
+    transition: height 0.35s cubic-bezier(0.22, 1, 0.36, 1), background 0.35s ease;
+}
+
+.termo-bulbo {
+    position: absolute;
+    left: 50%;
+    bottom: -14px;
+    width: 40px;
+    height: 40px;
+    border: 3px solid #d9cfc2;
+    border-radius: 50%;
+    background: hsl(var(--tono), 72%, 52%);
+    box-shadow: inset -4px -5px 0 rgba(0, 0, 0, 0.12);
+    transform: translateX(-50%);
+    transition: background 0.35s ease;
+}
+
+.termo-escarcha {
+    position: absolute;
+    inset: -8px -10px -22px;
+    border-radius: 999px;
+    background:
+        radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.95) 0 3px, transparent 4px),
+        radial-gradient(circle at 70% 45%, rgba(255, 255, 255, 0.9) 0 2px, transparent 3px),
+        radial-gradient(circle at 40% 70%, rgba(255, 255, 255, 0.9) 0 2.5px, transparent 3.5px),
+        linear-gradient(180deg, rgba(220, 238, 250, 0.75), rgba(200, 228, 248, 0.55));
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 1.2s ease 0.2s;
+}
+
+.termo.helado .termo-escarcha {
+    opacity: 1;
+}
+
+.termo-lectura {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 7.5ch;
+}
+
+.termo-tiempo {
+    font-size: 2.6rem;
+    line-height: 1;
+    transition: transform 0.3s ease;
+}
+
+.termo-grados {
+    margin-top: 6px;
+    color: var(--text);
+    font-family: "Cormorant Garamond", serif;
+    font-size: 3.2rem;
+    font-weight: 600;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+}
+
+.termo-grados small {
+    margin-left: 2px;
+    color: var(--text-light);
+    font-size: 0.45em;
+}
+
+.termo.tiembla .termo-tubo {
+    animation: noCabe 0.5s ease;
+}
+
+.termo.helado .termo-tiempo {
+    animation: latido 1.4s ease-in-out infinite;
+}
+
+.termo-control {
+    --relleno: 82%;
+
+    width: min(280px, 100%);
+    height: 34px;
+    margin: 0 0 8px;
+    background: transparent;
+    -webkit-appearance: none;
+    appearance: none;
+    touch-action: pan-x;
+}
+
+.termo-control::-webkit-slider-runnable-track {
+    height: 8px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #6aa6d8, #e9b44c 55%, #d9543a);
+}
+
+.termo-control::-moz-range-track {
+    height: 8px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #6aa6d8, #e9b44c 55%, #d9543a);
+}
+
+.termo-control::-webkit-slider-thumb {
+    width: 30px;
+    height: 30px;
+    margin-top: -11px;
+    border: 3px solid #fff;
+    border-radius: 50%;
+    background: var(--primary);
+    box-shadow: 0 3px 10px rgba(80, 45, 25, 0.35);
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.termo-control::-moz-range-thumb {
+    width: 26px;
+    height: 26px;
+    border: 3px solid #fff;
+    border-radius: 50%;
+    background: var(--primary);
+    box-shadow: 0 3px 10px rgba(80, 45, 25, 0.35);
+}
+
+
+/* ---------- Pista 4 · Botellas ---------- */
+
+.trile {
+    --ancho: clamp(64px, 21vw, 84px);
+    --separa: clamp(14px, 5vw, 26px);
+
+    position: relative;
+    width: calc(var(--ancho) * 3 + var(--separa) * 2);
+    height: calc(var(--ancho) * 2.7 + 18px);
+    margin: 4px auto 0;
+    perspective: 800px;
+}
+
+.botella {
+    position: absolute;
+    top: 14px;
+    left: calc(var(--hueco) * (var(--ancho) + var(--separa)));
+    width: var(--ancho);
+    height: calc(var(--ancho) * 2.67);
+    padding: 0;
+    border: none;
+    background: none;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: left 0.5s cubic-bezier(0.45, 0, 0.25, 1), transform 0.5s ease;
+}
+
+.botella.arriba {
+    z-index: 2;
+}
+
+.botella:disabled {
+    cursor: default;
+}
+
+.botella:not(:disabled):active {
+    transform: translateY(-4px);
+}
+
+.botella-giro {
+    position: absolute;
+    inset: 0;
+    transform-style: preserve-3d;
+    transition: transform 0.7s cubic-bezier(0.45, 0, 0.25, 1);
+}
+
+.botella.de-espaldas .botella-giro {
+    transform: rotateY(180deg);
+}
+
+.botella-cara {
+    position: absolute;
+    inset: 0;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    filter: drop-shadow(0 8px 10px rgba(40, 25, 15, 0.25));
+}
+
+.botella-dorso {
+    transform: rotateY(180deg);
+}
+
+.botella svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.botella-uva {
+    fill: #6f3828;
+    font-family: "Cormorant Garamond", serif;
+    font-size: 7.4px;
+    font-weight: 700;
+}
+
+.botella-interrogacion {
+    fill: #e6c47a;
+    font-family: "Cormorant Garamond", serif;
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.botella.acierto {
+    animation: botellaGana 0.9s cubic-bezier(0.3, 1.5, 0.5, 1) 0.6s both;
+}
+
+@keyframes botellaGana {
+    0% { transform: none; }
+    40% { transform: translateY(-16px) rotate(-6deg) scale(1.08); }
+    70% { transform: translateY(-6px) rotate(4deg) scale(1.06); }
+    100% { transform: translateY(-8px) scale(1.06); }
+}
+
+.botella.fallo {
+    animation: noCabe 0.5s ease 0.6s;
+}
+
+
+/* ---------- Pista 5 · Examen de Plástica ---------- */
+
+.cuadro-examen {
+    position: relative;
+    width: min(250px, 72vw, calc((100svh - 380px) * 1.1));
+    min-width: 170px;
+    margin: 2px auto 0;
+}
+
+.cuadro-marco {
+    display: block;
+    padding: 9px;
+    border-radius: 3px;
+    background:
+        linear-gradient(135deg, #f6dc8e, #b8862f 40%, #f2d27c 60%, #9c6f26);
+    box-shadow:
+        inset 0 0 0 2px rgba(110, 70, 20, 0.5),
+        0 12px 24px rgba(40, 25, 15, 0.28);
+}
+
+.cuadro-marco img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 843 / 735;
+    object-fit: cover;
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.2);
+}
+
+.cuadro-nota {
+    position: absolute;
+    right: -10px;
+    bottom: 14px;
+    padding: 4px 10px;
+    border: 3px double #b3392b;
+    border-radius: 6px;
+    color: #b3392b;
+    background: rgba(255, 250, 240, 0.85);
+    font-family: "Caveat", "Segoe Print", cursive;
+    font-size: 1.35rem;
+    font-weight: 700;
+    opacity: 0;
+    transform: rotate(-12deg) scale(1.8);
+    pointer-events: none;
+}
+
+.cuadro-examen.aprobado .cuadro-nota {
+    animation: notaSello 0.55s cubic-bezier(0.3, 1.6, 0.5, 1) 0.3s forwards;
+}
+
+@keyframes notaSello {
+    to { opacity: 1; transform: rotate(-12deg) scale(1); }
+}
+
+.examen-pregunta {
+    margin: 14px 0 0;
+    color: var(--text);
+    font-family: "Cormorant Garamond", serif;
+    font-size: 1.35rem;
+    font-weight: 600;
+}
+
+.examen-opciones {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    align-self: stretch;
+}
+
+.examen-opcion {
+    padding: 12px 6px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: var(--surface-soft);
+    color: var(--text);
+    font-size: 0.92rem;
+    font-weight: 600;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: opacity 0.4s ease, background 0.3s ease, border-color 0.3s ease;
+}
+
+.examen-opcion.tachada {
+    opacity: 0.4;
+    text-decoration: line-through;
+    animation: noCabe 0.5s ease;
+    cursor: default;
+}
+
+.examen-opcion.correcta {
+    border-color: var(--secondary);
+    background: rgba(102, 112, 90, 0.14);
+    color: var(--secondary);
+}
+
+.examen-opcion:disabled:not(.correcta) {
+    opacity: 0.45;
+}
+
+
+/* ---------- Pista 6 · Escalera ---------- */
+
+.escalera {
+    position: relative;
+    width: min(300px, 100%);
+    margin: 0 auto;
+    border-radius: 18px;
+    overflow: hidden;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    box-shadow: inset 0 0 0 1px var(--border);
+}
+
+.escalera-dibujo {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+.escalera-cielo,
+.escalera-sol,
+.escalera-tejados {
+    opacity: 0.12;
+    transition: opacity 1.4s ease;
+}
+
+.escalera-sol {
+    transform: translateY(40px);
+    transform-box: fill-box;
+    transition: opacity 1.4s ease, transform 1.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.escalera.arriba .escalera-cielo,
+.escalera.arriba .escalera-sol,
+.escalera.arriba .escalera-tejados {
+    opacity: 1;
+}
+
+.escalera.arriba .escalera-sol {
+    transform: none;
+}
+
+.peldano {
+    fill: #e9e0d4;
+    stroke: #d6c9b8;
+    stroke-width: 0.6;
+    transition: fill 0.35s ease;
+}
+
+.peldano.pisado {
+    fill: #c98a6a;
+    stroke: #a96e52;
+}
+
+.escalera.arriba .peldano {
+    fill: #9a563f;
+    stroke: #7c4330;
+}
+
+.escalera-ella {
+    position: absolute;
+    font-size: clamp(1.5rem, 7vw, 1.9rem);
+    line-height: 1;
+    transform: translate(-50%, -100%) scaleX(-1);
+    transition: left 0.35s ease, top 0.35s cubic-bezier(0.3, 1.4, 0.5, 1);
+}
+
+.escalera-ella.paso {
+    animation: pasito 0.35s ease;
+}
+
+@keyframes pasito {
+    50% { transform: translate(-50%, calc(-100% - 6px)) scaleX(-1); }
+}
+
+.escalera-boton {
+    min-width: 150px;
+    -webkit-user-select: none;
+    user-select: none;
+    touch-action: manipulation;
+}
+
+.escalera-premio {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    align-self: stretch;
+    margin-top: 4px;
+    animation: aparecer 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.escalera-premio[hidden] {
+    display: none;
+}
+
+.premio-titulo {
+    margin: 0 0 10px;
+    color: var(--text-light);
+    font-size: 0.85rem;
+}
+
+.pergamino {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: min(290px, 100%);
+    padding: 16px 14px;
+    border-radius: 6px;
+    background:
+        radial-gradient(ellipse at 50% 50%, transparent 60%, rgba(150, 100, 50, 0.18) 100%),
+        #f7ead2;
+    box-shadow:
+        0 10px 22px rgba(60, 35, 20, 0.2),
+        inset 0 0 0 1px rgba(150, 100, 50, 0.25);
+    transform: rotate(-1.5deg);
+    animation: desenrollar 1s cubic-bezier(0.22, 1, 0.36, 1) 0.2s both;
+}
+
+@keyframes desenrollar {
+    from { clip-path: inset(0 0 100% 0); }
+    to { clip-path: inset(0 0 0 0); }
+}
+
+.pergamino-antes,
+.pergamino-despues {
+    color: #7a5a40;
+    font-family: "Caveat", "Segoe Print", cursive;
+    font-size: 1.15rem;
+    line-height: 1.1;
+}
+
+.pergamino-palabra {
+    color: var(--primary-dark);
+    font-family: "Cormorant Garamond", serif;
+    font-size: clamp(1.9rem, 9vw, 2.3rem);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .termo *,
+    .botella,
+    .botella *,
+    .cuadro-nota,
+    .examen-opcion,
+    .escalera *,
+    .pergamino,
+    .escalera-premio {
+        animation: none !important;
+        transition: none !important;
+    }
+    .cuadro-examen.aprobado .cuadro-nota {
+        opacity: 1;
+        transform: rotate(-12deg);
+    }
+}
+
+/* Al aparecer la palabra, la escalera se hace pequeña para que quepa todo */
+.escalera {
+    transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.con-premio .escalera {
+    width: min(190px, 60%);
+}
+
+.con-premio ~ .juego-sub,
+.juego-escalera .juego-cuadro:has(.con-premio) .juego-sub {
+    display: none;
+}
+
+/* Examen en pantallas bajas: el cuadro cede sitio */
+.cuadro-examen {
+    width: min(250px, 72vw, calc((100svh - 420px) * 1.15));
+    min-width: 130px;
+}
+
+@media (max-height: 620px) {
+    .juego-examen .examen-pregunta {
+        margin-top: 10px;
+        font-size: 1.2rem;
+    }
+    .juego-examen .juego-mensaje {
+        margin: 6px 4px 6px;
+    }
+    .juego-examen .examen-opcion {
+        padding: 10px 6px;
+    }
 }

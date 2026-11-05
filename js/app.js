@@ -24,12 +24,12 @@ const CONFIG = {
      * vistazo en el código fuente antes de tiempo.
      */
     pistas: [
-        { fecha: "2026-11-04T19:00:00+01:00", icono: "📸", texto: "UHJpbWVyYSBwaXN0YSwganVzdGljaWVyYTogaGF6IGh1ZWNvIGVuIGVsIG3Ds3ZpbC4gVmFzIGEgaGFjZXIgbXVjaGFzIGZvdG9zLg==" },
-        { fecha: "2026-11-11T19:00:00+01:00", icono: "🧳", juego: "maleta", texto: "wqFNYWxldGEgbGlzdGEsIGp1c3RpY2llcmEhIEFsZ28gY8OzbW9kbyBwYXJhIGVsIGTDrWEgeSBhbGdvIGJvbml0byBwYXJhIHVuYSBjZW5hIGVzcGVjaWFsLg==" },
-        { fecha: "2026-11-18T19:00:00+01:00", icono: "🧣", texto: "SGFyw6EgZnLDrW8uIEdvcnJvIGJsYW5jbywgc8OtLiBCaWtpbmksIG5vLg==" },
-        { fecha: "2026-11-25T19:00:00+01:00", icono: "🍷", texto: "RWwgdmlhamUgaW5jbHV5ZSB2aW5vLiBNdWNobyB2aW5vLiBUdSDDum5pY2EgbWlzacOzbiwganVzdGljaWVyYTogZWxlZ2lyIGxhIG1lam9yIGNlcGEu" },
-        { fecha: "2026-12-02T19:00:00+01:00", icono: "🎨", texto: "SGFicsOhIGFydGUuIERlbCBxdWUgc2FsZSBlbiBsb3MgbGlicm9zIGRlbCBjb2xlLg==" },
-        { fecha: "2026-12-09T19:00:00+01:00", icono: "🪜", texto: "w5psdGltYSBwaXN0YSwganVzdGljaWVyYTogaGFicsOhIGVzY2Fsb25lcy4gTXVjaG9zLiBNdWNow61zaW1vcy4gUGVybyB0ZSBwcm9tZXRvIHF1ZSBsYXMgdmlzdGFzIGRlIGFycmliYSBsbyBjb21wZW5zYW4u" }
+        { fecha: "2026-11-04T19:00:00+01:00", icono: "📸", texto: "UHJpbWVyYSBwaXN0YTogaGF6IGh1ZWNvIGVuIGVsIG3Ds3ZpbC4gVmFzIGEgaGFjZXIgbXVjaGFzIGZvdG9zLg==" },
+        { fecha: "2026-11-11T19:00:00+01:00", icono: "🧳", juego: "maleta", texto: "wqFNYWxldGEgbGlzdGEhIEFsZ28gY8OzbW9kbyBwYXJhIGVsIGTDrWEgeSBhbGdvIGJvbml0byBwYXJhIHVuYSBjZW5hIGVzcGVjaWFsLg==" },
+        { fecha: "2026-11-18T19:00:00+01:00", icono: "🧣", juego: "termometro", texto: "SGFyw6EgZnLDrW8uIEdvcnJvIGJsYW5jbywgc8OtLiBCaWtpbmksIG5vLg==" },
+        { fecha: "2026-11-25T19:00:00+01:00", icono: "🍷", juego: "trileros", texto: "RWwgdmlhamUgaW5jbHV5ZSB2aW5vLiBNdWNobyB2aW5vLiBUdSDDum5pY2EgbWlzacOzbjogZWxlZ2lyIGxhIG1lam9yIHV2YS4=" },
+        { fecha: "2026-12-02T19:00:00+01:00", icono: "🎨", juego: "examen", texto: "SGFicsOhIGFydGUuIERlbCBxdWUgc2FsZSBlbiBsb3MgbGlicm9zIGRlbCBjb2xlLg==" },
+        { fecha: "2026-12-09T19:00:00+01:00", icono: "🪜", juego: "escalera", texto: "SGFicsOhIGVzY2Fsb25lcy4gTXVjaG9zLiBQZXJvIGxhcyB2aXN0YXMgbG8gY29tcGVuc2FuLiBZIGFycmliYSwgbGEgcGFsYWJyYSBzZWNyZXRhOiBUQUtPWUFLSS4gR3XDoXJkYWxhIHBhcmEgbWHDsWFuYS4=" }
     ]
 };
 
@@ -154,7 +154,7 @@ document.addEventListener("DOMContentLoaded", iniciarApp);
    La versión la pone tools/nueva-version.mjs.
    ========================================================= */
 
-const VERSION_WEB = "20261105130722";
+const VERSION_WEB = "20261105133110";
 
 async function comprobarVersionNueva() {
 
@@ -703,7 +703,7 @@ function activarModoCumpleanos() {
 
     if (subtitulo) {
         subtitulo.textContent =
-            "Tu regalo te está esperando, justiciera";
+            "Tu regalo te está esperando";
     }
 
     const boton =
@@ -1057,6 +1057,11 @@ function renderizarPistas() {
     }
 
 
+    // El cuadro del examen, descargado antes de abrir el juego
+    if (lista.querySelector('button.sobre.nuevo[data-pista="4"]')) {
+        new Image().src = EXAMEN_ARTE.imagen;
+    }
+
     // Las que ya estaban abiertas: texto ajustado a su tarjeta
     lista
         .querySelectorAll("button.sobre.abierto")
@@ -1080,8 +1085,8 @@ function renderizarPistas() {
                     CONFIG.pistas[Number(sobre.dataset.pista)];
 
                 // Algunas pistas se ganan jugando antes de abrir el sobre
-                if (pista?.juego === "maleta") {
-                    abrirJuegoMaleta(sobre);
+                if (pista?.juego) {
+                    abrirJuegoPista(sobre, pista.juego);
                     return;
                 }
 
@@ -1131,10 +1136,147 @@ function abrirSobre(sobre) {
 
 
 /* =========================================================
-   MINIJUEGO DE LA PISTA 2: HAZ LA MALETA
-   Solo entran las cosas buenas; las demás, la maleta las
-   escupe con un comentario. Al cerrarla, se abre el sobre.
+   MINIJUEGOS DE LAS PISTAS
+   Cada pista con "juego" se gana antes de abrir su sobre.
+   Todos comparten la misma ventana; al ganar, la ventana se
+   va y el sobre se abre solo (y ya queda abierto siempre).
    ========================================================= */
+
+function abrirJuegoPista(sobre, tipo) {
+
+    const juego =
+        JUEGOS_PISTAS[tipo];
+
+    if (!juego || document.getElementById("juego-modal")) {
+        return;
+    }
+
+    const reducir =
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    let terminado = false;
+    const temporizadores = [];
+
+    const esperar = (ms, fn) => {
+        temporizadores.push(setTimeout(fn, reducir ? 0 : ms));
+    };
+
+    const modal =
+        document.createElement("div");
+
+    modal.id = "juego-modal";
+    modal.className = `juego-modal juego-${tipo}`;
+    modal.setAttribute("role", "dialog");
+    modal.setAttribute("aria-modal", "true");
+    modal.setAttribute("aria-label", juego.titulo);
+
+    modal.innerHTML = `
+        <div class="juego-velo" data-juego-cerrar></div>
+
+        <div class="juego-cuadro">
+            <button type="button" class="juego-x" data-juego-cerrar aria-label="Cerrar">×</button>
+
+            <p class="juego-etiqueta">Pista nº ${Number(sobre.dataset.pista) + 1}</p>
+            <h3 class="juego-titulo">${escaparHTML(juego.titulo)}</h3>
+            <p class="juego-sub">${escaparHTML(juego.sub)}</p>
+
+            <div class="juego-zona" data-juego-zona></div>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+    document.body.classList.add("juego-abierto");
+
+    requestAnimationFrame(() => modal.classList.add("visible"));
+
+
+    function cerrar(despues) {
+        document.removeEventListener("keydown", alPulsarTecla);
+        temporizadores.forEach(clearTimeout);
+        modal.classList.remove("visible");
+        modal.classList.add("saliendo");
+        setTimeout(() => {
+            modal.remove();
+            document.body.classList.remove("juego-abierto");
+            despues?.();
+        }, reducir ? 0 : 520);
+    }
+
+
+    function alPulsarTecla(evento) {
+        if (evento.key === "Escape" && !terminado) {
+            cerrar();
+        }
+    }
+
+    document.addEventListener("keydown", alPulsarTecla);
+
+    modal
+        .querySelectorAll("[data-juego-cerrar]")
+        .forEach(boton => boton.addEventListener("click", () => {
+            if (!terminado) {
+                cerrar();
+            }
+        }));
+
+
+    const api = {
+
+        modal,
+        reducir,
+        esperar,
+
+        decir(texto, tipo) {
+            const mensaje = modal.querySelector("[data-juego-mensaje]");
+            if (!mensaje) {
+                return;
+            }
+            mensaje.classList.remove("bien", "mal", "cambia");
+            void mensaje.offsetWidth;
+            mensaje.textContent = texto;
+            mensaje.classList.add("cambia");
+            if (tipo) {
+                mensaje.classList.add(tipo);
+            }
+        },
+
+        // Ya no se puede cerrar a medias (ni perder lo ganado)
+        bloquear() {
+            terminado = true;
+            modal.querySelector(".juego-x").hidden = true;
+        },
+
+        // Confeti, la ventana se va y se abre el sobre
+        ganar({ espera = 2600, confeti = 900 } = {}) {
+
+            api.bloquear();
+
+            esperar(confeti, () => {
+                if (!reducir) {
+                    lanzarConfeti();
+                }
+            });
+
+            if (espera !== null) {
+                esperar(espera, api.abrirSobre);
+            }
+        },
+
+        abrirSobre() {
+            cerrar(() => {
+                sobre.scrollIntoView?.({ block: "center", behavior: reducir ? "auto" : "smooth" });
+                setTimeout(() => abrirSobre(sobre), reducir ? 0 : 450);
+            });
+        }
+    };
+
+    juego.montar(modal.querySelector("[data-juego-zona]"), api);
+}
+
+
+/* ---------------------------------------------------------
+   Pista 2 · Haz la maleta
+   --------------------------------------------------------- */
 
 const JUEGO_MALETA = [
     { icono: "🦆", nombre: "Flotador de patito", va: false, mensaje: "¿Dónde crees que vamos?" },
@@ -1146,7 +1288,6 @@ const JUEGO_MALETA = [
     { icono: "📸", nombre: "Cámara", va: true, mensaje: "Ya te lo dije en la pista 1 😉" },
     { icono: "🍳", nombre: "Sartén", va: false, mensaje: "Esta vez no cocinas tú." }
 ];
-
 
 // Su gorro blanco de pelo (no hay emoji de gorro de lana)
 const ICONO_GORRO = `
@@ -1172,126 +1313,53 @@ function iconoObjeto(objeto) {
 }
 
 
-function abrirJuegoMaleta(sobre) {
-
-    if (document.getElementById("maleta-modal")) {
-        return;
-    }
-
-    const reducir =
-        window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+function montarMaleta(zona, api) {
 
     const necesarios =
         JUEGO_MALETA.filter(objeto => objeto.va === true).length;
 
     let metidos = 0;
-    let terminado = false;
 
-    const modal =
-        document.createElement("div");
-
-    modal.id = "maleta-modal";
-    modal.className = "maleta-modal";
-    modal.setAttribute("role", "dialog");
-    modal.setAttribute("aria-modal", "true");
-    modal.setAttribute("aria-label", "Haz la maleta");
-
-    modal.innerHTML = `
-        <div class="maleta-velo" data-maleta-cerrar></div>
-
-        <div class="maleta-cuadro">
-
-            <button type="button" class="maleta-x" data-maleta-cerrar aria-label="Cerrar">×</button>
-
-            <p class="maleta-etiqueta">Pista nº ${Number(sobre.dataset.pista) + 1}</p>
-            <h3 class="maleta-titulo">Haz la maleta, justiciera</h3>
-            <p class="maleta-sub">Mete solo lo que vas a necesitar.</p>
-
-            <div class="maleta" data-maleta aria-hidden="true">
-                <div class="maleta-tapa">
-                    <span class="maleta-tapa-dentro"></span>
-                    <span class="maleta-tapa-fuera">
-                        <span class="maleta-correa"></span>
-                        <span class="maleta-correa"></span>
-                        <span class="maleta-cierre"></span>
-                    </span>
+    zona.innerHTML = `
+        <div class="maleta" data-maleta aria-hidden="true">
+            <div class="maleta-tapa">
+                <span class="maleta-tapa-dentro"></span>
+                <span class="maleta-tapa-fuera">
+                    <span class="maleta-correa"></span>
+                    <span class="maleta-correa"></span>
+                    <span class="maleta-cierre"></span>
+                </span>
+            </div>
+            <span class="maleta-asa"></span>
+            <div class="maleta-base">
+                <div class="maleta-hueco">
+                    ${Array.from({ length: necesarios }, () => `<span class="maleta-sitio"></span>`).join("")}
                 </div>
-                <span class="maleta-asa"></span>
-                <div class="maleta-base">
-                    <div class="maleta-hueco" data-maleta-hueco>
-                        ${Array.from({ length: necesarios }, () => `<span class="maleta-sitio"></span>`).join("")}
-                    </div>
-                    <div class="maleta-frente">
-                        <span class="maleta-correa"></span>
-                        <span class="maleta-correa"></span>
-                    </div>
+                <div class="maleta-frente">
+                    <span class="maleta-correa"></span>
+                    <span class="maleta-correa"></span>
                 </div>
             </div>
-
-            <p class="maleta-mensaje" data-maleta-mensaje aria-live="polite">Toca cada cosa para meterla</p>
-
-            <div class="maleta-objetos">
-                ${JUEGO_MALETA.map((objeto, i) => `
-                    <button type="button" class="maleta-objeto" data-objeto="${i}" aria-label="${escaparAtributo(objeto.nombre)}">
-                        <span class="maleta-objeto-icono" aria-hidden="true">${iconoObjeto(objeto)}</span>
-                        <span class="maleta-objeto-nombre">${escaparHTML(objeto.nombre)}</span>
-                    </button>
-                `).join("")}
-            </div>
-
-            <p class="maleta-progreso" data-maleta-progreso>0 de ${necesarios} en la maleta</p>
         </div>
+
+        <p class="juego-mensaje" data-juego-mensaje aria-live="polite">Toca cada cosa para meterla</p>
+
+        <div class="maleta-objetos">
+            ${JUEGO_MALETA.map((objeto, i) => `
+                <button type="button" class="maleta-objeto" data-objeto="${i}" aria-label="${escaparAtributo(objeto.nombre)}">
+                    <span class="maleta-objeto-icono" aria-hidden="true">${iconoObjeto(objeto)}</span>
+                    <span class="maleta-objeto-nombre">${escaparHTML(objeto.nombre)}</span>
+                </button>
+            `).join("")}
+        </div>
+
+        <p class="juego-progreso" data-maleta-progreso>0 de ${necesarios} en la maleta</p>
     `;
 
-    document.body.appendChild(modal);
-    document.body.classList.add("juego-abierto");
-
-    requestAnimationFrame(() => modal.classList.add("visible"));
-
-    const maleta = modal.querySelector("[data-maleta]");
-    const sitios = [...modal.querySelectorAll(".maleta-sitio")];
-    const mensaje = modal.querySelector("[data-maleta-mensaje]");
-    const progreso = modal.querySelector("[data-maleta-progreso]");
-
-
-    function decir(texto, tipo) {
-        mensaje.classList.remove("bien", "mal", "cambia");
-        void mensaje.offsetWidth;
-        mensaje.textContent = texto;
-        mensaje.classList.add("cambia");
-        if (tipo) {
-            mensaje.classList.add(tipo);
-        }
-    }
-
-
-    function cerrarJuego(despues) {
-        document.removeEventListener("keydown", alPulsarTecla);
-        modal.classList.remove("visible");
-        modal.classList.add("saliendo");
-        setTimeout(() => {
-            modal.remove();
-            document.body.classList.remove("juego-abierto");
-            despues?.();
-        }, reducir ? 0 : 520);
-    }
-
-
-    function alPulsarTecla(evento) {
-        if (evento.key === "Escape" && !terminado) {
-            cerrarJuego();
-        }
-    }
-
-    document.addEventListener("keydown", alPulsarTecla);
-
-    modal
-        .querySelectorAll("[data-maleta-cerrar]")
-        .forEach(boton => boton.addEventListener("click", () => {
-            if (!terminado) {
-                cerrarJuego();
-            }
-        }));
+    const maleta = zona.querySelector("[data-maleta]");
+    const sitios = [...zona.querySelectorAll(".maleta-sitio")];
+    const progreso = zona.querySelector("[data-maleta-progreso]");
+    const botones = [...zona.querySelectorAll(".maleta-objeto")];
 
 
     function volarALaMaleta(boton, sitio, icono) {
@@ -1304,7 +1372,7 @@ function abrirJuegoMaleta(sobre) {
             sitio.classList.add("lleno");
         };
 
-        if (reducir || !document.body.animate) {
+        if (api.reducir || !document.body.animate) {
             pasa();
             return Promise.resolve();
         }
@@ -1339,89 +1407,549 @@ function abrirJuegoMaleta(sobre) {
 
     function terminar() {
 
-        terminado = true;
+        botones.forEach(boton => { boton.disabled = true; });
+        api.bloquear();
 
-        modal.querySelectorAll(".maleta-objeto").forEach(boton => { boton.disabled = true; });
-        modal.querySelector(".maleta-x").hidden = true;
-
-        decir("¡Maleta lista! 🧳", "bien");
+        api.decir("¡Maleta lista! 🧳", "bien");
         progreso.textContent = "Cerrando…";
 
-        setTimeout(() => {
+        api.esperar(500, () => {
             maleta.classList.add("cerrada");
             progreso.textContent = "¡Perfecta!";
-        }, reducir ? 0 : 500);
+        });
 
-        setTimeout(() => {
-            if (!reducir) {
-                lanzarConfeti();
-            }
-        }, reducir ? 0 : 1500);
-
-        setTimeout(() => {
-            cerrarJuego(() => {
-                sobre.scrollIntoView?.({ block: "center", behavior: reducir ? "auto" : "smooth" });
-                setTimeout(() => abrirSobre(sobre), reducir ? 0 : 450);
-            });
-        }, reducir ? 400 : 3000);
+        api.ganar({ confeti: 1500, espera: 3000 });
     }
 
 
-    modal
-        .querySelectorAll(".maleta-objeto")
-        .forEach(boton => {
+    botones.forEach(boton => {
 
-            boton.addEventListener("click", () => {
+        boton.addEventListener("click", () => {
 
-                if (terminado || boton.disabled || boton.classList.contains("dentro") || boton.classList.contains("fuera")) {
-                    return;
-                }
+            if (boton.disabled || boton.classList.contains("dentro") || boton.classList.contains("fuera")) {
+                return;
+            }
 
-                const objeto = JUEGO_MALETA[Number(boton.dataset.objeto)];
+            const objeto = JUEGO_MALETA[Number(boton.dataset.objeto)];
 
-                // El gorro: ni dentro ni fuera, guiño a la pista siguiente
-                if (objeto.va === "puesto") {
+            // El gorro: ni dentro ni fuera, guiño a la pista siguiente
+            if (objeto.va === "puesto") {
+                boton.classList.remove("puesto");
+                void boton.offsetWidth;
+                boton.classList.add("puesto");
+                api.decir(objeto.mensaje, "bien");
+                return;
+            }
 
-                    boton.classList.remove("puesto");
-                    void boton.offsetWidth;
-                    boton.classList.add("puesto");
-                    decir(objeto.mensaje, "bien");
-                    return;
-                }
-
-                if (!objeto.va) {
-
-                    boton.classList.add("fuera");
-                    boton.setAttribute("aria-disabled", "true");
-                    maleta.classList.remove("escupe");
-                    void maleta.offsetWidth;
-                    maleta.classList.add("escupe");
-                    decir(`${objeto.icono} ${objeto.mensaje}`, "mal");
-                    return;
-                }
-
-                const sitio = sitios[metidos];
-                metidos++;
-
-                boton.classList.add("dentro");
+            if (!objeto.va) {
+                boton.classList.add("fuera");
                 boton.setAttribute("aria-disabled", "true");
-                decir(`${objeto.icono} ${objeto.mensaje}`, "bien");
-                progreso.textContent = `${metidos} de ${necesarios} en la maleta`;
+                maleta.classList.remove("escupe");
+                void maleta.offsetWidth;
+                maleta.classList.add("escupe");
+                api.decir(`${objeto.icono} ${objeto.mensaje}`, "mal");
+                return;
+            }
 
-                const ultimo = metidos === necesarios;
+            const sitio = sitios[metidos];
+            metidos++;
 
+            boton.classList.add("dentro");
+            boton.setAttribute("aria-disabled", "true");
+            api.decir(`${objeto.icono} ${objeto.mensaje}`, "bien");
+            progreso.textContent = `${metidos} de ${necesarios} en la maleta`;
+
+            const ultimo = metidos === necesarios;
+
+            if (ultimo) {
+                botones.forEach(b => { b.disabled = true; });
+            }
+
+            volarALaMaleta(boton, sitio, objeto.icono).then(() => {
                 if (ultimo) {
-                    modal.querySelectorAll(".maleta-objeto").forEach(b => { b.disabled = true; });
+                    api.esperar(900, terminar);
                 }
-
-                volarALaMaleta(boton, sitio, objeto.icono).then(() => {
-                    if (ultimo) {
-                        setTimeout(terminar, reducir ? 0 : 900);
-                    }
-                });
             });
         });
+    });
 }
+
+
+/* ---------------------------------------------------------
+   Pista 3 · Frío, frío… ¡caliente!  (adivina la temperatura)
+   --------------------------------------------------------- */
+
+const TERMOMETRO = { min: -10, max: 35, inicio: 27, aciertoMin: 0, aciertoMax: 10 };
+
+
+function montarTermometro(zona, api) {
+
+    const { min, max, inicio, aciertoMin, aciertoMax } = TERMOMETRO;
+
+    zona.innerHTML = `
+        <div class="termo" data-termo>
+            <div class="termo-tubo" aria-hidden="true">
+                <span class="termo-mercurio" data-termo-mercurio></span>
+                <span class="termo-bulbo"></span>
+                <span class="termo-escarcha"></span>
+            </div>
+            <div class="termo-lectura">
+                <span class="termo-tiempo" data-termo-tiempo aria-hidden="true">☀️</span>
+                <span class="termo-grados"><span data-termo-valor>${inicio}</span><small>ºC</small></span>
+            </div>
+        </div>
+
+        <p class="juego-mensaje" data-juego-mensaje aria-live="polite">Desliza y prueba suerte</p>
+
+        <input class="termo-control" data-termo-control type="range"
+            min="${min}" max="${max}" step="1" value="${inicio}"
+            aria-label="Temperatura en grados">
+
+        <button type="button" class="gift-main-button juego-boton" data-termo-probar>
+            ¿Será esta? <span aria-hidden="true">🌡️</span>
+        </button>
+    `;
+
+    const termo = zona.querySelector("[data-termo]");
+    const control = zona.querySelector("[data-termo-control]");
+    const valor = zona.querySelector("[data-termo-valor]");
+    const tiempo = zona.querySelector("[data-termo-tiempo]");
+    const mercurio = zona.querySelector("[data-termo-mercurio]");
+    const probar = zona.querySelector("[data-termo-probar]");
+
+    const icono = grados =>
+        grados >= 25 ? "☀️" :
+        grados >= 18 ? "🌤️" :
+        grados >= 11 ? "🍂" :
+        grados >= 0 ? "❄️" : "🥶";
+
+    function pintar() {
+        const grados = Number(control.value);
+        const fraccion = (grados - min) / (max - min);
+        valor.textContent = grados;
+        tiempo.textContent = icono(grados);
+        termo.style.setProperty("--nivel", fraccion.toFixed(3));
+        // Azul con frío; de amarillo a rojo según aprieta el calor
+        const tono = grados <= 10 ? 205 : 45 - ((grados - 10) / (max - 10)) * 45;
+        termo.style.setProperty("--tono", String(Math.round(tono)));
+        control.style.setProperty("--relleno", `${(fraccion * 100).toFixed(1)}%`);
+    }
+
+    control.addEventListener("input", pintar);
+    pintar();
+
+    probar.addEventListener("click", () => {
+
+        const grados = Number(control.value);
+
+        if (grados >= aciertoMin && grados <= aciertoMax) {
+            control.disabled = true;
+            probar.disabled = true;
+            termo.classList.add("helado");
+            api.decir("❄️ ¡Brrr! Esa es. Abrígate bien.", "bien");
+            api.ganar({ confeti: 1000, espera: 2900 });
+            return;
+        }
+
+        termo.classList.remove("tiembla");
+        void termo.offsetWidth;
+        termo.classList.add("tiembla");
+
+        if (grados >= 25) {
+            api.decir("☀️ ¡Caliente, caliente! Esto no es la playa.", "mal");
+        } else if (grados >= 18) {
+            api.decir("🌤️ Templadito… sigue bajando.", "mal");
+        } else if (grados > aciertoMax) {
+            api.decir("🍂 Frío, frío… ¡pero aún no suficiente!", "mal");
+        } else {
+            api.decir("🥶 ¡Tanto no, que te congelas! Sube un poco.", "mal");
+        }
+    });
+}
+
+
+/* ---------------------------------------------------------
+   Pista 4 · Encuentra el Godello  (trileros con botellas)
+   --------------------------------------------------------- */
+
+const BOTELLAS = [
+    { uva: "Godello", vino: "#e9d98a", buena: true },
+    { uva: "Tempranillo", vino: "#7b1f2c", mensaje: "🍷 Tempranillo. Rico, pero no es la tuya." },
+    { uva: "Albariño", vino: "#f1e6a6", mensaje: "🍾 Albariño. ¡Casi! Pero esa no es." }
+];
+
+
+function svgBotella(color, conEtiqueta, uva) {
+    return `
+        <svg viewBox="0 0 60 160" aria-hidden="true">
+            <path d="M24 4 h12 v34 c0 8 14 14 14 34 v74 c0 7 -4 10 -10 10 h-20 c-6 0 -10 -3 -10 -10 v-74 c0 -20 14 -26 14 -34z"
+                fill="#2f4a33" stroke="#1e3022" stroke-width="2"/>
+            <rect x="23" y="2" width="14" height="12" rx="2" fill="#8f4f3a"/>
+            ${conEtiqueta ? `<path d="M14 96 h32 v52 c0 4 -2 6 -6 6 h-20 c-4 0 -6 -2 -6 -6z" fill="${color}" opacity="0.35"/>` : ""}
+            <path d="M19 52 c-3 4 -4 8 -4 14 v40" stroke="rgba(255,255,255,0.35)" stroke-width="3" fill="none" stroke-linecap="round"/>
+            ${conEtiqueta ? `
+                <rect x="13" y="78" width="34" height="44" rx="3" fill="#f8f2e6" stroke="#c9973f" stroke-width="1.5"/>
+                <text x="30" y="94" text-anchor="middle" font-size="9">🍇</text>
+                <text x="30" y="108" text-anchor="middle" class="botella-uva"${uva.length > 8 ? ` textLength="30" lengthAdjust="spacingAndGlyphs"` : ""}>${escaparHTML(uva)}</text>
+            ` : `
+                <rect x="13" y="78" width="34" height="44" rx="3" fill="#2a3f2d" stroke="#c9973f" stroke-width="1" opacity="0.8"/>
+                <text x="30" y="106" text-anchor="middle" class="botella-interrogacion">?</text>
+            `}
+        </svg>
+    `;
+}
+
+
+function montarTrileros(zona, api) {
+
+    zona.innerHTML = `
+        <div class="trile" data-trile>
+            ${BOTELLAS.map((botella, i) => `
+                <button type="button" class="botella" data-botella="${i}" style="--hueco:${i}" disabled
+                    aria-label="Botella">
+                    <span class="botella-giro">
+                        <span class="botella-cara botella-frente">${svgBotella(botella.vino, true, botella.uva)}</span>
+                        <span class="botella-cara botella-dorso">${svgBotella(botella.vino, false)}</span>
+                    </span>
+                </button>
+            `).join("")}
+        </div>
+
+        <p class="juego-mensaje" data-juego-mensaje aria-live="polite">Fíjate bien dónde está el Godello…</p>
+
+        <button type="button" class="gift-main-button juego-boton" data-trile-empezar>
+            ¡Mezcla! <span aria-hidden="true">🔀</span>
+        </button>
+    `;
+
+    const botellas = [...zona.querySelectorAll(".botella")];
+    const empezar = zona.querySelector("[data-trile-empezar]");
+
+    // posiciones[i] = hueco en el que está la botella i
+    const posiciones = botellas.map((_, i) => i);
+    let jugando = false;
+
+    const colocar = () =>
+        botellas.forEach((botella, i) => botella.style.setProperty("--hueco", posiciones[i]));
+
+    const dePie = (dorso) =>
+        botellas.forEach(botella => botella.classList.toggle("de-espaldas", dorso));
+
+    function mezclar() {
+
+        jugando = false;
+        empezar.hidden = true;
+        botellas.forEach(b => { b.disabled = true; b.classList.remove("fallo"); });
+
+        api.decir("Vista al frente…");
+        dePie(true);
+
+        const pasos = api.reducir ? 0 : 7;
+        let hechos = 0;
+
+        const unCambio = () => {
+
+            if (hechos >= pasos) {
+                // Se colocan al final por si hubo pocas vueltas
+                api.esperar(250, () => {
+                    jugando = true;
+                    botellas.forEach(b => { b.disabled = false; });
+                    api.decir("¿Dónde está el Godello? 🍇");
+                });
+                return;
+            }
+
+            // Intercambia dos huecos al azar
+            const a = Math.floor(Math.random() * 3);
+            let b = Math.floor(Math.random() * 2);
+            if (b >= a) {
+                b++;
+            }
+
+            const ia = posiciones.indexOf(a);
+            const ib = posiciones.indexOf(b);
+            posiciones[ia] = b;
+            posiciones[ib] = a;
+
+            botellas[ia].classList.add("arriba");
+            botellas[ib].classList.remove("arriba");
+            colocar();
+
+            hechos++;
+            api.esperar(560, unCambio);
+        };
+
+        api.esperar(900, unCambio);
+    }
+
+    empezar.addEventListener("click", mezclar);
+
+    botellas.forEach((botella, i) => {
+
+        botella.addEventListener("click", () => {
+
+            if (!jugando) {
+                return;
+            }
+
+            jugando = false;
+            botellas.forEach(b => { b.disabled = true; });
+            botella.classList.remove("de-espaldas");
+
+            if (BOTELLAS[i].buena) {
+                botella.classList.add("acierto");
+                api.decir("🍇 ¡Godello! Sabía que no fallarías.", "bien");
+                api.ganar({ confeti: 900, espera: 2800 });
+                return;
+            }
+
+            botella.classList.add("fallo");
+            api.decir(BOTELLAS[i].mensaje, "mal");
+
+            // Enseña dónde estaba y revancha
+            api.esperar(1500, () => {
+                dePie(false);
+                empezar.innerHTML = `Revancha <span aria-hidden="true">🔀</span>`;
+                empezar.hidden = false;
+                api.decir("Ahí estaba. ¿Otra vez?");
+            });
+        });
+    });
+}
+
+
+/* ---------------------------------------------------------
+   Pista 5 · Examen sorpresa de Plástica
+   --------------------------------------------------------- */
+
+const EXAMEN_ARTE = {
+    imagen: "assets/pistas/nenufares.jpg",
+    opciones: [
+        { autor: "Van Gogh", mensaje: "🌻 Ese pintaba girasoles, no nenúfares." },
+        { autor: "Monet", buena: true },
+        { autor: "Velázquez", mensaje: "👑 Ese pintaba meninas, no ranas." },
+        { autor: "Renoir", mensaje: "😏 Era su amigo… pero no." }
+    ]
+};
+
+
+function montarExamen(zona, api) {
+
+    zona.innerHTML = `
+        <figure class="cuadro-examen" data-cuadro>
+            <span class="cuadro-marco">
+                <img src="${escaparAtributo(EXAMEN_ARTE.imagen)}" alt="Un estanque con nenúfares" draggable="false">
+            </span>
+            <span class="cuadro-nota" aria-hidden="true">Sobresaliente</span>
+        </figure>
+
+        <p class="examen-pregunta">¿Quién pintó <em>Los nenúfares</em>?</p>
+
+        <p class="juego-mensaje" data-juego-mensaje aria-live="polite">Piénsalo bien…</p>
+
+        <div class="examen-opciones">
+            ${EXAMEN_ARTE.opciones.map((opcion, i) => `
+                <button type="button" class="examen-opcion" data-opcion="${i}">${escaparHTML(opcion.autor)}</button>
+            `).join("")}
+        </div>
+    `;
+
+    const cuadro = zona.querySelector("[data-cuadro]");
+    const opciones = [...zona.querySelectorAll(".examen-opcion")];
+
+    opciones.forEach((boton, i) => {
+
+        boton.addEventListener("click", () => {
+
+            if (boton.disabled || boton.classList.contains("tachada")) {
+                return;
+            }
+
+            const opcion = EXAMEN_ARTE.opciones[i];
+
+            if (opcion.buena) {
+                opciones.forEach(b => { b.disabled = true; });
+                boton.classList.add("correcta");
+                cuadro.classList.add("aprobado");
+                api.decir("🖼️ ¡Claude Monet! Matrícula de honor.", "bien");
+                api.ganar({ confeti: 1300, espera: 3000 });
+                return;
+            }
+
+            boton.classList.add("tachada");
+            boton.setAttribute("aria-disabled", "true");
+            api.decir(opcion.mensaje, "mal");
+        });
+    });
+}
+
+
+/* ---------------------------------------------------------
+   Pista 6 · ¿Hasta arriba?  (y arriba, la palabra secreta)
+   --------------------------------------------------------- */
+
+const ESCALERA = {
+    escalones: 15,
+    animos: {
+        3: "Vamos bien…",
+        6: "¿Ya cansada? 😏",
+        9: "Respira, que queda poco… (mentira)",
+        12: "¡Casi, casi!",
+        14: "¡Uno más!"
+    },
+    palabra: "dGFrb3lha2k="     // en base64, como las pistas
+};
+
+
+function montarEscalera(zona, api) {
+
+    const total = ESCALERA.escalones;
+    let subidos = 0;
+
+    // Escalones de abajo a la izquierda hacia arriba a la derecha
+    const peldanos = Array.from({ length: total }, (_, i) => {
+        const x = 8 + i * (184 / total);
+        const y = 150 - (i + 1) * (128 / total);
+        return `<rect class="peldano" data-peldano="${i}" x="${x.toFixed(1)}" y="${y.toFixed(1)}"
+            width="${(184 / total + 0.6).toFixed(1)}" height="${(150 - y).toFixed(1)}" />`;
+    }).join("");
+
+    zona.innerHTML = `
+        <div class="escalera" data-escalera>
+            <svg class="escalera-dibujo" viewBox="0 0 200 160" aria-hidden="true">
+                <defs>
+                    <linearGradient id="cielo-escalera" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0" stop-color="#f6c79a"/>
+                        <stop offset="0.6" stop-color="#f3dcc4"/>
+                        <stop offset="1" stop-color="#fbf3ea"/>
+                    </linearGradient>
+                </defs>
+                <rect class="escalera-cielo" x="0" y="0" width="200" height="160" fill="url(#cielo-escalera)"/>
+                <circle class="escalera-sol" cx="150" cy="42" r="15" fill="#f7b267"/>
+                <path class="escalera-tejados" d="M0 62 l10 -8 10 8 v-6 h14 l8 -10 8 10 h10 l12 -9 12 9 v-4 h16 l9 -7 9 7 h12 l11 -9 11 9 h8 l10 -8 10 8 v98 h-200z" fill="#c98a6a"/>
+                ${peldanos}
+            </svg>
+            <span class="escalera-ella" data-escalera-ella aria-hidden="true">🚶‍♀️</span>
+        </div>
+
+        <p class="juego-mensaje" data-juego-mensaje aria-live="polite">Toca para subir</p>
+
+        <button type="button" class="gift-main-button juego-boton escalera-boton" data-escalera-subir>
+            Sube <span aria-hidden="true">↑</span>
+        </button>
+
+        <p class="juego-progreso" data-escalera-contador>Escalón 0 de ${total}</p>
+
+        <div class="escalera-premio" data-escalera-premio hidden>
+            <p class="premio-titulo">Y aquí arriba había esto…</p>
+            <div class="pergamino">
+                <span class="pergamino-antes">La palabra secreta es</span>
+                <strong class="pergamino-palabra">${escaparHTML(textoDeBase64(ESCALERA.palabra))}</strong>
+                <span class="pergamino-despues">Guárdala bien. Mañana la necesitarás. 🤫</span>
+            </div>
+            <button type="button" class="gift-main-button juego-boton" data-escalera-guardar>
+                Me la guardo <span aria-hidden="true">✦</span>
+            </button>
+        </div>
+    `;
+
+    const escalera = zona.querySelector("[data-escalera]");
+    const ella = zona.querySelector("[data-escalera-ella]");
+    const subir = zona.querySelector("[data-escalera-subir]");
+    const contador = zona.querySelector("[data-escalera-contador]");
+    const premio = zona.querySelector("[data-escalera-premio]");
+
+    function colocarla() {
+        // Sobre el escalón actual (coordenadas del dibujo en %)
+        const x = subidos === 0 ? 2 : 8 + (subidos - 0.5) * (184 / total);
+        const y = 150 - subidos * (128 / total);
+        ella.style.left = `${(x / 200) * 100}%`;
+        ella.style.top = `${(y / 160) * 100}%`;
+    }
+
+    colocarla();
+
+    const darPaso = () => {
+
+        if (subidos >= total || subir.disabled) {
+            return;
+        }
+
+        subidos++;
+
+        zona.querySelector(`[data-peldano="${subidos - 1}"]`)?.classList.add("pisado");
+        colocarla();
+
+        ella.classList.remove("paso");
+        void ella.offsetWidth;
+        ella.classList.add("paso");
+
+        contador.textContent = `Escalón ${subidos} de ${total}`;
+
+        if (ESCALERA.animos[subidos]) {
+            api.decir(ESCALERA.animos[subidos]);
+        }
+
+        if (subidos < total) {
+            return;
+        }
+
+        // ¡Arriba!
+        subir.disabled = true;
+        api.bloquear();
+        escalera.classList.add("arriba");
+        api.decir("¡Arriba! Mira qué vistas… 🌅", "bien");
+        contador.textContent = "¡Lo conseguiste!";
+
+        api.esperar(1700, () => {
+            subir.hidden = true;
+            contador.hidden = true;
+            zona.querySelector("[data-juego-mensaje]").hidden = true;
+            zona.classList.add("con-premio");
+            premio.hidden = false;
+            api.ganar({ confeti: 300, espera: null });
+        });
+    };
+
+    subir.addEventListener("click", darPaso);
+    escalera.addEventListener("click", darPaso);
+
+    zona
+        .querySelector("[data-escalera-guardar]")
+        .addEventListener("click", event => {
+            event.currentTarget.disabled = true;
+            api.abrirSobre();
+        });
+}
+
+
+const JUEGOS_PISTAS = {
+    maleta: {
+        titulo: "Haz la maleta, justiciera",
+        sub: "Mete solo lo que vas a necesitar.",
+        montar: montarMaleta
+    },
+    termometro: {
+        titulo: "Frío, frío… ¡caliente!",
+        sub: "¿Qué temperatura crees que hará?",
+        montar: montarTermometro
+    },
+    trileros: {
+        titulo: "Encuentra el Godello",
+        sub: "Tres botellas, una uva. No le quites ojo.",
+        montar: montarTrileros
+    },
+    examen: {
+        titulo: "Examen sorpresa de Plástica",
+        sub: "Una sola pregunta. Sin chuleta.",
+        montar: montarExamen
+    },
+    escalera: {
+        titulo: "¿Hasta arriba?",
+        sub: "Un toque, un escalón.",
+        montar: montarEscalera
+    }
+};
 
 
 /* =========================================================
@@ -1928,7 +2456,7 @@ function crearModalRegalo() {
 
                 <h2>Dime la palabra secreta</h2>
 
-                <p>Te la susurro yo. 😉</p>
+                <p>La que encontraste en lo alto de la escalera. 😉</p>
 
                 <label class="visually-hidden" for="gift-password-input">
                     Palabra secreta
