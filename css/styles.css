@@ -9287,3 +9287,453 @@ body:not(.viaje-desbloqueado) .countdown-item span {
 .sello.puesto {
     animation-delay: 0s;
 }
+
+
+/* =========================================================
+   MINIJUEGO DE LA PISTA 2: HAZ LA MALETA
+   ========================================================= */
+
+body.juego-abierto {
+    overflow: hidden;
+}
+
+.maleta-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1500;
+    display: grid;
+    place-items: center;
+    padding:
+        calc(12px + var(--zona-segura-arriba, 0px)) 12px
+        calc(12px + var(--zona-segura-abajo, 0px));
+    opacity: 0;
+    transition: opacity 0.5s ease;
+}
+
+.maleta-modal.visible {
+    opacity: 1;
+}
+
+.maleta-velo {
+    position: absolute;
+    inset: 0;
+    background: rgba(34, 27, 22, 0.8);
+    backdrop-filter: blur(9px);
+    -webkit-backdrop-filter: blur(9px);
+}
+
+.maleta-cuadro {
+    --mw: clamp(150px, 48vw, 196px);
+    --mh: calc(var(--mw) * 0.5);
+
+    position: relative;
+    z-index: 1;
+    width: min(420px, 100%);
+    max-height: 100%;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 26px 16px 18px;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: var(--radius-large, 28px);
+    background:
+        radial-gradient(circle at 50% 0%, rgba(214, 170, 120, 0.16), transparent 60%),
+        var(--surface);
+    box-shadow: var(--shadow-large);
+    text-align: center;
+    transform: translateY(18px) scale(0.94);
+    transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.maleta-modal.visible .maleta-cuadro {
+    transform: none;
+}
+
+.maleta-modal.saliendo .maleta-cuadro {
+    transform: translateY(10px) scale(0.97);
+}
+
+.maleta-x {
+    position: absolute;
+    top: 8px;
+    right: 10px;
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--text-light);
+    font-size: 1.5rem;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.maleta-etiqueta {
+    margin: 0;
+    color: var(--primary);
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+}
+
+.maleta-titulo {
+    margin: 6px 0 2px;
+    color: var(--text);
+    font-family: "Cormorant Garamond", serif;
+    font-size: clamp(1.45rem, 6.4vw, 1.8rem);
+    font-weight: 600;
+    line-height: 1.1;
+}
+
+.maleta-sub {
+    margin: 0 0 14px;
+    color: var(--text-light);
+    font-size: 0.82rem;
+}
+
+
+/* ---------- La maleta ---------- */
+
+.maleta {
+    position: relative;
+    width: var(--mw);
+    height: calc(var(--mh) * 2);
+    margin: 0 auto;
+    perspective: 700px;
+}
+
+.maleta-tapa,
+.maleta-base {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: var(--mh);
+}
+
+.maleta-base {
+    top: var(--mh);
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    filter: drop-shadow(0 10px 14px rgba(60, 35, 20, 0.22));
+}
+
+.maleta-tapa {
+    top: 0;
+    z-index: 2;
+    transform-origin: 50% 100%;
+    transform-style: preserve-3d;
+    transform: rotateX(8deg);
+    transition: transform 1s cubic-bezier(0.55, 0, 0.3, 1.25);
+}
+
+.maleta-tapa-dentro,
+.maleta-tapa-fuera {
+    position: absolute;
+    inset: 0;
+    border-radius: 16px 16px 6px 6px;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+}
+
+/* Forro acolchado por dentro */
+.maleta-tapa-dentro {
+    border: 5px solid #7c4330;
+    background:
+        repeating-linear-gradient(45deg, transparent 0 13px, rgba(120, 80, 50, 0.12) 13px 14px),
+        repeating-linear-gradient(-45deg, transparent 0 13px, rgba(120, 80, 50, 0.12) 13px 14px),
+        #efdcc0;
+}
+
+/* Cuero por fuera (se ve al cerrar) */
+.maleta-tapa-fuera,
+.maleta-frente {
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.14), transparent 40%),
+        #9a563f;
+}
+
+.maleta-tapa-fuera {
+    display: flex;
+    justify-content: space-around;
+    padding: 0 18%;
+    border-radius: 6px 6px 16px 16px;
+    transform: rotateX(180deg);
+}
+
+.maleta-correa {
+    width: 13%;
+    height: 100%;
+    background: linear-gradient(90deg, #6f3828, #84452f 50%, #6f3828);
+}
+
+.maleta-cierre {
+    position: absolute;
+    top: 6px;
+    left: 50%;
+    width: 30px;
+    height: 16px;
+    border-radius: 4px;
+    background: linear-gradient(180deg, #f6dc8e, #c9973f);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+    transform: translateX(-50%);
+}
+
+.maleta-hueco {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 6%;
+    height: 34%;
+    padding: 0 8%;
+    border: 5px solid #7c4330;
+    border-bottom: none;
+    border-radius: 6px 6px 0 0;
+    background: #dcc3a0;
+    box-shadow: inset 0 6px 10px rgba(80, 45, 25, 0.25);
+}
+
+.maleta-sitio {
+    display: grid;
+    place-items: end center;
+    width: 26%;
+    height: 100%;
+    font-size: calc(var(--mw) * 0.17);
+    line-height: 1.2;
+}
+
+.maleta-sitio.lleno {
+    animation: asentarse 0.45s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+
+@keyframes asentarse {
+    from { transform: translateY(-8px) scale(1.15); }
+    to { transform: none; }
+}
+
+.maleta-frente {
+    position: relative;
+    display: flex;
+    flex: 1;
+    justify-content: space-around;
+    padding: 0 18%;
+    border-radius: 0 0 16px 16px;
+}
+
+/* Cerrada: la tapa cae encima */
+.maleta.cerrada .maleta-tapa {
+    transform: rotateX(-180deg);
+}
+
+.maleta.cerrada {
+    animation: maletaLista 0.5s ease 1.05s;
+}
+
+@keyframes maletaLista {
+    0%, 100% { transform: none; }
+    35% { transform: translateY(-6px) rotate(-2deg); }
+    70% { transform: translateY(0) rotate(1.5deg); }
+}
+
+.maleta.recibe .maleta-base {
+    animation: recibir 0.4s ease;
+}
+
+@keyframes recibir {
+    0%, 100% { transform: none; }
+    40% { transform: scaleY(0.94) scaleX(1.03); }
+}
+
+.maleta.escupe {
+    animation: escupir 0.5s ease;
+}
+
+@keyframes escupir {
+    0%, 100% { transform: none; }
+    20% { transform: rotate(-4deg); }
+    45% { transform: rotate(4deg); }
+    70% { transform: rotate(-2deg); }
+}
+
+
+/* ---------- Mensaje y objetos ---------- */
+
+.maleta-mensaje {
+    display: grid;
+    place-items: center;
+    min-height: 2.8em;
+    margin: 12px 4px 8px;
+    color: var(--text-light);
+    font-family: "Caveat", "Segoe Print", cursive;
+    font-size: 1.3rem;
+    line-height: 1.1;
+}
+
+.maleta-mensaje.bien {
+    color: var(--secondary);
+}
+
+.maleta-mensaje.mal {
+    color: var(--primary);
+}
+
+.maleta-mensaje.cambia {
+    animation: mensajeEntra 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes mensajeEntra {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: none; }
+}
+
+.maleta-objetos {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.maleta-objeto {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    min-width: 0;
+    padding: 9px 3px 8px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: var(--surface-soft);
+    color: var(--text);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: transform 0.25s ease, opacity 0.5s ease, background 0.3s ease;
+}
+
+.maleta-objeto:active {
+    transform: scale(0.94);
+}
+
+.maleta-objeto-icono {
+    font-size: 1.75rem;
+    line-height: 1;
+}
+
+.maleta-objeto-nombre {
+    max-width: 100%;
+    font-size: 0.6rem;
+    font-weight: 600;
+    line-height: 1.15;
+    overflow-wrap: anywhere;
+}
+
+.maleta-objeto.dentro {
+    opacity: 0.35;
+    background: rgba(102, 112, 90, 0.12);
+    cursor: default;
+}
+
+.maleta-objeto.dentro .maleta-objeto-icono {
+    visibility: hidden;
+}
+
+.maleta-objeto.dentro::after,
+.maleta-objeto.fuera::after {
+    position: absolute;
+    top: 4px;
+    right: 6px;
+    font-size: 0.75rem;
+    font-weight: 800;
+}
+
+.maleta-objeto.dentro::after {
+    content: "✓";
+    color: var(--secondary);
+}
+
+.maleta-objeto.fuera {
+    opacity: 0.4;
+    cursor: default;
+    animation: noCabe 0.5s ease;
+}
+
+.maleta-objeto.fuera::after {
+    content: "✕";
+    color: var(--primary);
+}
+
+.maleta-objeto.fuera .maleta-objeto-icono {
+    filter: grayscale(1);
+}
+
+.maleta-objeto.fuera .maleta-objeto-nombre {
+    text-decoration: line-through;
+}
+
+@keyframes noCabe {
+    0%, 100% { transform: none; }
+    20% { transform: translateX(-5px) rotate(-6deg); }
+    45% { transform: translateX(5px) rotate(5deg); }
+    70% { transform: translateX(-3px); }
+}
+
+.maleta-objeto:disabled {
+    cursor: default;
+}
+
+.maleta-progreso {
+    margin: 12px 0 0;
+    color: var(--text-light);
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+}
+
+/* El objeto mientras vuela a la maleta */
+.maleta-volando {
+    position: fixed;
+    z-index: 1600;
+    font-size: 1.75rem;
+    line-height: 1;
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+    will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .maleta-modal,
+    .maleta-cuadro,
+    .maleta-tapa,
+    .maleta,
+    .maleta *,
+    .maleta-mensaje,
+    .maleta-objeto {
+        animation: none !important;
+        transition: none !important;
+    }
+}
+
+/* Asa: aparece cuando la maleta ya está cerrada */
+.maleta-asa {
+    position: absolute;
+    top: calc(var(--mh) - 22px);
+    left: 50%;
+    z-index: 0;
+    width: 30%;
+    height: 26px;
+    border: 6px solid #6f3828;
+    border-bottom: none;
+    border-radius: 14px 14px 0 0;
+    opacity: 0;
+    transform: translate(-50%, 12px);
+    transition: opacity 0.4s ease 0.85s, transform 0.5s cubic-bezier(0.3, 1.5, 0.5, 1) 0.85s;
+}
+
+.maleta.cerrada .maleta-asa {
+    opacity: 1;
+    transform: translate(-50%, 0);
+}
+
+.maleta-objeto:disabled:not(.dentro):not(.fuera) {
+    opacity: 0.55;
+}

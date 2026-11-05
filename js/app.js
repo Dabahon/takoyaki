@@ -25,7 +25,7 @@ const CONFIG = {
      */
     pistas: [
         { fecha: "2026-11-04T19:00:00+01:00", icono: "📸", texto: "UHJpbWVyYSBwaXN0YSwganVzdGljaWVyYTogaGF6IGh1ZWNvIGVuIGVsIG3Ds3ZpbC4gVmFzIGEgaGFjZXIgbXVjaGFzIGZvdG9zLg==" },
-        { fecha: "2026-11-11T19:00:00+01:00", icono: "🧳", texto: "RW4gbGEgbWFsZXRhOiBhbGdvIGPDs21vZG8gcGFyYSBlbCBkw61hIHkgYWxnbyBib25pdG8gcGFyYSB1bmEgY2VuYSBlc3BlY2lhbC4=" },
+        { fecha: "2026-11-11T19:00:00+01:00", icono: "🧳", juego: "maleta", texto: "wqFNYWxldGEgbGlzdGEsIGp1c3RpY2llcmEhIEFsZ28gY8OzbW9kbyBwYXJhIGVsIGTDrWEgeSBhbGdvIGJvbml0byBwYXJhIHVuYSBjZW5hIGVzcGVjaWFsLg==" },
         { fecha: "2026-11-18T19:00:00+01:00", icono: "🧣", texto: "SGFyw6EgZnLDrW8uIEJ1ZmFuZGEsIHPDrS4gQmlraW5pLCBuby4=" },
         { fecha: "2026-11-25T19:00:00+01:00", icono: "🍷", texto: "RWwgdmlhamUgaW5jbHV5ZSB2aW5vLiBNdWNobyB2aW5vLiBUdSDDum5pY2EgbWlzacOzbiwganVzdGljaWVyYTogZWxlZ2lyIGxhIG1lam9yIGNlcGEu" },
         { fecha: "2026-12-02T19:00:00+01:00", icono: "🎨", texto: "SGFicsOhIGFydGUuIERlbCBxdWUgc2FsZSBlbiBsb3MgbGlicm9zIGRlbCBjb2xlLg==" },
@@ -154,7 +154,7 @@ document.addEventListener("DOMContentLoaded", iniciarApp);
    La versión la pone tools/nueva-version.mjs.
    ========================================================= */
 
-const VERSION_WEB = "20261104162559";
+const VERSION_WEB = "20261105130305";
 
 async function comprobarVersionNueva() {
 
@@ -1028,7 +1028,7 @@ function renderizarPistas() {
 
                             <span class="sobre-pie" aria-hidden="true">
                                 <span class="sobre-numero">Pista nº ${numero}</span>
-                                <span class="sobre-instruccion">Toca para abrir</span>
+                                <span class="sobre-instruccion">${pista.juego && !abierta ? "Toca para jugar" : "Toca para abrir"}</span>
                             </span>
 
                             ${abierta ? "" : `<span class="sobre-nueva">Nueva</span>`}
@@ -1076,26 +1076,315 @@ function renderizarPistas() {
                     return;
                 }
 
-                sobre.classList.remove("nuevo");
-                sobre.querySelector(".sobre-nueva")?.remove();
-                sobre.setAttribute("aria-expanded", "true");
+                const pista =
+                    CONFIG.pistas[Number(sobre.dataset.pista)];
 
-                guardarPistaVista(Number(sobre.dataset.pista));
-
-                if (reducir) {
-                    sobre.classList.add("abierto");
-                    ajustarTextoPista(sobre);
+                // Algunas pistas se ganan jugando antes de abrir el sobre
+                if (pista?.juego === "maleta") {
+                    abrirJuegoMaleta(sobre);
                     return;
                 }
 
-                sobre.classList.add("abriendo");
+                abrirSobre(sobre);
+            });
+        });
+}
 
-                ajustarTextoPista(sobre);
 
-                setTimeout(() => {
-                    sobre.classList.remove("abriendo");
-                    sobre.classList.add("abierto");
-                }, 1700);
+function abrirSobre(sobre) {
+
+    if (!sobre || sobre.classList.contains("abierto") || sobre.classList.contains("abriendo")) {
+        return;
+    }
+
+    const reducir =
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    sobre.classList.remove("nuevo");
+    sobre.querySelector(".sobre-nueva")?.remove();
+    sobre.setAttribute("aria-expanded", "true");
+
+    const instruccion =
+        sobre.querySelector(".sobre-instruccion");
+
+    if (instruccion) {
+        instruccion.textContent = "Toca para abrir";
+    }
+
+    guardarPistaVista(Number(sobre.dataset.pista));
+
+    if (reducir) {
+        sobre.classList.add("abierto");
+        ajustarTextoPista(sobre);
+        return;
+    }
+
+    sobre.classList.add("abriendo");
+
+    ajustarTextoPista(sobre);
+
+    setTimeout(() => {
+        sobre.classList.remove("abriendo");
+        sobre.classList.add("abierto");
+    }, 1700);
+}
+
+
+/* =========================================================
+   MINIJUEGO DE LA PISTA 2: HAZ LA MALETA
+   Solo entran las cosas buenas; las demás, la maleta las
+   escupe con un comentario. Al cerrarla, se abre el sobre.
+   ========================================================= */
+
+const JUEGO_MALETA = [
+    { icono: "🦆", nombre: "Flotador de patito", va: false, mensaje: "¿Dónde crees que vamos?" },
+    { icono: "👟", nombre: "Zapatillas cómodas", va: true, mensaje: "Imprescindibles." },
+    { icono: "🎮", nombre: "La Switch", va: false, mensaje: "Este viaje no va de eso." },
+    { icono: "👗", nombre: "Vestido bonito", va: true, mensaje: "Para una noche especial…" },
+    { icono: "👠", nombre: "Tacones de 12 cm", va: false, mensaje: "Ni de broma, vas a necesitar los pies." },
+    { icono: "🧸", nombre: "Peluche", va: false, mensaje: "Me tienes a mí." },
+    { icono: "📸", nombre: "Cámara", va: true, mensaje: "Ya te lo dije en la pista 1 😉" },
+    { icono: "🍳", nombre: "Sartén", va: false, mensaje: "Esta vez no cocinas tú." }
+];
+
+
+function abrirJuegoMaleta(sobre) {
+
+    if (document.getElementById("maleta-modal")) {
+        return;
+    }
+
+    const reducir =
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    const necesarios =
+        JUEGO_MALETA.filter(objeto => objeto.va).length;
+
+    let metidos = 0;
+    let terminado = false;
+
+    const modal =
+        document.createElement("div");
+
+    modal.id = "maleta-modal";
+    modal.className = "maleta-modal";
+    modal.setAttribute("role", "dialog");
+    modal.setAttribute("aria-modal", "true");
+    modal.setAttribute("aria-label", "Haz la maleta");
+
+    modal.innerHTML = `
+        <div class="maleta-velo" data-maleta-cerrar></div>
+
+        <div class="maleta-cuadro">
+
+            <button type="button" class="maleta-x" data-maleta-cerrar aria-label="Cerrar">×</button>
+
+            <p class="maleta-etiqueta">Pista nº ${Number(sobre.dataset.pista) + 1}</p>
+            <h3 class="maleta-titulo">Haz la maleta, justiciera</h3>
+            <p class="maleta-sub">Mete solo lo que vas a necesitar.</p>
+
+            <div class="maleta" data-maleta aria-hidden="true">
+                <div class="maleta-tapa">
+                    <span class="maleta-tapa-dentro"></span>
+                    <span class="maleta-tapa-fuera">
+                        <span class="maleta-correa"></span>
+                        <span class="maleta-correa"></span>
+                        <span class="maleta-cierre"></span>
+                    </span>
+                </div>
+                <span class="maleta-asa"></span>
+                <div class="maleta-base">
+                    <div class="maleta-hueco" data-maleta-hueco>
+                        ${Array.from({ length: necesarios }, () => `<span class="maleta-sitio"></span>`).join("")}
+                    </div>
+                    <div class="maleta-frente">
+                        <span class="maleta-correa"></span>
+                        <span class="maleta-correa"></span>
+                    </div>
+                </div>
+            </div>
+
+            <p class="maleta-mensaje" data-maleta-mensaje aria-live="polite">Toca cada cosa para meterla</p>
+
+            <div class="maleta-objetos">
+                ${JUEGO_MALETA.map((objeto, i) => `
+                    <button type="button" class="maleta-objeto" data-objeto="${i}" aria-label="${escaparAtributo(objeto.nombre)}">
+                        <span class="maleta-objeto-icono" aria-hidden="true">${objeto.icono}</span>
+                        <span class="maleta-objeto-nombre">${escaparHTML(objeto.nombre)}</span>
+                    </button>
+                `).join("")}
+            </div>
+
+            <p class="maleta-progreso" data-maleta-progreso>0 de ${necesarios} en la maleta</p>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+    document.body.classList.add("juego-abierto");
+
+    requestAnimationFrame(() => modal.classList.add("visible"));
+
+    const maleta = modal.querySelector("[data-maleta]");
+    const sitios = [...modal.querySelectorAll(".maleta-sitio")];
+    const mensaje = modal.querySelector("[data-maleta-mensaje]");
+    const progreso = modal.querySelector("[data-maleta-progreso]");
+
+
+    function decir(texto, tipo) {
+        mensaje.classList.remove("bien", "mal", "cambia");
+        void mensaje.offsetWidth;
+        mensaje.textContent = texto;
+        mensaje.classList.add("cambia");
+        if (tipo) {
+            mensaje.classList.add(tipo);
+        }
+    }
+
+
+    function cerrarJuego(despues) {
+        document.removeEventListener("keydown", alPulsarTecla);
+        modal.classList.remove("visible");
+        modal.classList.add("saliendo");
+        setTimeout(() => {
+            modal.remove();
+            document.body.classList.remove("juego-abierto");
+            despues?.();
+        }, reducir ? 0 : 520);
+    }
+
+
+    function alPulsarTecla(evento) {
+        if (evento.key === "Escape" && !terminado) {
+            cerrarJuego();
+        }
+    }
+
+    document.addEventListener("keydown", alPulsarTecla);
+
+    modal
+        .querySelectorAll("[data-maleta-cerrar]")
+        .forEach(boton => boton.addEventListener("click", () => {
+            if (!terminado) {
+                cerrarJuego();
+            }
+        }));
+
+
+    function volarALaMaleta(boton, sitio, icono) {
+
+        const origen = boton.querySelector(".maleta-objeto-icono").getBoundingClientRect();
+        const destino = sitio.getBoundingClientRect();
+
+        const pasa = () => {
+            sitio.textContent = icono;
+            sitio.classList.add("lleno");
+        };
+
+        if (reducir || !document.body.animate) {
+            pasa();
+            return Promise.resolve();
+        }
+
+        const vuela = document.createElement("span");
+        vuela.className = "maleta-volando";
+        vuela.textContent = icono;
+        vuela.style.left = `${origen.left + origen.width / 2}px`;
+        vuela.style.top = `${origen.top + origen.height / 2}px`;
+        document.body.appendChild(vuela);
+
+        const dx = (destino.left + destino.width / 2) - (origen.left + origen.width / 2);
+        const dy = (destino.top + destino.height / 2) - (origen.top + origen.height / 2);
+
+        const animacion = vuela.animate([
+            { transform: "translate(-50%, -50%) scale(1)", offset: 0 },
+            { transform: `translate(calc(-50% + ${dx * 0.5}px), calc(-50% + ${dy * 0.5 - 70}px)) scale(1.35) rotate(-12deg)`, offset: 0.5 },
+            { transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(0.85) rotate(0deg)`, offset: 1 }
+        ], { duration: 750, easing: "cubic-bezier(0.45, 0, 0.25, 1)", fill: "forwards" });
+
+        return animacion.finished
+            .catch(() => {})
+            .then(() => {
+                vuela.remove();
+                pasa();
+                maleta.classList.remove("recibe");
+                void maleta.offsetWidth;
+                maleta.classList.add("recibe");
+            });
+    }
+
+
+    function terminar() {
+
+        terminado = true;
+
+        modal.querySelectorAll(".maleta-objeto").forEach(boton => { boton.disabled = true; });
+        modal.querySelector(".maleta-x").hidden = true;
+
+        decir("¡Maleta lista! 🧳", "bien");
+        progreso.textContent = "Cerrando…";
+
+        setTimeout(() => {
+            maleta.classList.add("cerrada");
+            progreso.textContent = "¡Perfecta!";
+        }, reducir ? 0 : 500);
+
+        setTimeout(() => {
+            if (!reducir) {
+                lanzarConfeti();
+            }
+        }, reducir ? 0 : 1500);
+
+        setTimeout(() => {
+            cerrarJuego(() => {
+                sobre.scrollIntoView?.({ block: "center", behavior: reducir ? "auto" : "smooth" });
+                setTimeout(() => abrirSobre(sobre), reducir ? 0 : 450);
+            });
+        }, reducir ? 400 : 3000);
+    }
+
+
+    modal
+        .querySelectorAll(".maleta-objeto")
+        .forEach(boton => {
+
+            boton.addEventListener("click", () => {
+
+                if (terminado || boton.disabled || boton.classList.contains("dentro") || boton.classList.contains("fuera")) {
+                    return;
+                }
+
+                const objeto = JUEGO_MALETA[Number(boton.dataset.objeto)];
+
+                if (!objeto.va) {
+
+                    boton.classList.add("fuera");
+                    boton.setAttribute("aria-disabled", "true");
+                    maleta.classList.remove("escupe");
+                    void maleta.offsetWidth;
+                    maleta.classList.add("escupe");
+                    decir(`${objeto.icono} ${objeto.mensaje}`, "mal");
+                    return;
+                }
+
+                const sitio = sitios[metidos];
+                metidos++;
+
+                boton.classList.add("dentro");
+                boton.setAttribute("aria-disabled", "true");
+                decir(`${objeto.icono} ${objeto.mensaje}`, "bien");
+                progreso.textContent = `${metidos} de ${necesarios} en la maleta`;
+
+                const ultimo = metidos === necesarios;
+
+                if (ultimo) {
+                    modal.querySelectorAll(".maleta-objeto").forEach(b => { b.disabled = true; });
+                }
+
+                volarALaMaleta(boton, sitio, objeto.icono).then(() => {
+                    if (ultimo) {
+                        setTimeout(terminar, reducir ? 0 : 900);
+                    }
+                });
             });
         });
 }
