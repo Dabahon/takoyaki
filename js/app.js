@@ -154,7 +154,7 @@ document.addEventListener("DOMContentLoaded", iniciarApp);
    La versión la pone tools/nueva-version.mjs.
    ========================================================= */
 
-const VERSION_WEB = "20261111125210";
+const VERSION_WEB = "20261111130634";
 
 async function comprobarVersionNueva() {
 
@@ -5072,6 +5072,9 @@ function aplicarEleccionesComida() {
 }
 
 
+const TONOS_POSTAL = ["#f3dcc4", "#e2e6d6", "#efd5cc", "#e8dcc6"];
+
+
 function crearEleccionComidaHTML(actividad, abierta) {
 
     const recs = actividad?.recomendaciones;
@@ -5086,42 +5089,81 @@ function crearEleccionComidaHTML(actividad, abierta) {
         ? `<span class="eleccion-texto">Elegido: <strong>${escaparHTML(elegida.nombre)}</strong></span><span class="eleccion-cambiar">Cambiar</span>`
         : `<span class="eleccion-texto">¿Dónde? <strong>${recs.length} ideas</strong> para elegir</span><span class="eleccion-cambiar">Ver</span>`;
 
+    const postales = recs.map((rec, i) => {
+
+        const esta = actividad._elegido === i;
+        const [emoji, plato] = Array.isArray(rec.plato) ? rec.plato : ["🍽️", ""];
+
+        return `
+            <article class="postal-comida${esta ? " elegida" : ""}${rec.aviso ? " con-aviso" : ""}" data-postal="${i}"
+                aria-label="${escaparAtributo(`${i + 1} de ${recs.length}: ${rec.nombre}`)}">
+
+                <div class="postal-foto${rec.foto ? " con-foto" : ""}" style="--tono:${TONOS_POSTAL[i % TONOS_POSTAL.length]}">
+                    ${rec.foto
+                        ? `<img src="${escaparAtributo(rec.foto)}" alt="${escaparAtributo(rec.nombre)}" loading="lazy" draggable="false">`
+                        : `<span class="postal-emoji" aria-hidden="true">${escaparHTML(emoji)}</span>`}
+                    ${plato ? `<span class="postal-plato">${escaparHTML(plato)}</span>` : ""}
+                    ${esta ? `<span class="postal-sello">Elegido</span>` : ""}
+                </div>
+
+                <div class="postal-cuerpo">
+
+                    <div class="eleccion-cabecera">
+                        <h5>${escaparHTML(rec.nombre)}</h5>
+                        ${rec.precio && rec.precio !== "—" ? `<span class="eleccion-precio">${escaparHTML(rec.precio)}</span>` : ""}
+                    </div>
+
+                    <p class="eleccion-meta">
+                        ${escaparHTML(rec.zona || "")}
+                        ${rec.reservar ? `<span class="eleccion-reservar">Reservar</span>` : ""}
+                    </p>
+
+                    <p class="postal-antojo">${escaparHTML(rec.antojo || rec.nota || "")}</p>
+
+                    ${Array.isArray(rec.ambiente) && rec.ambiente.length ? `
+                        <ul class="postal-ambiente">
+                            ${rec.ambiente.map(tag => `<li>${escaparHTML(tag)}</li>`).join("")}
+                        </ul>
+                    ` : ""}
+
+                    ${rec.ideal ? `<p class="postal-ideal"><span>Ideal si</span> ${escaparHTML(rec.ideal)}</p>` : ""}
+
+                    ${rec.curiosidad ? `<p class="postal-curiosidad"><span aria-hidden="true">💡</span> ${escaparHTML(rec.curiosidad)}</p>` : ""}
+
+                    ${rec.aviso ? `<p class="eleccion-aviso">⚠️ ${escaparHTML(rec.aviso)}</p>` : ""}
+
+                    <div class="eleccion-botones">
+                        <button type="button" class="eleccion-elegir"
+                            data-elegir="${escaparAtributo(actividad.id)}" data-indice="${i}"
+                            aria-pressed="${esta}">
+                            ${esta ? "✓ Elegido" : "Elegir este"}
+                        </button>
+                        <a class="eleccion-maps" href="${escaparAtributo(mapsDeRecomendacion(rec))}"
+                            target="_blank" rel="noopener noreferrer">Ver fotos y mapa →</a>
+                    </div>
+                </div>
+            </article>
+        `;
+    }).join("");
+
     return `
-        <details class="eleccion${elegida ? " con-eleccion" : ""}" ${abierta ? "open" : ""}>
+        <details class="eleccion${elegida ? " con-eleccion" : ""}" ${abierta ? "open" : ""}
+            data-inicio="${Number.isInteger(actividad._elegido) ? actividad._elegido : 0}">
             <summary>
                 <span class="eleccion-icono" aria-hidden="true">🍽️</span>
                 ${resumen}
                 <span class="eleccion-flecha" aria-hidden="true"></span>
             </summary>
 
-            <ul class="eleccion-lista">
-                ${recs.map((rec, i) => {
-                    const esta = actividad._elegido === i;
-                    return `
-                        <li class="eleccion-opcion${esta ? " elegida" : ""}${rec.aviso ? " con-aviso" : ""}">
-                            <div class="eleccion-cabecera">
-                                <strong>${escaparHTML(rec.nombre)}</strong>
-                                ${rec.precio && rec.precio !== "—" ? `<span class="eleccion-precio">${escaparHTML(rec.precio)}</span>` : ""}
-                            </div>
-                            <p class="eleccion-nota">${escaparHTML(rec.nota || "")}</p>
-                            <p class="eleccion-meta">
-                                ${escaparHTML(rec.zona || "")}
-                                ${rec.reservar ? `<span class="eleccion-reservar">Reservar</span>` : ""}
-                            </p>
-                            ${rec.aviso ? `<p class="eleccion-aviso">⚠️ ${escaparHTML(rec.aviso)}</p>` : ""}
-                            <div class="eleccion-botones">
-                                <button type="button" class="eleccion-elegir"
-                                    data-elegir="${escaparAtributo(actividad.id)}" data-indice="${i}"
-                                    aria-pressed="${esta}">
-                                    ${esta ? "✓ Elegido" : "Elegir"}
-                                </button>
-                                <a class="eleccion-maps" href="${escaparAtributo(mapsDeRecomendacion(rec))}"
-                                    target="_blank" rel="noopener noreferrer">Ver en Maps</a>
-                            </div>
-                        </li>
-                    `;
-                }).join("")}
-            </ul>
+            <div class="postales" data-postales tabindex="0" aria-label="Desliza para ver más sitios">
+                ${postales}
+            </div>
+
+            ${recs.length > 1 ? `
+                <div class="postales-puntos" aria-hidden="true">
+                    ${recs.map((_, i) => `<span class="${i === (Number.isInteger(actividad._elegido) ? actividad._elegido : 0) ? "activo" : ""}"></span>`).join("")}
+                </div>
+            ` : ""}
 
             ${elegida ? `
                 <button type="button" class="eleccion-quitar" data-elegir="${escaparAtributo(actividad.id)}" data-indice="-1">
@@ -5130,6 +5172,53 @@ function crearEleccionComidaHTML(actividad, abierta) {
             ` : ""}
         </details>
     `;
+}
+
+
+// Al abrir: la postal elegida a la vista. Al deslizar: los puntos siguen.
+function prepararPostales(contenedor) {
+
+    if (!contenedor || contenedor.dataset.postalesListas) {
+        return;
+    }
+
+    contenedor.dataset.postalesListas = "1";
+
+    const irA = (carrusel, indice, suave) => {
+        const postal = carrusel.children[indice];
+        if (postal) {
+            carrusel.scrollTo({
+                left: postal.offsetLeft - carrusel.offsetLeft - parseFloat(getComputedStyle(carrusel).paddingLeft || 0),
+                behavior: suave ? "smooth" : "auto"
+            });
+        }
+    };
+
+    contenedor.addEventListener("toggle", evento => {
+        const detalles = evento.target;
+        if (!detalles.matches?.("details.eleccion") || !detalles.open) {
+            return;
+        }
+        const carrusel = detalles.querySelector("[data-postales]");
+        requestAnimationFrame(() => irA(carrusel, Number(detalles.dataset.inicio) || 0, false));
+    }, true);
+
+    contenedor.addEventListener("scroll", evento => {
+        const carrusel = evento.target;
+        if (!carrusel.matches?.("[data-postales]")) {
+            return;
+        }
+        const primera = carrusel.firstElementChild;
+        if (!primera) {
+            return;
+        }
+        const paso = primera.getBoundingClientRect().width + 12;
+        const actual = Math.round(carrusel.scrollLeft / paso);
+        carrusel
+            .closest("details")
+            ?.querySelectorAll(".postales-puntos span")
+            .forEach((punto, i) => punto.classList.toggle("activo", i === actual));
+    }, true);
 }
 
 
@@ -6797,6 +6886,8 @@ function renderizarItinerario() {
 
     contenedor.innerHTML = "";
 
+    prepararPostales(contenedor);
+
     if (!contenedor.dataset.eleccionLista) {
         contenedor.dataset.eleccionLista = "1";
         contenedor.addEventListener("click", evento => {
@@ -7326,8 +7417,6 @@ function crearActividadHTML(
 
                     ${opcionesHTML}
 
-                    ${eleccionHTML}
-
 
                     ${
                         googleMaps
@@ -7353,6 +7442,8 @@ function crearActividadHTML(
                 </div>
 
             </div>
+
+            ${eleccionHTML}
 
         </div>
     `;

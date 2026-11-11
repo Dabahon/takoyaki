@@ -88,6 +88,19 @@ async function cifrar(palabra) {
         }
     }
 
+    // Fotos de los restaurantes: { "archivo": "privado/comer/x.jpg" } -> { "foto": "data:..." }
+    for (const dia of datos.viaje?.itinerario || []) {
+        for (const actividad of dia.actividades || []) {
+            for (const rec of actividad.recomendaciones || []) {
+                if (rec.archivo) {
+                    const bytes = await readFile(rec.archivo);
+                    rec.foto = "data:image/jpeg;base64," + bytes.toString("base64");
+                    delete rec.archivo;
+                }
+            }
+        }
+    }
+
     /*
      * La sal se conserva entre cifrados: así la llave que guarda
      * el móvil al abrir el regalo sigue valiendo aunque se
