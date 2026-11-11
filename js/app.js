@@ -154,7 +154,7 @@ document.addEventListener("DOMContentLoaded", iniciarApp);
    La versión la pone tools/nueva-version.mjs.
    ========================================================= */
 
-const VERSION_WEB = "20261105145536";
+const VERSION_WEB = "20261111125210";
 
 async function comprobarVersionNueva() {
 
@@ -4989,6 +4989,8 @@ function renderizarAplicacion() {
 
     renderizarHotel();
 
+    aplicarEleccionesComida();
+
     iniciarModoHoy();
 
     renderizarRestaurantes();
@@ -4998,6 +5000,178 @@ function renderizarAplicacion() {
     renderizarChecklist();
 
     iniciarTiempo();
+}
+
+
+/* =========================================================
+   ¿DÓNDE COMEMOS?  Desplegable de recomendaciones
+   Cada comida del itinerario trae varias ideas; la que se
+   elige se guarda en el móvil y pasa a ser el plan (título,
+   ubicación, Maps y modo "Hoy").
+   ========================================================= */
+
+const CLAVE_COMIDAS = "plan_comidas";
+
+
+function leerEleccionesComida() {
+    try {
+        return JSON.parse(leerDato("localStorage", CLAVE_COMIDAS) || "{}") || {};
+    } catch (error) {
+        return {};
+    }
+}
+
+
+function mapsDeRecomendacion(rec) {
+    const consulta = [rec.nombre, rec.direccion, rec.ciudad || "Firenze"].filter(Boolean).join(", ");
+    return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(consulta)}`;
+}
+
+
+function actividadesConRecomendaciones() {
+    return (datosViaje?.viaje?.itinerario || [])
+        .flatMap(dia => dia.actividades || [])
+        .filter(act => act && act.id && Array.isArray(act.recomendaciones) && act.recomendaciones.length);
+}
+
+
+function aplicarEleccionesComida() {
+
+    const elecciones = leerEleccionesComida();
+
+    actividadesConRecomendaciones().forEach(act => {
+
+        if (!act._base) {
+            act._base = {
+                titulo: act.titulo,
+                ubicacion: act.ubicacion,
+                google_maps: act.google_maps
+            };
+        }
+
+        // Lo elegido en el móvil manda; si no, la opción por defecto del plan
+        const guardado = elecciones[act.id];
+        const indice =
+            Number.isInteger(guardado) ? guardado :
+            Number.isInteger(act.elegido) ? act.elegido : -1;
+
+        const rec = act.recomendaciones[indice];
+
+        act._elegido = rec ? indice : null;
+
+        if (rec) {
+            act.titulo = (act.titulo_con_sitio || "{sitio}").replace("{sitio}", rec.nombre);
+            act.ubicacion = rec.direccion ? `${rec.nombre} — ${rec.direccion}` : rec.nombre;
+            act.google_maps = mapsDeRecomendacion(rec);
+        } else {
+            act.titulo = act._base.titulo;
+            act.ubicacion = act._base.ubicacion;
+            act.google_maps = act._base.google_maps;
+        }
+    });
+}
+
+
+function crearEleccionComidaHTML(actividad, abierta) {
+
+    const recs = actividad?.recomendaciones;
+
+    if (!actividad?.id || !Array.isArray(recs) || !recs.length) {
+        return "";
+    }
+
+    const elegida = Number.isInteger(actividad._elegido) ? recs[actividad._elegido] : null;
+
+    const resumen = elegida
+        ? `<span class="eleccion-texto">Elegido: <strong>${escaparHTML(elegida.nombre)}</strong></span><span class="eleccion-cambiar">Cambiar</span>`
+        : `<span class="eleccion-texto">¿Dónde? <strong>${recs.length} ideas</strong> para elegir</span><span class="eleccion-cambiar">Ver</span>`;
+
+    return `
+        <details class="eleccion${elegida ? " con-eleccion" : ""}" ${abierta ? "open" : ""}>
+            <summary>
+                <span class="eleccion-icono" aria-hidden="true">🍽️</span>
+                ${resumen}
+                <span class="eleccion-flecha" aria-hidden="true"></span>
+            </summary>
+
+            <ul class="eleccion-lista">
+                ${recs.map((rec, i) => {
+                    const esta = actividad._elegido === i;
+                    return `
+                        <li class="eleccion-opcion${esta ? " elegida" : ""}${rec.aviso ? " con-aviso" : ""}">
+                            <div class="eleccion-cabecera">
+                                <strong>${escaparHTML(rec.nombre)}</strong>
+                                ${rec.precio && rec.precio !== "—" ? `<span class="eleccion-precio">${escaparHTML(rec.precio)}</span>` : ""}
+                            </div>
+                            <p class="eleccion-nota">${escaparHTML(rec.nota || "")}</p>
+                            <p class="eleccion-meta">
+                                ${escaparHTML(rec.zona || "")}
+                                ${rec.reservar ? `<span class="eleccion-reservar">Reservar</span>` : ""}
+                            </p>
+                            ${rec.aviso ? `<p class="eleccion-aviso">⚠️ ${escaparHTML(rec.aviso)}</p>` : ""}
+                            <div class="eleccion-botones">
+                                <button type="button" class="eleccion-elegir"
+                                    data-elegir="${escaparAtributo(actividad.id)}" data-indice="${i}"
+                                    aria-pressed="${esta}">
+                                    ${esta ? "✓ Elegido" : "Elegir"}
+                                </button>
+                                <a class="eleccion-maps" href="${escaparAtributo(mapsDeRecomendacion(rec))}"
+                                    target="_blank" rel="noopener noreferrer">Ver en Maps</a>
+                            </div>
+                        </li>
+                    `;
+                }).join("")}
+            </ul>
+
+            ${elegida ? `
+                <button type="button" class="eleccion-quitar" data-elegir="${escaparAtributo(actividad.id)}" data-indice="-1">
+                    Aún no lo tengo claro
+                </button>
+            ` : ""}
+        </details>
+    `;
+}
+
+
+function elegirComida(id, indice) {
+
+    const actividad =
+        actividadesConRecomendaciones().find(act => act.id === id);
+
+    if (!actividad || !Number.isInteger(indice)) {
+        return;
+    }
+
+    const elecciones = leerEleccionesComida();
+
+    // Tocar la ya elegida no hace nada; -1 = sin elegir (también por encima del defecto)
+    if (indice >= 0 && actividad._elegido === indice) {
+        return;
+    }
+
+    elecciones[id] = indice >= 0 ? indice : -1;
+    guardarDato("localStorage", CLAVE_COMIDAS, JSON.stringify(elecciones));
+
+    aplicarEleccionesComida();
+
+    // Solo se repinta esa actividad, para no cerrar los días abiertos
+    const viejo =
+        document.querySelector(`#itinerary-list [data-actividad="${CSS.escape(id)}"]`);
+
+    if (viejo) {
+        const plantilla = document.createElement("template");
+        plantilla.innerHTML = crearActividadHTML(actividad, { eleccionAbierta: indice < 0 }).trim();
+        const nuevo = plantilla.content.firstElementChild;
+        if (nuevo) {
+            viejo.replaceWith(nuevo);
+            nuevo.classList.add("recien-elegido");
+        }
+    }
+
+    // El modo "Hoy" también cambia de sitio
+    if (typeof renderizarHoy === "function") {
+        renderizarHoy();
+    }
 }
 
 
@@ -6623,6 +6797,16 @@ function renderizarItinerario() {
 
     contenedor.innerHTML = "";
 
+    if (!contenedor.dataset.eleccionLista) {
+        contenedor.dataset.eleccionLista = "1";
+        contenedor.addEventListener("click", evento => {
+            const boton = evento.target.closest("[data-elegir]");
+            if (boton) {
+                elegirComida(boton.dataset.elegir, Number(boton.dataset.indice));
+            }
+        });
+    }
+
 
     itinerario.forEach(
         dia => {
@@ -6901,7 +7085,8 @@ function crearElementoItinerario(
    ========================================================= */
 
 function crearActividadHTML(
-    actividad
+    actividad,
+    { eleccionAbierta = false } = {}
 ) {
 
     if (
@@ -6971,6 +7156,9 @@ function crearActividadHTML(
 
     let opcionesHTML = "";
 
+    const eleccionHTML =
+        crearEleccionComidaHTML(actividad, eleccionAbierta);
+
 
     if (
         Array.isArray(
@@ -7011,6 +7199,7 @@ function crearActividadHTML(
                     ? "itinerary-special"
                     : ""
             }"
+            ${actividad.id ? `data-actividad="${escaparAtributo(actividad.id)}"` : ""}
         >
 
             ${
@@ -7136,6 +7325,8 @@ function crearActividadHTML(
 
 
                     ${opcionesHTML}
+
+                    ${eleccionHTML}
 
 
                     ${
