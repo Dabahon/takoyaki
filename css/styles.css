@@ -11190,3 +11190,28 @@ body.juego-abierto {
         font-size: 3rem;
     }
 }
+
+
+/* Pista extra dentro de la carta (más pequeña, a mano) */
+.sobre-carta-extra {
+    display: block;
+    margin-top: 0.55em;
+    padding-top: 0.45em;
+    border-top: 1px dashed rgba(143, 79, 58, 0.35);
+    color: #6b4a33;
+    font-family: "Caveat", "Segoe Print", cursive;
+    font-size: 1.12em;
+    font-weight: 500;
+    line-height: 1.1;
+}
+
+.sobre-carta-extra > span {
+    display: block;
+    margin-bottom: 0.15em;
+    color: var(--primary);
+    font-family: Inter, system-ui, sans-serif;
+    font-size: 0.5em;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+}

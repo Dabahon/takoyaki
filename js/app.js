@@ -26,7 +26,7 @@ const CONFIG = {
     pistas: [
         { fecha: "2026-11-04T19:00:00+01:00", icono: "📸", texto: "UHJpbWVyYSBwaXN0YTogaGF6IGh1ZWNvIGVuIGVsIG3Ds3ZpbC4gVmFzIGEgaGFjZXIgbXVjaGFzIGZvdG9zLg==" },
         { fecha: "2026-11-11T19:00:00+01:00", icono: "🧳", juego: "maleta", texto: "wqFNYWxldGEgbGlzdGEhIEFsZ28gY8OzbW9kbyBwYXJhIGVsIGTDrWEgeSBhbGdvIGJvbml0byBwYXJhIHVuYSBjZW5hIGVzcGVjaWFsLg==" },
-        { fecha: "2026-11-18T19:00:00+01:00", icono: "🧣", juego: "termometro", texto: "SGFyw6EgZnLDrW8uIEdvcnJvIGJsYW5jbywgc8OtLiBCaWtpbmksIG5vLg==" },
+        { fecha: "2026-11-18T19:00:00+01:00", icono: "🧣", juego: "termometro", texto: "SGFyw6EgZnLDrW8uIEdvcnJvIGJsYW5jbywgc8OtLiBCaWtpbmksIG5vLg==", extra: "VW4gcsOtbyBjcnV6YXLDoSBsYSBjaXVkYWTigKYgeSBsbyBjcnV6YXJlbW9zIG3DoXMgZGUgdW5hIHZlei4g8J+MiQ==" },
         { fecha: "2026-11-25T19:00:00+01:00", icono: "🍷", juego: "trileros", texto: "RWwgdmlhamUgaW5jbHV5ZSB2aW5vLiBNdWNobyB2aW5vLiBUdSDDum5pY2EgbWlzacOzbjogZWxlZ2lyIGxhIG1lam9yIHV2YS4=" },
         { fecha: "2026-12-02T19:00:00+01:00", icono: "🎨", juego: "examen", texto: "SGFicsOhIGFydGUuIERlbCBxdWUgc2FsZSBlbiBsb3MgbGlicm9zIGRlbCBjb2xlLg==" },
         { fecha: "2026-12-09T19:00:00+01:00", icono: "🪜", juego: "escalera", texto: "SGFicsOhIGVzY2Fsb25lcy4gTXVjaG9zLiBQZXJvIGxhcyB2aXN0YXMgbG8gY29tcGVuc2FuLiBZIGFycmliYSwgbGEgcGFsYWJyYSBzZWNyZXRhOiBUQUtPWUFLSS4gR3XDoXJkYWxhIHBhcmEgbWHDsWFuYS4=" }
@@ -154,7 +154,7 @@ document.addEventListener("DOMContentLoaded", iniciarApp);
    La versión la pone tools/nueva-version.mjs.
    ========================================================= */
 
-const VERSION_WEB = "20261111130634";
+const VERSION_WEB = "20261113111300";
 
 async function comprobarVersionNueva() {
 
@@ -1018,7 +1018,7 @@ function renderizarPistas() {
                             <span class="sobre-carta">
                                 <span class="sobre-carta-etiqueta">Pista nº ${numero}</span>
                                 <span class="sobre-carta-icono" aria-hidden="true">${pista.icono}</span>
-                                <span class="sobre-carta-texto">${escaparHTML(textoDeBase64(pista.texto))}</span>
+                                <span class="sobre-carta-texto">${escaparHTML(textoDeBase64(pista.texto))}${pista.extra ? `<span class="sobre-carta-extra"><span>Pista extra</span>${escaparHTML(textoDeBase64(pista.extra))}</span>` : ""}</span>
                             </span>
 
                             <span class="sobre-bolsillo" aria-hidden="true"></span>
