@@ -26,7 +26,7 @@ const CONFIG = {
     pistas: [
         { fecha: "2026-11-04T19:00:00+01:00", icono: "📸", texto: "UHJpbWVyYSBwaXN0YTogaGF6IGh1ZWNvIGVuIGVsIG3Ds3ZpbC4gVmFzIGEgaGFjZXIgbXVjaGFzIGZvdG9zLg==" },
         { fecha: "2026-11-11T19:00:00+01:00", icono: "🧳", juego: "maleta", texto: "wqFNYWxldGEgbGlzdGEhIEFsZ28gY8OzbW9kbyBwYXJhIGVsIGTDrWEgeSBhbGdvIGJvbml0byBwYXJhIHVuYSBjZW5hIGVzcGVjaWFsLg==" },
-        { fecha: "2026-11-18T19:00:00+01:00", icono: "🧣", juego: "termometro", texto: "SGFyw6EgZnLDrW8uIEdvcnJvIGJsYW5jbywgc8OtLiBCaWtpbmksIG5vLg==", extra: "VW4gcsOtbyBjcnV6YXLDoSBsYSBjaXVkYWTigKYgeSBsbyBjcnV6YXJlbW9zIG3DoXMgZGUgdW5hIHZlei4g8J+MiQ==" },
+        { fecha: "2026-11-18T19:00:00+01:00", icono: "⛵", juego: "barco", texto: "SGFyw6EgZnLDrW8geSBoYWJyw6EgdW4gcsOtbyBxdWUgY3J1emFyZW1vcyBtw6FzIGRlIHVuYSB2ZXouIEdvcnJvIGJsYW5jbywgc8OtLiBCaWtpbmksIG5vLg==" },
         { fecha: "2026-11-25T19:00:00+01:00", icono: "🍷", juego: "trileros", texto: "RWwgdmlhamUgaW5jbHV5ZSB2aW5vLiBNdWNobyB2aW5vLiBUdSDDum5pY2EgbWlzacOzbjogZWxlZ2lyIGxhIG1lam9yIHV2YS4=" },
         { fecha: "2026-12-02T19:00:00+01:00", icono: "🎨", juego: "examen", texto: "SGFicsOhIGFydGUuIERlbCBxdWUgc2FsZSBlbiBsb3MgbGlicm9zIGRlbCBjb2xlLg==" },
         { fecha: "2026-12-09T19:00:00+01:00", icono: "🪜", juego: "escalera", texto: "SGFicsOhIGVzY2Fsb25lcy4gTXVjaG9zLiBQZXJvIGxhcyB2aXN0YXMgbG8gY29tcGVuc2FuLiBZIGFycmliYSwgbGEgcGFsYWJyYSBzZWNyZXRhOiBUQUtPWUFLSS4gR3XDoXJkYWxhIHBhcmEgbWHDsWFuYS4=" }
@@ -154,7 +154,7 @@ document.addEventListener("DOMContentLoaded", iniciarApp);
    La versión la pone tools/nueva-version.mjs.
    ========================================================= */
 
-const VERSION_WEB = "20261113111300";
+const VERSION_WEB = "20261113115126";
 
 async function comprobarVersionNueva() {
 
@@ -2046,11 +2046,493 @@ function montarEscalera(zona, api) {
 }
 
 
+/* ---------------------------------------------------------
+   Pista 3 · El barquito de papel
+   Río abajo entre placas de hielo y piedras, nevando, hasta
+   pasar bajo un puente. Chocar solo frena: siempre se llega.
+   --------------------------------------------------------- */
+
+const BARCO = {
+    duracion: 26,          // segundos de travesía a velocidad normal
+    velocidad: 125,        // px/s a los que baja el río
+    choques: ["¡Uy, hielo! 🧊", "¡Cuidado, capitana!", "Bordeando, bordeando…", "¡Esa piedra no estaba!"],
+    hitos: [
+        [0.25, "Brrr… qué frío hace aquí. ❄️"],
+        [0.5, "Mitad del camino. Sigue así."],
+        [0.8, "¡Se ve un puente al fondo!"]
+    ]
+};
+
+
+function montarBarco(zona, api) {
+
+    zona.innerHTML = `
+        <div class="barco-escena" data-barco-escena>
+            <canvas class="barco-lienzo" data-barco-lienzo aria-label="Río con un barquito de papel" role="img"></canvas>
+            <div class="barco-portada" data-barco-portada>
+                <span class="barco-portada-icono" aria-hidden="true">⛵</span>
+                <p>Arrastra el dedo para guiar el barquito río abajo.</p>
+                <button type="button" class="gift-main-button juego-boton" data-barco-empezar>
+                    ¡Al agua! <span aria-hidden="true">🌊</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="barco-progreso" aria-hidden="true">
+            <span class="barco-progreso-barra"><span data-barco-barra></span></span>
+            <span class="barco-progreso-meta">Puente</span>
+        </div>
+
+        <p class="juego-mensaje" data-juego-mensaje aria-live="polite">Un río, un barquito y mucho frío…</p>
+    `;
+
+    const escena = zona.querySelector("[data-barco-escena]");
+    const lienzo = zona.querySelector("[data-barco-lienzo]");
+    const portada = zona.querySelector("[data-barco-portada]");
+    const barra = zona.querySelector("[data-barco-barra]");
+    const ctx = lienzo.getContext("2d");
+
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    let ancho = 0, alto = 0;
+
+    function medir() {
+        const caja = escena.getBoundingClientRect();
+        ancho = Math.max(240, Math.round(caja.width));
+        alto = Math.max(260, Math.round(caja.height));
+        lienzo.width = ancho * dpr;
+        lienzo.height = alto * dpr;
+        lienzo.style.width = `${ancho}px`;
+        lienzo.style.height = `${alto}px`;
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    medir();
+
+    const largo = BARCO.duracion * BARCO.velocidad;   // distancia total hasta el puente
+
+    // El río serpentea: centro y anchura según la distancia recorrida
+    const centroRio = d => ancho / 2 + Math.sin(d / 520) * ancho * 0.12 + Math.sin(d / 190) * ancho * 0.04;
+    const anchoRio = () => ancho * 0.62;
+
+    const estado = {
+        jugando: false,
+        terminado: false,
+        recorrido: 0,          // distancia que ha bajado el río
+        x: ancho / 2,
+        objetivo: ancho / 2,
+        giro: 0,
+        frenado: 0,
+        obstaculos: [],
+        copos: Array.from({ length: 38 }, () => ({
+            x: Math.random(), y: Math.random(), r: 0.8 + Math.random() * 1.8, v: 18 + Math.random() * 30, f: Math.random() * 6
+        })),
+        siguiente: 0.9,
+        hito: 0,
+        ultimoChoque: 0,
+        bajoPuente: 0
+    };
+
+    const yBarco = () => alto * 0.76;
+
+    // Pantalla -> distancia en el río (lo de arriba está más lejos)
+    const distanciaEn = y => estado.recorrido + (yBarco() - y);
+
+
+    function crearObstaculo() {
+        const d = estado.recorrido + yBarco() + 40;
+        const centro = centroRio(d);
+        const mitad = anchoRio() / 2 - 26;
+        const hielo = Math.random() < 0.68;
+        const r = hielo ? 15 + Math.random() * 12 : 11 + Math.random() * 7;
+        const puntos = Array.from({ length: hielo ? 7 : 6 }, (_, i) => {
+            const a = (i / (hielo ? 7 : 6)) * Math.PI * 2;
+            return [Math.cos(a) * r * (0.75 + Math.random() * 0.35), Math.sin(a) * r * (0.65 + Math.random() * 0.3)];
+        });
+        estado.obstaculos.push({
+            d, dx: centro + (Math.random() * 2 - 1) * mitad - centroRio(d), r, hielo, puntos, roto: 0, deriva: (Math.random() - 0.5) * 10
+        });
+    }
+
+
+    // ---------- Control: arrastrar (o tocar) en cualquier sitio ----------
+    const apuntar = evento => {
+        const caja = lienzo.getBoundingClientRect();
+        estado.objetivo = Math.min(ancho - 10, Math.max(10, evento.clientX - caja.left));
+    };
+
+    let arrastrando = false;
+
+    lienzo.addEventListener("pointerdown", evento => {
+        arrastrando = true;
+        apuntar(evento);
+        try { lienzo.setPointerCapture(evento.pointerId); } catch (error) { /* nada */ }
+    });
+    lienzo.addEventListener("pointermove", evento => {
+        if (arrastrando) {
+            apuntar(evento);
+        }
+    });
+    ["pointerup", "pointercancel"].forEach(tipo =>
+        lienzo.addEventListener(tipo, () => { arrastrando = false; }));
+
+
+    // ---------- Dibujo ----------
+    function dibujarOrillasYAgua(t) {
+
+        // Nieve de las orillas
+        ctx.fillStyle = "#efe9e0";
+        ctx.fillRect(0, 0, ancho, alto);
+
+        // Puntitos en la nieve (fijos al terreno)
+        ctx.fillStyle = "rgba(170, 150, 120, 0.18)";
+        for (let y = -40; y < alto + 40; y += 22) {
+            const d = distanciaEn(y);
+            const fila = Math.floor(d / 22);
+            for (let k = 0; k < 4; k++) {
+                const semilla = Math.sin(fila * 12.9898 + k * 78.233) * 43758.5453;
+                const px = (semilla - Math.floor(semilla)) * ancho;
+                const py = y + ((d % 22) + 22) % 22 - 11;
+                ctx.beginPath();
+                ctx.arc(px, py, 1.6, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        // El agua
+        const izquierda = [], derecha = [];
+        for (let y = -20; y <= alto + 20; y += 12) {
+            const d = distanciaEn(y);
+            const c = centroRio(d), m = anchoRio() / 2;
+            izquierda.push([c - m, y]);
+            derecha.push([c + m, y]);
+        }
+
+        // Borde de hielo de la orilla
+        ctx.beginPath();
+        izquierda.forEach(([x, y], i) => (i ? ctx.lineTo(x - 7, y) : ctx.moveTo(x - 7, y)));
+        derecha.slice().reverse().forEach(([x, y]) => ctx.lineTo(x + 7, y));
+        ctx.closePath();
+        ctx.fillStyle = "#d7e6ec";
+        ctx.fill();
+
+        const agua = ctx.createLinearGradient(0, 0, 0, alto);
+        agua.addColorStop(0, "#5f8fa3");
+        agua.addColorStop(1, "#6f9fb2");
+        ctx.beginPath();
+        izquierda.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)));
+        derecha.slice().reverse().forEach(([x, y]) => ctx.lineTo(x, y));
+        ctx.closePath();
+        ctx.fillStyle = agua;
+        ctx.fill();
+
+        // Ondas que bajan con el río
+        ctx.save();
+        ctx.clip();
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.22)";
+        ctx.lineWidth = 1.6;
+        ctx.lineCap = "round";
+        for (let y = -30; y < alto + 30; y += 34) {
+            const d = distanciaEn(y);
+            const fase = ((d % 34) + 34) % 34;
+            const yy = y + fase - 17;
+            for (let k = -1; k <= 1; k++) {
+                const x = centroRio(distanciaEn(yy)) + k * anchoRio() * 0.28 + Math.sin(yy / 30 + k) * 6;
+                ctx.beginPath();
+                ctx.moveTo(x - 9, yy);
+                ctx.quadraticCurveTo(x, yy - 3, x + 9, yy);
+                ctx.stroke();
+            }
+        }
+        ctx.restore();
+
+        // Arbolitos nevados en las orillas
+        for (let y = -40; y < alto + 60; y += 70) {
+            const d = distanciaEn(y);
+            const fila = Math.floor(d / 70);
+            const fase = ((d % 70) + 70) % 70;
+            const yy = y + fase - 35;
+            const c = centroRio(distanciaEn(yy)), m = anchoRio() / 2;
+            const lado = fila % 2 ? -1 : 1;
+            const x = c + lado * (m + 22 + (Math.abs(Math.sin(fila * 3.1)) * 18));
+            if (x > 6 && x < ancho - 6) {
+                ctx.fillStyle = "#7d8f74";
+                ctx.beginPath();
+                ctx.moveTo(x, yy - 16); ctx.lineTo(x - 9, yy + 6); ctx.lineTo(x + 9, yy + 6);
+                ctx.closePath(); ctx.fill();
+                ctx.fillStyle = "#ffffff";
+                ctx.beginPath();
+                ctx.moveTo(x, yy - 16); ctx.lineTo(x - 4.5, yy - 6); ctx.lineTo(x + 4.5, yy - 6);
+                ctx.closePath(); ctx.fill();
+            }
+        }
+        void t;
+    }
+
+
+    function dibujarObstaculos() {
+        estado.obstaculos.forEach(o => {
+            const y = yBarco() - (o.d - estado.recorrido);
+            const x = centroRio(o.d) + o.dx;
+            o.pantalla = [x, y];
+            if (y < -40 || y > alto + 40) {
+                return;
+            }
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.globalAlpha = 1 - o.roto;
+            ctx.beginPath();
+            o.puntos.forEach(([px, py], i) => (i ? ctx.lineTo(px, py) : ctx.moveTo(px, py)));
+            ctx.closePath();
+            if (o.hielo) {
+                ctx.fillStyle = "rgba(244, 250, 252, 0.95)";
+                ctx.strokeStyle = "rgba(160, 196, 210, 0.9)";
+            } else {
+                ctx.fillStyle = "#8d8378";
+                ctx.strokeStyle = "#6f665d";
+            }
+            ctx.lineWidth = 1.5;
+            ctx.fill();
+            ctx.stroke();
+            if (o.hielo) {
+                ctx.strokeStyle = "rgba(170, 205, 220, 0.8)";
+                ctx.beginPath();
+                ctx.moveTo(-o.r * 0.4, -o.r * 0.1); ctx.lineTo(o.r * 0.2, o.r * 0.2);
+                ctx.stroke();
+            } else {
+                ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
+                ctx.beginPath();
+                ctx.ellipse(-o.r * 0.15, -o.r * 0.35, o.r * 0.5, o.r * 0.22, 0, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.restore();
+        });
+    }
+
+
+    function dibujarBarco() {
+        const x = estado.x, y = yBarco();
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(estado.giro);
+
+        // Estela
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.45)";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(-10, 12); ctx.quadraticCurveTo(-16, 26, -22, 38);
+        ctx.moveTo(10, 12); ctx.quadraticCurveTo(16, 26, 22, 38);
+        ctx.stroke();
+
+        // Casco de papel
+        ctx.fillStyle = "#fffdf8";
+        ctx.strokeStyle = "#b9ab98";
+        ctx.lineWidth = 1.4;
+        ctx.beginPath();
+        ctx.moveTo(-18, -2); ctx.lineTo(18, -2); ctx.lineTo(11, 10); ctx.lineTo(-11, 10);
+        ctx.closePath(); ctx.fill(); ctx.stroke();
+
+        // Vela de papel
+        ctx.beginPath();
+        ctx.moveTo(-10, -2); ctx.lineTo(0, -24); ctx.lineTo(10, -2);
+        ctx.closePath();
+        ctx.fillStyle = "#ffffff"; ctx.fill(); ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(0, -24); ctx.lineTo(0, -2);
+        ctx.strokeStyle = "#d9cdbb"; ctx.stroke();
+
+        // Un corazoncito pintado en la vela
+        ctx.fillStyle = "#c0533f";
+        ctx.beginPath();
+        ctx.moveTo(4.5, -8);
+        ctx.bezierCurveTo(4.5, -10.5, 8, -10.5, 8, -8);
+        ctx.bezierCurveTo(8, -6, 4.5, -4.5, 4.5, -4.5);
+        ctx.bezierCurveTo(4.5, -4.5, 1, -6, 1, -8);
+        ctx.bezierCurveTo(1, -10.5, 4.5, -10.5, 4.5, -8);
+        ctx.fill();
+
+        ctx.restore();
+    }
+
+
+    // El puente: tramo de piedra con arcos, de orilla a orilla
+    function dibujarPuente(capa) {
+        const y = yBarco() - (largo - estado.recorrido);
+        if (y < -120 || y > alto + 80) {
+            return;
+        }
+        const c = centroRio(largo), m = anchoRio() / 2 + 34;
+        const izquierda = Math.max(0, c - m), derecha = Math.min(ancho, c + m);
+        const grosor = 30;
+
+        if (capa === "sombra") {
+            ctx.fillStyle = "rgba(40, 60, 70, 0.22)";
+            ctx.fillRect(izquierda, y + grosor / 2, derecha - izquierda, 18);
+            return;
+        }
+
+        // Tablero
+        ctx.fillStyle = "#c9a27e";
+        ctx.fillRect(izquierda, y - grosor / 2, derecha - izquierda, grosor);
+        // Pretil nevado
+        ctx.fillStyle = "#f7f3ec";
+        ctx.fillRect(izquierda, y - grosor / 2 - 4, derecha - izquierda, 6);
+        ctx.fillRect(izquierda, y + grosor / 2 - 3, derecha - izquierda, 5);
+        // Juntas de piedra
+        ctx.strokeStyle = "rgba(120, 80, 50, 0.35)";
+        ctx.lineWidth = 1;
+        for (let x = izquierda + 14; x < derecha; x += 18) {
+            ctx.beginPath(); ctx.moveTo(x, y - grosor / 2 + 2); ctx.lineTo(x, y + grosor / 2 - 3); ctx.stroke();
+        }
+        // Farolas
+        ctx.fillStyle = "#5e534b";
+        [izquierda + 18, derecha - 18].forEach(x => {
+            ctx.fillRect(x - 1.5, y - grosor / 2 - 14, 3, 12);
+            ctx.fillStyle = "#f7d27a";
+            ctx.beginPath(); ctx.arc(x, y - grosor / 2 - 15, 3.5, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = "#5e534b";
+        });
+    }
+
+
+    function dibujarNieve(dt) {
+        ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
+        estado.copos.forEach(copo => {
+            copo.y += (copo.v * dt) / alto;
+            copo.f += dt;
+            if (copo.y > 1.05) {
+                copo.y = -0.05;
+                copo.x = Math.random();
+            }
+            const x = copo.x * ancho + Math.sin(copo.f) * 6;
+            ctx.beginPath();
+            ctx.arc(x, copo.y * alto, copo.r, 0, Math.PI * 2);
+            ctx.fill();
+        });
+    }
+
+
+    // ---------- Bucle ----------
+    let anterior = performance.now();
+    let pedido = 0;
+
+    function paso(momento) {
+
+        if (!lienzo.isConnected) {
+            return;     // la ventana se cerró
+        }
+
+        const dt = Math.min(0.05, (momento - anterior) / 1000);
+        anterior = momento;
+
+        if (estado.jugando) {
+
+            // Velocidad (frena un rato tras chocar)
+            estado.frenado = Math.max(0, estado.frenado - dt);
+            const velocidad = BARCO.velocidad * (estado.frenado > 0 ? 0.45 : 1);
+            estado.recorrido = Math.min(largo, estado.recorrido + velocidad * dt);
+
+            // El barco sigue al dedo, sin salirse del agua
+            const c = centroRio(estado.recorrido), m = anchoRio() / 2 - 20;
+            estado.objetivo = Math.min(c + m, Math.max(c - m, estado.objetivo));
+            const antes = estado.x;
+            estado.x += (estado.objetivo - estado.x) * Math.min(1, dt * 7);
+            estado.x = Math.min(c + m, Math.max(c - m, estado.x));
+            const inclinacion = Math.max(-0.35, Math.min(0.35, (estado.x - antes) * 0.06));
+            estado.giro += (inclinacion - estado.giro) * Math.min(1, dt * 8);
+
+            // Obstáculos nuevos (no en el último tramo, para el puente)
+            estado.siguiente -= dt;
+            if (estado.siguiente <= 0 && estado.recorrido < largo - alto) {
+                crearObstaculo();
+                estado.siguiente = 0.55 + Math.random() * 0.55;
+            }
+
+            // Choques
+            estado.obstaculos.forEach(o => {
+                if (o.roto || !o.pantalla) {
+                    return;
+                }
+                const [ox, oy] = o.pantalla;
+                const distancia = Math.hypot(ox - estado.x, oy - (yBarco() - 4));
+                if (distancia < o.r + 13) {
+                    o.roto = 0.01;
+                    estado.frenado = 0.7;
+                    estado.giro = (ox < estado.x ? 1 : -1) * 0.5;
+                    if (momento - estado.ultimoChoque > 1200) {
+                        api.decir(BARCO.choques[Math.floor(Math.random() * BARCO.choques.length)], "mal");
+                        estado.ultimoChoque = momento;
+                    }
+                    escena.classList.remove("choque");
+                    void escena.offsetWidth;
+                    escena.classList.add("choque");
+                }
+            });
+            estado.obstaculos.forEach(o => {
+                if (o.roto) {
+                    o.roto = Math.min(1, o.roto + dt * 2.5);
+                }
+            });
+            estado.obstaculos = estado.obstaculos.filter(o => o.roto < 1 && o.d > estado.recorrido - 80);
+
+            // Progreso y ánimos
+            const fraccion = estado.recorrido / largo;
+            barra.style.width = `${(fraccion * 100).toFixed(1)}%`;
+            const hito = BARCO.hitos[estado.hito];
+            if (hito && fraccion >= hito[0]) {
+                api.decir(hito[1]);
+                estado.hito++;
+            }
+
+            // ¡Bajo el puente!
+            if (estado.recorrido >= largo && !estado.terminado) {
+                estado.terminado = true;
+                estado.jugando = false;
+                api.bloquear();
+                escena.classList.add("llegada");
+                api.decir("⛵ ¡Bajo el puente! Y lo cruzaremos más de una vez…", "bien");
+                api.ganar({ confeti: 700, espera: 2900 });
+            }
+        }
+
+        dibujarOrillasYAgua(momento);
+        dibujarPuente("sombra");
+        dibujarObstaculos();
+        dibujarBarco();
+        dibujarPuente("tablero");
+        dibujarNieve(dt);
+
+        pedido = requestAnimationFrame(paso);
+    }
+
+    pedido = requestAnimationFrame(paso);
+    void pedido;
+
+    zona.querySelector("[data-barco-empezar]").addEventListener("click", () => {
+        portada.classList.add("fuera");
+        setTimeout(() => { portada.hidden = true; }, api.reducir ? 0 : 450);
+        anterior = performance.now();
+        estado.jugando = true;
+        api.decir("¡Rumbo al puente! Esquiva el hielo. 🧊");
+    });
+
+    window.addEventListener("resize", () => {
+        if (lienzo.isConnected) {
+            medir();
+        }
+    });
+}
+
+
 const JUEGOS_PISTAS = {
     maleta: {
         titulo: "Haz la maleta, justiciera",
         sub: "Mete solo lo que vas a necesitar.",
         montar: montarMaleta
+    },
+    barco: {
+        titulo: "Río abajo",
+        sub: "Guía el barquito de papel hasta el puente.",
+        montar: montarBarco
     },
     termometro: {
         titulo: "Frío, frío… ¡caliente!",
